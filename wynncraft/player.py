@@ -55,7 +55,7 @@ class Stats:
         return Stats._from_dict_inner(cls, d)
 
 
-def stats(player: str):
+def stats(player: str) -> Stats:
     with player_rate_limit:
         json = wynnAPI.get_v2(f"/player/{player}/stats")
         json["global_stats"] = json.pop("global")

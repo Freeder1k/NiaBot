@@ -1,17 +1,18 @@
 # This example requires the 'message_content' intent.
+import asyncio
 import threading
 import time
-from datetime import datetime, timezone, timedelta, date
+from datetime import datetime
 
 import discord
-from dotenv import load_dotenv
 import schedule
+from dotenv import load_dotenv
 
 import util
 import wynncraft.network
-import wynncraft.wynnAPI
 import wynncraft.player
 import wynncraft.rateLimit
+import wynncraft.wynnAPI
 
 load_dotenv()
 import os
@@ -26,12 +27,20 @@ start_time = datetime.now()
 stopped = threading.Event()
 
 
-def main():
-    client.run(os.environ.get("BOT_TOKEN"))
+def update_presence():
+    asyncio.run(client.change_presence(
+        status=discord.Status.online,
+        activity=discord.Activity(
+            name=f"{wynncraft.network.player_sum()} players play Wynncraft",
+            type=discord.ActivityType.watching
+        )
+    ))
+
 
 def register_schedulers():
     # Register scheduler actions
     schedule.every().minute.at(":00").do(wynncraft.rateLimit.update_ratelimits)
+    schedule.every().minute.at(":00").do(update_presence)
 
     # Set up a thread for the scheduler to run on in the background
     class ScheduleThread(threading.Thread):
@@ -48,18 +57,20 @@ def register_schedulers():
 async def on_ready():
     util.log(f'Logged in as {client.user}')
     util.log(f'Guilds: {[g.name for g in client.guilds]}')
+
+    register_schedulers()
+
     await client.change_presence(
         status=discord.Status.online,
         activity=discord.Activity(
             name=f"{wynncraft.network.player_sum()} players play Wynncraft",
             type=discord.ActivityType.watching
-        ))
 
-    register_schedulers()
+        ))
 
 
 @client.event
-async def on_message(message):
+async def on_message(message: discord.Message):
     if message.author == client.user:
         return
 
@@ -67,8 +78,13 @@ async def on_message(message):
         await message.channel.send('Hello!')
 
 
+def main():
+    client.run(os.environ.get("BOT_TOKEN"))
+
+
 if __name__ == "__main__":
     try:
         main()
     finally:
+        asyncio.run(client.close())
         stopped.set()
