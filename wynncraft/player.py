@@ -1,7 +1,11 @@
 import dataclasses
 from dataclasses import dataclass
 
-import wynncraft.wynnAPI
+from wynncraft import wynnAPI, rateLimit
+
+player_rate_limit = rateLimit.RateLimit(750, 30)
+rateLimit.add_ratelimit(player_rate_limit)
+
 
 @dataclass
 class Stats:
@@ -50,8 +54,9 @@ class Stats:
     def from_dict(cls, d):
         return Stats._from_dict_inner(cls, d)
 
-def stats(player: str):
-    json = wynncraft.wynnAPI.get_v2(f"/player/{player}/stats")
-    json["global_stats"] = json.pop("global")
-    return Stats.from_dict(json['data'][0])
 
+def stats(player: str):
+    with player_rate_limit:
+        json = wynnAPI.get_v2(f"/player/{player}/stats")
+        json["global_stats"] = json.pop("global")
+        return Stats.from_dict(json['data'][0])
