@@ -1,0 +1,4 @@
+schedule
+python-dotenv
+discord.py
+requests

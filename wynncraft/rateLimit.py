@@ -1,6 +1,8 @@
 from queue import Queue
 from threading import Lock
 
+import util
+
 
 class RateLimitException(Exception):
     pass
@@ -53,3 +55,4 @@ def add_ratelimit(rate_limit: RateLimit):
 def update_ratelimits():
     for rate_limit in _rate_limits:
         rate_limit.time_passed()
+    util.dlog(f"Updated {len(_rate_limits)} ratelimits.")

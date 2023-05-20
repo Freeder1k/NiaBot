@@ -1,4 +1,4 @@
-from wynncraft import wynnAPI
+from . import wynnAPI
 
 
 def server_list():

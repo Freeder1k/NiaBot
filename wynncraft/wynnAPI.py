@@ -1,5 +1,5 @@
 import requests
-from wynncraft import rateLimit
+from . import rateLimit
 
 legacy_rate_limit = rateLimit.RateLimit(1200, 20)
 rateLimit.add_ratelimit(legacy_rate_limit)

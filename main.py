@@ -1,11 +1,12 @@
 # This example requires the 'message_content' intent.
+import threading
 import time
 from datetime import datetime, timezone, timedelta, date
 
 import discord
 from dotenv import load_dotenv
+import schedule
 
-from repeatingScheduler import RepeatingScheduler
 import util
 import wynncraft.network
 import wynncraft.wynnAPI
@@ -22,19 +23,25 @@ intents.members = True
 client = discord.Client(intents=intents)
 start_time = datetime.now()
 
+stopped = threading.Event()
+
 
 def main():
     client.run(os.environ.get("BOT_TOKEN"))
 
 def register_schedulers():
-    now = datetime.now(timezone.utc)
+    # Register scheduler actions
+    schedule.every().minute.at(":00").do(wynncraft.rateLimit.update_ratelimits)
 
-    next_day = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    daily_scheduler = RepeatingScheduler(next_day, timedelta(days=1))
+    # Set up a thread for the scheduler to run on in the background
+    class ScheduleThread(threading.Thread):
+        @classmethod
+        def run(cls):
+            while not stopped.is_set():
+                schedule.run_pending()
+                time.sleep(schedule.idle_seconds())
 
-    next_minute = now.replace(second=0, microsecond=0) + timedelta(minutes=1)
-    minute_scheduler = RepeatingScheduler(next_minute, timedelta(minutes=1))\
-        .register_action(wynncraft.rateLimit.update_ratelimits())
+    ScheduleThread().start()
 
 
 @client.event
@@ -61,4 +68,7 @@ async def on_message(message):
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        stopped.set()
