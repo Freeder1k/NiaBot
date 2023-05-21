@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+from typing import Collection
 
-from discord import Permissions, Member, Message, TextChannel, Embed
+from discord import Permissions, Member, TextChannel, Embed
 
 import config
 import util
+from commands.commandEvent import CommandEvent
 
 
 class PermissionLevel(Enum):
@@ -16,46 +18,38 @@ class PermissionLevel(Enum):
 
 
 class Command(ABC):
-    def __init__(self, name: str, aliases: list[str], usage: str, description: str, req_perms: Permissions,
+    def __init__(self, name: str, aliases: Collection[str], usage: str, description: str, req_perms: Permissions,
                  permission_lvl: PermissionLevel):
         self.name = name.lower()
-        self.aliases = [a.lower() for a in aliases]
+        self.aliases = tuple(a.lower() for a in aliases)
         self.usage = usage
         self.description = description
         self.req_perms = req_perms
         self.permission_lvl = permission_lvl
 
     @abstractmethod
-    async def _execute(self, message: Message):
+    async def _execute(self, command_event: CommandEvent):
         pass
 
-    async def run(self, message: Message):
-        if type(message.channel) is not TextChannel:
-            return
-        if message.webhook_id is not None:
-            return
-        if message.author.bot:
-            return
-
-        if self._allowed_user(message.author):
-            if not message.channel.permissions_for(message.guild.me).send_messages():
+    async def run(self, command_event: CommandEvent):
+        if self._allowed_user(command_event.sender):
+            if not command_event.channel.permissions_for(command_event.guild.me).send_messages:
                 return
-            if not message.channel.permissions_for(message.guild.me).embed_links():
-                await message.channel.send("Please give me the Embed Links permission to run commands.")
+            if not command_event.channel.permissions_for(command_event.guild.me).embed_links:
+                await command_event.channel.send("Please give me the Embed Links permission to run commands.")
                 return
 
-            m_perms = util.get_missing_perms(message.channel, self.req_perms)
-            if m_perms is not None:
+            m_perms = util.get_missing_perms(command_event.channel, self.req_perms)
+            if m_perms != Permissions.none():
                 embed = Embed(
                     color=config.ERROR_COLOR,
                     title="**To use this command please give me the following permission(s):**",
-                    description=m_perms
+                    description=[p for p in Permissions.VALID_FLAGS if getattr(m_perms, p)]
                 )
-                await message.channel.send(embed=embed)
+                await command_event.channel.send(embed=embed)
                 return
 
-            # TODO new thread?
-            await self._execute(message)
+            await self._execute(command_event)
 
     async def send_help(self, channel: TextChannel):
         help_embed = Embed(
@@ -65,7 +59,7 @@ class Command(ABC):
         help_embed.add_field(name="**Usage:**", value=f"``{self.usage}``", inline=False)
         if len(self.aliases) > 0:
             help_embed.add_field(name="**Aliases:**", value=', '.join(self.aliases), inline=False)
-        help_embed.add_field(name="**Permission level:**", value=str(self.permission_lvl.value), inline=False)
+        help_embed.add_field(name="**Permission level:**", value=str(self.permission_lvl.name), inline=False)
         help_embed.add_field(name="**Description:**", value=self.description, inline=False)
         if self.req_perms != Permissions.none():
             help_embed.add_field(name="**Required permissions:**", value=str(self.req_perms), inline=False)
@@ -82,7 +76,7 @@ class Command(ABC):
             # TODO
             return True
         if self.permission_lvl <= PermissionLevel.ADMIN:
-            return member.guild_permissions.administrator()
+            return member.guild_permissions.administrator
         if self.permission_lvl == PermissionLevel.DEV:
             return member.id == config.DEV_USER_ID
 

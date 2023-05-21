@@ -1,29 +1,46 @@
-from datetime import datetime
 import json
+import os.path
+from datetime import datetime
+from typing import Final
 
-class PlaytimeData:
-    def __init__(self, start: datetime, playtimes: dict[str, list[int]]):
-        self.start = start
-        self.playtimes = playtimes
+_start: datetime = datetime.today()
+_playtimes: dict[str, list[int]] = {}
+PLAYTIME_FILE: Final = "playtimes.json"
 
-    def set_playtime(self, uuid: str, date: datetime, playtime: int):
-        playtime_list = self.playtimes[uuid]
-        day_diff = (date - self.start).days
 
-        while len(playtime_list) < day_diff:
-            playtime_list.append(0)
+def get_playtimes(uuid: str):
+    return tuple(_playtimes[uuid])
 
+
+def set_playtime(uuid: str, date: datetime, playtime: int):
+    day_diff = (date - _start).days
+
+    if uuid in _playtimes:
+        playtime_list = _playtimes[uuid]
+        playtime_list +=  ([playtime_list[-1]] * (day_diff - len(playtime_list)))
+    else:
+        playtime_list = [0] * day_diff
+
+    if len(playtime_list) <= day_diff:
         playtime_list.append(playtime)
 
-    def to_json(self, file):
-        with open(file, 'w') as f:
-            json.dump({"start": self.start.isoformat(), "playtimes": self.playtimes}, f, indent=4)
+    _playtimes[uuid] = playtime_list
 
-    @classmethod
-    def from_json(cls, file):
-        with open(file, "r") as f:
+
+def store_data():
+    with open(PLAYTIME_FILE, 'w') as f:
+        json.dump({"start": _start.isoformat(), "playtimes": _playtimes}, f, indent=4)
+
+
+def load_data() -> bool:
+    """
+    :return: True, if successfully loaded data.
+    """
+    if os.path.exists(PLAYTIME_FILE):
+        with open(PLAYTIME_FILE, "r") as f:
             data = json.load(f)
-            return cls(datetime.fromisoformat(data["start"]), data["playtimes"])
-
-
-
+            global _start, _playtimes
+            _start = datetime.fromisoformat(data["start"])
+            _playtimes = data["playtimes"]
+            return True
+    return False

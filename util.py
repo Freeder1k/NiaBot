@@ -115,7 +115,7 @@ def cmp_roles(member1: Member, member2: Member) -> bool:
     return get_highest_role(member1) >= get_highest_role(member2)
 
 
-def get_missing_perms(channel: TextChannel, permissions: Permissions) -> Permissions | None:
+def get_missing_perms(channel: TextChannel, permissions: Permissions) -> Permissions:
     """
     Get all specified permissions the bot is missing in a channel.
 

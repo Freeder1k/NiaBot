@@ -1,18 +1,18 @@
-# This example requires the 'message_content' intent.
 import asyncio
 import threading
-import time
 from datetime import datetime
 
 import discord
-import schedule
 from dotenv import load_dotenv
 
+import api.wynncraft.guild
+import api.wynncraft.network
+import api.wynncraft.player
+import commands.prefixed.helpCommand
+import scheduling
+import storage.playtimeData
 import util
-import wynncraft.network
-import wynncraft.player
-import wynncraft.rateLimit
-import wynncraft.wynnAPI
+from commands import commandListener
 
 load_dotenv()
 import os
@@ -27,54 +27,32 @@ start_time = datetime.now()
 stopped = threading.Event()
 
 
-def update_presence():
-    asyncio.run(client.change_presence(
-        status=discord.Status.online,
-        activity=discord.Activity(
-            name=f"{wynncraft.network.player_sum()} players play Wynncraft",
-            type=discord.ActivityType.watching
-        )
-    ))
-
-
-def register_schedulers():
-    # Register scheduler actions
-    schedule.every().minute.at(":00").do(wynncraft.rateLimit.update_ratelimits)
-    schedule.every().minute.at(":00").do(update_presence)
-
-    # Set up a thread for the scheduler to run on in the background
-    class ScheduleThread(threading.Thread):
-        @classmethod
-        def run(cls):
-            while not stopped.wait(schedule.idle_seconds()):
-                schedule.run_pending()
-
-    ScheduleThread().start()
-
-
 @client.event
 async def on_ready():
+    commandListener.on_ready(client)
+
     util.log(f'Logged in as {client.user}')
     util.log(f'Guilds: {[g.name for g in client.guilds]}')
 
-    register_schedulers()
+    storage.playtimeData.load_data()
+    scheduling.start_scheduling(client)
 
     await client.change_presence(
         status=discord.Status.online,
         activity=discord.Activity(
-            name=f"{wynncraft.network.player_sum()} players play Wynncraft",
+            name=f"{api.wynncraft.network.player_sum()} players play Wynncraft",
             type=discord.ActivityType.watching
 
         ))
 
+    commandListener.register_commands(
+        commands.prefixed.helpCommand.HelpCommand()
+    )
+
 
 @client.event
 async def on_message(message: discord.Message):
-    if message.author == client.user:
-        return
-
-    if message.content.startswith('$hello'):
-        await message.channel.send('Hello!')
+    commandListener.on_message(message)
 
 
 def main():
@@ -85,5 +63,6 @@ if __name__ == "__main__":
     try:
         main()
     finally:
-        asyncio.run(client.close())
         stopped.set()
+        scheduling.stop_scheduling()
+        asyncio.run(client.close())

@@ -1,7 +1,8 @@
 import dataclasses
 from dataclasses import dataclass
 
-from . import wynnAPI, rateLimit
+from . import wynnAPI
+from .. import rateLimit
 
 player_rate_limit = rateLimit.RateLimit(750, 30)
 rateLimit.add_ratelimit(player_rate_limit)
