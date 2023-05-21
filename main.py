@@ -46,9 +46,8 @@ def register_schedulers():
     class ScheduleThread(threading.Thread):
         @classmethod
         def run(cls):
-            while not stopped.is_set():
+            while not stopped.wait(schedule.idle_seconds()):
                 schedule.run_pending()
-                time.sleep(schedule.idle_seconds())
 
     ScheduleThread().start()
 
