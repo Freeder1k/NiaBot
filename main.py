@@ -8,11 +8,12 @@ from dotenv import load_dotenv
 import api.wynncraft.guild
 import api.wynncraft.network
 import api.wynncraft.player
+import commands.commandListener
 import commands.prefixed.helpCommand
 import scheduling
+import storage.manager
 import storage.playtimeData
 import util
-from commands import commandListener
 
 load_dotenv()
 import os
@@ -29,7 +30,7 @@ stopped = threading.Event()
 
 @client.event
 async def on_ready():
-    commandListener.on_ready(client)
+    commands.commandListener.on_ready(client)
 
     util.log(f'Logged in as {client.user}')
     util.log(f'Guilds: {[g.name for g in client.guilds]}')
@@ -45,17 +46,21 @@ async def on_ready():
 
         ))
 
-    commandListener.register_commands(
+    commands.commandListener.register_commands(
         commands.prefixed.helpCommand.HelpCommand()
     )
 
 
 @client.event
 async def on_message(message: discord.Message):
-    commandListener.on_message(message)
+    commands.commandListener.on_message(message)
 
 
 def main():
+    print("\n  *:･ﾟ✧(=^･ω･^=)*:･ﾟ✧\n")
+
+    storage.manager.create_database()
+
     client.run(os.environ.get("BOT_TOKEN"))
 
 
@@ -66,3 +71,4 @@ if __name__ == "__main__":
         stopped.set()
         scheduling.stop_scheduling()
         asyncio.run(client.close())
+        storage.manager.close()

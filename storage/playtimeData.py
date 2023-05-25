@@ -1,46 +1,49 @@
-import json
-import os.path
-from datetime import datetime
-from typing import Final
+from dataclasses import dataclass
+from datetime import date
 
-_start: datetime = datetime.today()
-_playtimes: dict[str, list[int]] = {}
-PLAYTIME_FILE: Final = "playtimes.json"
+from storage import manager
 
 
-def get_playtimes(uuid: str):
-    return tuple(_playtimes[uuid])
+@dataclass(frozen=True)
+class Playtime:
+    uuid: str
+    day: date
+    playtime: int
 
 
-def set_playtime(uuid: str, date: datetime, playtime: int):
-    day_diff = (date - _start).days
+def get_playtime(uuid: str, day: date) -> Playtime | None:
+    con = manager.get_connection()
+    cur = manager.get_cursor()
+    with con:
+        res = cur.execute("""
+            SELECT * FROM playtimes
+            WHERE player_uuid = ?
+            AND playtime_day = ?
+        """, (uuid, day))
 
-    if uuid in _playtimes:
-        playtime_list = _playtimes[uuid]
-        playtime_list +=  ([playtime_list[-1]] * (day_diff - len(playtime_list)))
-    else:
-        playtime_list = [0] * day_diff
+        data = res.fetchone()
+        if data is None:
+            return None
 
-    if len(playtime_list) <= day_diff:
-        playtime_list.append(playtime)
-
-    _playtimes[uuid] = playtime_list
-
-
-def store_data():
-    with open(PLAYTIME_FILE, 'w') as f:
-        json.dump({"start": _start.isoformat(), "playtimes": _playtimes}, f, indent=4)
+        return Playtime(data["player_uuid"], data["playtime_day"], data["playtime"])
 
 
-def load_data() -> bool:
-    """
-    :return: True, if successfully loaded data.
-    """
-    if os.path.exists(PLAYTIME_FILE):
-        with open(PLAYTIME_FILE, "r") as f:
-            data = json.load(f)
-            global _start, _playtimes
-            _start = datetime.fromisoformat(data["start"])
-            _playtimes = data["playtimes"]
-            return True
-    return False
+def get_all_playtimes(uuid: str) -> tuple[Playtime]:
+    con = manager.get_connection()
+    cur = manager.get_cursor()
+    with con:
+        res = cur.execute("""
+            SELECT * FROM playtimes
+            WHERE player_uuid = ?
+        """, (uuid,))
+
+        return tuple(Playtime(data["player_uuid"], data["playtime_day"], data["playtime"]) for data in res.fetchall())
+
+
+def set_playtime(uuid: str, day: date, playtime: int):
+    con = manager.get_connection()
+    cur = manager.get_cursor()
+    with con:
+        cur.execute("""
+            REPLACE INTO playtimes VALUES (?, ?, ?)
+        """, (uuid, day, playtime))
