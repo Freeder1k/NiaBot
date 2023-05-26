@@ -29,7 +29,7 @@ stopped = threading.Event()
 
 @client.event
 async def on_ready():
-    commands.commandListener.on_ready(client)
+    await api.wynncraft.wynnAPI.init_sessions()
 
     util.log(f'Logged in as {client.user}')
     util.log(f'Guilds: {[g.name for g in client.guilds]}')
@@ -44,14 +44,17 @@ async def on_ready():
 
         ))
 
+    commands.commandListener.on_ready(client)
+
     commands.commandListener.register_commands(
         commands.prefixed.helpCommand.HelpCommand()
     )
 
 
+
 @client.event
 async def on_message(message: discord.Message):
-    commands.commandListener.on_message(message)
+    asyncio.create_task(commands.commandListener.on_message(message))
 
 
 def main():

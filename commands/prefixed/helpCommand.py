@@ -18,35 +18,38 @@ class HelpCommand(command.Command):
         )
 
     async def _execute(self, event: commandEvent.CommandEvent):
-        commands = commandListener.get_commands()
         if len(event.args) > 1:
             cmd = event.args[1]
-            for c in commands:
-                if c.is_this_command(cmd):
-                    await c.send_help(event.channel)
-                    return
-            await util.send_error(event.channel, f"Unknown command: ``{cmd}``")
-        else:
-            help_embed = Embed(
-                color=config.DEFAULT_COLOR,
-                title="**Help:**",
-                description=f"See: ``{config.PREFIX}help <command>`` for help on individual commands.\n"
-            )
-            anyone = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.ANYONE]
-            member = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.MEMBER]
-            mod = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.MOD]
-            admin = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.ADMIN]
-            dev = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.DEV]
+            cmd_map = commandListener.get_command_map()
+            if cmd in cmd_map:
+                await cmd_map[cmd].send_help(event.channel)
+            else:
+                await util.send_error(event.channel, f"Unknown command: ``{cmd}``")
+            return
 
-            if len(anyone) > 0:
-                help_embed.add_field(name="**General commands:**", value='\n'.join(anyone), inline=False)
-            if len(member) > 0:
-                help_embed.add_field(name="**Member-only commands:**", value='\n'.join(member), inline=False)
-            if len(mod) > 0:
-                help_embed.add_field(name="**Moderator commands:**", value='\n'.join(mod), inline=False)
-            if len(admin) > 0:
-                help_embed.add_field(name="**Admin commands:**", value='\n'.join(admin), inline=False)
-            if len(dev) > 0 and event.sender.id == config.DEV_USER_ID:
-                help_embed.add_field(name="**Admin commands:**", value='\n'.join(admin), inline=False)
+        commands = commandListener.get_commands()
 
-            await event.channel.send(embed=help_embed)
+        help_embed = Embed(
+            color=config.DEFAULT_COLOR,
+            title="**Help:**",
+            description=f"Bot prefix: ``{config.PREFIX}``\n"
+                        f"See: ``{config.PREFIX}help <command>`` for help on individual commands.\n"
+        )
+        anyone = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.ANYONE]
+        member = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.MEMBER]
+        mod = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.MOD]
+        admin = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.ADMIN]
+        dev = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.DEV]
+
+        if len(anyone) > 0:
+            help_embed.add_field(name="**General commands:**", value='\n'.join(anyone), inline=False)
+        if len(member) > 0:
+            help_embed.add_field(name="**Member-only commands:**", value='\n'.join(member), inline=False)
+        if len(mod) > 0:
+            help_embed.add_field(name="**Moderator commands:**", value='\n'.join(mod), inline=False)
+        if len(admin) > 0:
+            help_embed.add_field(name="**Admin commands:**", value='\n'.join(admin), inline=False)
+        if len(dev) > 0 and event.sender.id == config.DEV_USER_ID:
+            help_embed.add_field(name="**Dev commands:**", value='\n'.join(dev), inline=False)
+
+        await event.channel.send(embed=help_embed)
