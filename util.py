@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import re
 from datetime import datetime
@@ -122,7 +123,29 @@ def get_missing_perms(channel: TextChannel, permissions: Permissions) -> Permiss
     :return: None, if the bot has all the specified perms, otherwise a Permissions object of all the missing perms.
     """
     channel_perms = channel.permissions_for(channel.guild.me)
-    if channel_perms <= permissions:
-        return None
 
     return (channel_perms ^ permissions) & permissions
+
+
+def from_dict(cls, json: dict):
+    """
+    Convert a dictionary to the specified dataclass.
+
+    :param cls: the dataclass type to convert to
+    :param json: the (nested) dictionary corresponding to the cls
+    :return: an instance of cls
+    """
+    if dataclasses.is_dataclass(cls):
+        raise TypeError(f"{cls} is not a dataclass!")
+
+    fieldtypes = {f.name: f.type for f in dataclasses.fields(cls)}
+    fields = {}
+    for f in json:
+        if dataclasses.is_dataclass(fieldtypes[f]):
+            fields[f] = from_dict(fieldtypes[f], json[f])
+        elif isinstance(json[f], fieldtypes[f]):
+            fields[f] = json[f]
+        else:
+            elog(f"Couldn't determine type of {json[f]} in {cls} in dict conversion.")
+            fields[f] = json[f]
+    return cls(**fields)

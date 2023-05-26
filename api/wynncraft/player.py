@@ -1,6 +1,6 @@
-import dataclasses
 from dataclasses import dataclass
 
+import util
 from . import wynnAPI
 from .. import rateLimit
 
@@ -43,21 +43,9 @@ class Stats:
     global_stats: dict
     ranking: dict
 
-    @staticmethod
-    def _from_dict_inner(cls, d):
-        try:
-            fieldtypes = {f.name: f.type for f in dataclasses.fields(cls)}
-            return cls(**{f: Stats._from_dict_inner(fieldtypes[f], d[f]) for f in d})
-        except:
-            return d  # Not a dataclass field
 
-    @classmethod
-    def from_dict(cls, d):
-        return Stats._from_dict_inner(cls, d)
-
-
-def stats(player: str) -> Stats:
+async def stats(player: str) -> Stats:
     with player_rate_limit:
-        json = wynnAPI.get_v2(f"/player/{player}/stats")
+        json = await wynnAPI.get_v2(f"/player/{player}/stats")
         json["global_stats"] = json.pop("global")
-        return Stats.from_dict(json['data'][0])
+        return util.from_dict(Stats, json['data'][0])

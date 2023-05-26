@@ -1,7 +1,8 @@
-import dataclasses
 from dataclasses import dataclass
 
+import util
 from . import wynnAPI
+
 
 @dataclass
 class Stats:
@@ -29,24 +30,10 @@ class Stats:
     territories: int
     banner: dict
 
-    @staticmethod
-    def _from_dict_inner(cls, d):
-        try:
-            fieldtypes = {f.name: f.type for f in dataclasses.fields(cls)}
-            return cls(**{f: Stats._from_dict_inner(fieldtypes[f], d[f]) for f in d})
-        except:
-            return d  # Not a dataclass field
 
-    @classmethod
-    def from_dict(cls, d):
-        return Stats._from_dict_inner(cls, d)
+async def guild_list():
+    return (await wynnAPI.get_legacy("guildList"))["guilds"]
 
 
-def guild_list():
-    json = wynnAPI.get_legacy("guildList")
-    return Stats.from_dict(json)
-
-
-def stats(guild: str) -> Stats:
-    json = wynnAPI.get_legacy("guildStats", guild)
-    return Stats.from_dict(json)
+async def stats(guild: str) -> Stats:
+    return util.from_dict(Stats, await wynnAPI.get_legacy("guildStats", guild))

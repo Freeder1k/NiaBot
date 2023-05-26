@@ -1,20 +1,18 @@
 import asyncio
 import re
 from re import Pattern
-from threading import Thread
 
 from discord import Message, TextChannel, Client
 
 import config
-import main
 from commands.command import Command
 from commands.commandEvent import CommandEvent
 
 _bot_mention: Pattern
 _commands: list[Command] = []
 
-
 command_tasks = []
+
 
 def _run_command(command: Command, command_event: CommandEvent):
     asyncio.run(command.run(command_event))
@@ -57,7 +55,6 @@ def on_message(message: Message):
 
         for c in _commands:
             if c.is_this_command(command_event.args[0]):
-                #Thread(target=asyncio.run, args=(c.run(command_event),)).start()
+                # Thread(target=asyncio.run, args=(c.run(command_event),)).start()
                 command_tasks.append(asyncio.create_task(c.run(command_event)))
                 # TODO implement this properly with multiprocessing
-

@@ -4,6 +4,7 @@ _con = sqlite3.connect("./assets/NiaBot.db")
 _con.row_factory = sqlite3.Row
 _cur = _con.cursor()
 
+# TODO async and threadsafe
 
 def create_database():
     with _con:

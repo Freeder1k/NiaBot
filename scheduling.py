@@ -1,6 +1,5 @@
 import asyncio
-import concurrent.futures
-from datetime import datetime, time, timezone
+from datetime import time, timezone, date
 
 import discord
 from discord import Client
@@ -17,22 +16,13 @@ time0 = time(hour=0, minute=0, tzinfo=timezone.utc)
 
 @tasks.loop(time=time0)
 async def update_playtimes():
-    # TODO async api calls
-    nia = api.wynncraft.guild.stats("Nerfuria")
-    today = datetime.now()
+    nia = await api.wynncraft.guild.stats("Nerfuria")
+    today = date.today()
 
-    loop = asyncio.get_running_loop()
-
-    with concurrent.futures.ThreadPoolExecutor() as pool:
-        futures = []
-        for member in nia.members:
-            futures.append(loop.run_in_executor(pool, api.wynncraft.player.stats, (member.uuid,)))
-        for future in futures:
-            res = await future
-            playtime = res.meta.playtime
-            storage.playtimeData.set_playtime(member.uuid, today, playtime)
-
-        loop.run_in_executor(pool, storage.playtimeData.store_data)
+    res: list[api.wynncraft.player.Stats] = await asyncio.gather(
+        (api.wynncraft.player.stats(member.uuid) for member in nia.members))
+    for stats in res:
+        storage.playtimeData.set_playtime(stats.uuid, today, stats.meta.playtime)
 
 
 @tasks.loop(minutes=1)
@@ -40,7 +30,7 @@ async def update_presence(client: Client):
     await client.change_presence(
         status=discord.Status.online,
         activity=discord.Activity(
-            name=f"{api.wynncraft.network.player_sum()} players play Wynncraft",
+            name=f"{await api.wynncraft.network.player_sum()} players play Wynncraft",
             type=discord.ActivityType.watching
         )
     )

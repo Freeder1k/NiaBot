@@ -5,9 +5,8 @@ from datetime import datetime
 import discord
 from dotenv import load_dotenv
 
-import api.wynncraft.guild
 import api.wynncraft.network
-import api.wynncraft.player
+import api.wynncraft.wynnAPI
 import commands.commandListener
 import commands.prefixed.helpCommand
 import scheduling
@@ -35,13 +34,12 @@ async def on_ready():
     util.log(f'Logged in as {client.user}')
     util.log(f'Guilds: {[g.name for g in client.guilds]}')
 
-    storage.playtimeData.load_data()
     scheduling.start_scheduling(client)
 
     await client.change_presence(
         status=discord.Status.online,
         activity=discord.Activity(
-            name=f"{api.wynncraft.network.player_sum()} players play Wynncraft",
+            name=f"{await api.wynncraft.network.player_sum()} players play Wynncraft",
             type=discord.ActivityType.watching
 
         ))
@@ -64,11 +62,16 @@ def main():
     client.run(os.environ.get("BOT_TOKEN"))
 
 
+async def stop():
+    stopped.set()
+    scheduling.stop_scheduling()
+    await client.close()
+    await api.wynncraft.wynnAPI.close()
+    storage.manager.close()
+
+
 if __name__ == "__main__":
     try:
         main()
     finally:
-        stopped.set()
-        scheduling.stop_scheduling()
-        asyncio.run(client.close())
-        storage.manager.close()
+        asyncio.run(stop())

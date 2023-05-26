@@ -41,6 +41,7 @@ def get_all_playtimes(uuid: str) -> tuple[Playtime]:
 
 
 def set_playtime(uuid: str, day: date, playtime: int):
+    uuid = uuid.replace("-", "")
     con = manager.get_connection()
     cur = manager.get_cursor()
     with con:
