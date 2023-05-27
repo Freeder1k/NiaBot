@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 import util
 from . import wynnAPI
@@ -38,14 +39,20 @@ class Stats:
     uuid: str
     rank: str
     meta: Meta
-    characters: list[dict]
+    characters: Any
     guild: Guild
-    global_stats: dict
-    ranking: dict
+    global_stats: Any
+    ranking: Any
 
 
-async def stats(player: str) -> Stats:
+async def stats(player: str) -> Stats | None:
     with player_rate_limit:
         json = await wynnAPI.get_v2(f"/player/{player}/stats")
+
+        if len(json) == 0:
+            return None
+
+        json = json[0]
+
         json["global_stats"] = json.pop("global")
-        return util.from_dict(Stats, json['data'][0])
+        return util.from_dict(Stats, json)

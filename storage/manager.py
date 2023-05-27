@@ -1,30 +1,31 @@
-import sqlite3
+import aiosqlite
 
-_con = sqlite3.connect("./assets/NiaBot.db")
-_con.row_factory = sqlite3.Row
-_cur = _con.cursor()
+_con: aiosqlite.Connection = None
+_cur: aiosqlite.Cursor = None
 
-# TODO async and threadsafe
+async def init_database():
+    global _cur, _con
+    _con = await aiosqlite.connect("./assets/NiaBot.db")
+    _con.row_factory = aiosqlite.Row
+    _cur = await _con.cursor()
 
-def create_database():
-    with _con:
-        _cur.execute("""
-            CREATE TABLE IF NOT EXISTS playtimes (
-                player_uuid char(32),
-                playtime_day date,
-                playtime int,
-                PRIMARY KEY (player_uuid, playtime_day)
-            )
-        """)
+    await _cur.execute("""
+                CREATE TABLE IF NOT EXISTS playtimes (
+                    player_uuid char(32),
+                    playtime_day date,
+                    playtime int,
+                    PRIMARY KEY (player_uuid, playtime_day)
+                )
+            """)
 
 
-def get_connection():
+def get_connection() -> aiosqlite.Connection:
     return _con
 
 
-def get_cursor():
+def get_cursor() -> aiosqlite.Cursor:
     return _cur
 
 
-def close():
-    _con.close()
+async def close():
+    await _con.close()

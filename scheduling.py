@@ -20,9 +20,9 @@ async def update_playtimes():
     today = date.today()
 
     res: list[api.wynncraft.player.Stats] = await asyncio.gather(
-        (api.wynncraft.player.stats(member.uuid) for member in nia.members))
-    for stats in res:
-        storage.playtimeData.set_playtime(stats.uuid, today, stats.meta.playtime)
+        *(api.wynncraft.player.stats(member.uuid) for member in nia.members))
+
+    await asyncio.gather(*(storage.playtimeData.set_playtime(stats.uuid, today, stats.meta.playtime) for stats in res))
 
 
 @tasks.loop(minutes=1)

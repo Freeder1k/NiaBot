@@ -9,6 +9,7 @@ import api.wynncraft.network
 import api.wynncraft.wynnAPI
 import commands.commandListener
 import commands.prefixed.helpCommand
+import commands.prefixed.playtimeCommand
 import scheduling
 import storage.manager
 import storage.playtimeData
@@ -29,12 +30,22 @@ stopped = threading.Event()
 
 @client.event
 async def on_ready():
-    await api.wynncraft.wynnAPI.init_sessions()
-
     util.log(f'Logged in as {client.user}')
     util.log(f'Guilds: {[g.name for g in client.guilds]}')
 
+    await storage.manager.init_database()
+    await api.wynncraft.wynnAPI.init_sessions()
+
     scheduling.start_scheduling(client)
+
+    commands.commandListener.on_ready(client)
+
+    commands.commandListener.register_commands(
+        commands.prefixed.helpCommand.HelpCommand(),
+        commands.prefixed.playtimeCommand.PlaytimeCommand()
+    )
+
+    # await scheduling.update_playtimes()
 
     await client.change_presence(
         status=discord.Status.online,
@@ -43,12 +54,6 @@ async def on_ready():
             type=discord.ActivityType.watching
 
         ))
-
-    commands.commandListener.on_ready(client)
-
-    commands.commandListener.register_commands(
-        commands.prefixed.helpCommand.HelpCommand()
-    )
 
 
 
@@ -60,8 +65,6 @@ async def on_message(message: discord.Message):
 def main():
     print("\n  *:･ﾟ✧(=^･ω･^=)*:･ﾟ✧\n")
 
-    storage.manager.create_database()
-
     client.run(os.environ.get("BOT_TOKEN"))
 
 
@@ -70,7 +73,7 @@ async def stop():
     scheduling.stop_scheduling()
     await client.close()
     await api.wynncraft.wynnAPI.close()
-    storage.manager.close()
+    await storage.manager.close()
 
 
 if __name__ == "__main__":

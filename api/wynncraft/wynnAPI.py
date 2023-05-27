@@ -26,7 +26,7 @@ async def get_v2(url: str):
     ratelimit.
     """
     async with _v2_session.get(f"/v2{url}") as resp:
-        return await resp.json()
+        return (await resp.json())["data"]
 
 async def init_sessions():
     global _legacy_session, _v2_session

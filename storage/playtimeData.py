@@ -11,40 +11,41 @@ class Playtime:
     playtime: int
 
 
-def get_playtime(uuid: str, day: date) -> Playtime | None:
+async def get_playtime(uuid: str, day: date) -> Playtime | None:
     con = manager.get_connection()
     cur = manager.get_cursor()
-    with con:
-        res = cur.execute("""
-            SELECT * FROM playtimes
-            WHERE player_uuid = ?
-            AND playtime_day = ?
-        """, (uuid, day))
 
-        data = res.fetchone()
-        if data is None:
-            return None
+    res = await cur.execute("""
+                SELECT * FROM playtimes
+                WHERE player_uuid = ?
+                AND playtime_day = ?
+            """, (uuid, day))
 
-        return Playtime(data["player_uuid"], data["playtime_day"], data["playtime"])
+    data = await res.fetchone()
+    if data is None:
+        return None
+
+    return Playtime(data["player_uuid"], data["playtime_day"], data["playtime"])
 
 
-def get_all_playtimes(uuid: str) -> tuple[Playtime]:
+async def get_all_playtimes(uuid: str) -> tuple[Playtime]:
     con = manager.get_connection()
     cur = manager.get_cursor()
-    with con:
-        res = cur.execute("""
-            SELECT * FROM playtimes
-            WHERE player_uuid = ?
-        """, (uuid,))
 
-        return tuple(Playtime(data["player_uuid"], data["playtime_day"], data["playtime"]) for data in res.fetchall())
+    res = await cur.execute("""
+                SELECT * FROM playtimes
+                WHERE player_uuid = ?
+            """, (uuid,))
+
+    return tuple(Playtime(data["player_uuid"], data["playtime_day"], data["playtime"]) for data in await res.fetchall())
 
 
-def set_playtime(uuid: str, day: date, playtime: int):
+async def set_playtime(uuid: str, day: date, playtime: int):
     uuid = uuid.replace("-", "")
     con = manager.get_connection()
     cur = manager.get_cursor()
-    with con:
-        cur.execute("""
-            REPLACE INTO playtimes VALUES (?, ?, ?)
-        """, (uuid, day, playtime))
+
+    async with con:
+        await cur.execute("""
+                REPLACE INTO playtimes VALUES (?, ?, ?)
+            """, (uuid, day, playtime))

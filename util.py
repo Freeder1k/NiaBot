@@ -1,6 +1,7 @@
 import dataclasses
 import datetime
 import re
+import typing
 from datetime import datetime
 
 from discord import TextChannel, Embed, Guild, Member, Permissions
@@ -135,17 +136,26 @@ def from_dict(cls, json: dict):
     :param json: the (nested) dictionary corresponding to the cls
     :return: an instance of cls
     """
-    if dataclasses.is_dataclass(cls):
+    if not dataclasses.is_dataclass(cls):
         raise TypeError(f"{cls} is not a dataclass!")
 
     fieldtypes = {f.name: f.type for f in dataclasses.fields(cls)}
     fields = {}
     for f in json:
-        if dataclasses.is_dataclass(fieldtypes[f]):
-            fields[f] = from_dict(fieldtypes[f], json[f])
-        elif isinstance(json[f], fieldtypes[f]):
-            fields[f] = json[f]
-        else:
-            elog(f"Couldn't determine type of {json[f]} in {cls} in dict conversion.")
-            fields[f] = json[f]
+        fields[f] = _f_d_inner(fieldtypes[f], json[f])
     return cls(**fields)
+
+
+def _f_d_inner(cls, json):
+    if type(json) == list:
+        return [_f_d_inner(cls.__args__[0], j) for j in json]
+    elif isinstance(cls, type):
+        if dataclasses.is_dataclass(cls):
+            return from_dict(cls, json)
+        elif cls == typing.Any:
+            return json
+        elif isinstance(json, cls):
+            return json
+    else:
+        elog(f"Couldn't determine type of {json} in {cls} in dict conversion.")
+        return json
