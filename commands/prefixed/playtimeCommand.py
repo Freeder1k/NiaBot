@@ -1,10 +1,11 @@
+from datetime import timedelta, datetime, timezone
+
 from discord import Permissions, Embed
 
 import api.wynncraft.guild
 import config
 import storage.playtimeData
 from commands import command, commandEvent
-from datetime import date, timedelta, datetime
 
 
 class PlaytimeCommand(command.Command):
@@ -20,7 +21,7 @@ class PlaytimeCommand(command.Command):
 
     async def _execute(self, event: commandEvent.CommandEvent):
         nia = await api.wynncraft.guild.stats("Nerfuria")
-        today = date.today()
+        today = datetime.now(timezone.utc).date()
         last_week = today - timedelta(days=7)
 
         playtimes = {}
@@ -35,7 +36,8 @@ class PlaytimeCommand(command.Command):
             color=config.DEFAULT_COLOR,
             title="Nerfuria playtimes for the last week.",
             description="\n".join((f"**{name}**: {pt}mins" for name, pt in playtimes.items())),
-            timestamp=datetime.now()
+            timestamp=datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
         )
+        embed.set_footer(text="Last update")
 
         await event.channel.send(embed=embed)

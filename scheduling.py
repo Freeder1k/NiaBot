@@ -1,5 +1,5 @@
 import asyncio
-from datetime import time, timezone, date
+from datetime import time, timezone, datetime
 
 import discord
 from discord import Client
@@ -17,7 +17,7 @@ time0 = time(hour=0, minute=0, tzinfo=timezone.utc)
 @tasks.loop(time=time0)
 async def update_playtimes():
     nia = await api.wynncraft.guild.stats("Nerfuria")
-    today = date.today()
+    today = datetime.now(timezone.utc).date()
 
     res: list[api.wynncraft.player.Stats] = await asyncio.gather(
         *(api.wynncraft.player.stats(member.uuid) for member in nia.members))

@@ -1,6 +1,6 @@
 import asyncio
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 
 import discord
 from dotenv import load_dotenv
@@ -23,7 +23,7 @@ intents.message_content = True
 intents.members = True
 
 client = discord.Client(intents=intents)
-start_time = datetime.now()
+start_time = datetime.now(timezone.utc)
 
 stopped = threading.Event()
 
@@ -45,7 +45,7 @@ async def on_ready():
         commands.prefixed.playtimeCommand.PlaytimeCommand()
     )
 
-    # await scheduling.update_playtimes()
+    await scheduling.update_playtimes()
 
     await client.change_presence(
         status=discord.Status.online,

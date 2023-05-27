@@ -12,9 +12,9 @@ class Playtime:
 
 
 async def get_playtime(uuid: str, day: date) -> Playtime | None:
-    con = manager.get_connection()
-    cur = manager.get_cursor()
+    uuid = uuid.replace("-", "")
 
+    cur = manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM playtimes
                 WHERE player_uuid = ?
@@ -29,9 +29,9 @@ async def get_playtime(uuid: str, day: date) -> Playtime | None:
 
 
 async def get_all_playtimes(uuid: str) -> tuple[Playtime]:
-    con = manager.get_connection()
-    cur = manager.get_cursor()
+    uuid = uuid.replace("-", "")
 
+    cur = manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM playtimes
                 WHERE player_uuid = ?
@@ -42,10 +42,11 @@ async def get_all_playtimes(uuid: str) -> tuple[Playtime]:
 
 async def set_playtime(uuid: str, day: date, playtime: int):
     uuid = uuid.replace("-", "")
+
     con = manager.get_connection()
     cur = manager.get_cursor()
+    await cur.execute("""
+            REPLACE INTO playtimes VALUES (?, ?, ?)
+        """, (uuid, day, playtime))
 
-    async with con:
-        await cur.execute("""
-                REPLACE INTO playtimes VALUES (?, ?, ?)
-            """, (uuid, day, playtime))
+    await con.commit()
