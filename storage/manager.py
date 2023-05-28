@@ -5,7 +5,7 @@ _cur: aiosqlite.Cursor = None
 
 async def init_database():
     global _cur, _con
-    _con = await aiosqlite.connect("./assets/NiaBot.db")
+    _con = await aiosqlite.connect("./NiaBot.db")
     _con.row_factory = aiosqlite.Row
     _cur = await _con.cursor()
 
