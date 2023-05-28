@@ -7,9 +7,9 @@ from commands import command, commandEvent
 class TemplateCommand(command.Command):
     def __init__(self):
         super().__init__(
-            name="",
+            name="cmd",
             aliases=(),
-            usage=f"{config.PREFIX}",
+            usage=f"{config.PREFIX}cmd [args]",
             description="",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
