@@ -3,4 +3,3 @@ discord.py
 requests
 aiohttp
 aiosqlite
-python-dateutil
