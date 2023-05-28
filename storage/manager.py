@@ -3,6 +3,7 @@ import aiosqlite
 _con: aiosqlite.Connection = None
 _cur: aiosqlite.Cursor = None
 
+
 async def init_database():
     global _cur, _con
     _con = await aiosqlite.connect("./NiaBot.db")

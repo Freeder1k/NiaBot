@@ -45,7 +45,9 @@ async def on_ready():
         commands.prefixed.playtimeCommand.PlaytimeCommand()
     )
 
-    await scheduling.update_playtimes()
+    today = datetime.now(timezone.utc).date()
+    if (await storage.playtimeData.get_first_date_after(today)) is None:
+        await scheduling.update_playtimes()
 
     await client.change_presence(
         status=discord.Status.online,
@@ -54,7 +56,6 @@ async def on_ready():
             type=discord.ActivityType.watching
 
         ))
-
 
 
 @client.event

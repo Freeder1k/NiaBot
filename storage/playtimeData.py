@@ -50,3 +50,36 @@ async def set_playtime(uuid: str, day: date, playtime: int):
         """, (uuid, day, playtime))
 
     await con.commit()
+
+
+async def get_first_date_after(date_before: date) -> date | None:
+    cur = manager.get_cursor()
+    res = await cur.execute("""
+                    SELECT min(playtime_day) FROM playtimes
+                    WHERE playtime_day >= ?
+                """, (date_before,))
+
+    data = await res.fetchone()
+    if data is None:
+        return None
+    if 'min(playtime_day)' not in data.keys():
+        return None
+    return data['min(playtime_day)']
+
+
+async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date | None:
+    uuid = uuid.replace("-", "")
+
+    cur = manager.get_cursor()
+    res = await cur.execute("""
+                    SELECT min(playtime_day) FROM playtimes
+                    WHERE player_uuid = ?
+                    AND playtime_day >= ?
+                """, (uuid, date_before))
+
+    data = await res.fetchone()
+    if data is None:
+        return None
+    if 'min(playtime_day)' not in data.keys():
+        return None
+    return data['min(playtime_day)']

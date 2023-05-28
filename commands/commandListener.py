@@ -4,6 +4,7 @@ from re import Pattern
 from discord import Message, TextChannel, Client
 
 import config
+import util
 from commands.command import Command
 from commands.commandEvent import CommandEvent
 
@@ -23,8 +24,10 @@ def register_commands(*new_commands: Command):
 def get_commands() -> tuple[Command]:
     return tuple(_commands)
 
+
 def get_command_map() -> dict[str, Command]:
     return _command_map
+
 
 def on_ready(client: Client):
     global _bot_mention
@@ -58,4 +61,9 @@ async def on_message(message: Message):
 
     command_event = CommandEvent(message, args, message.author, message.channel, message.guild)
 
-    await _command_map[args[0]].run(command_event)
+    try:
+        await _command_map[args[0]].run(command_event)
+    except Exception as e:
+        await util.send_exception(message.channel, e)
+        print(message)
+        raise e

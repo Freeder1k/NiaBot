@@ -159,3 +159,21 @@ def _f_d_inner(cls, json):
     else:
         elog(f"Couldn't determine type of {json} in {cls} in dict conversion.")
         return json
+
+
+def split_str(s: str, length: int, splitter: chr) -> list[str]:
+    res = []
+    i = 0
+    while True:
+        start = i
+        i += length
+
+        # At end of string
+        if i >= len(s):
+            res.append(s[start:i])
+            return res
+
+        # Back up until splitter
+        while s[i - 1] != splitter:
+            i -= 1
+        res.append(s[start:i])
