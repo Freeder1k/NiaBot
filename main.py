@@ -10,6 +10,7 @@ import api.wynncraft.wynnAPI
 import commands.commandListener
 import commands.prefixed.helpCommand
 import commands.prefixed.playtimeCommand
+import commands.prefixed.wandererCommand
 import scheduling
 import storage.manager
 import storage.playtimeData
@@ -30,8 +31,8 @@ stopped = threading.Event()
 
 @client.event
 async def on_ready():
-    util.log(f'Logged in as {client.user}')
-    util.log(f'Guilds: {[g.name for g in client.guilds]}')
+    util.log(f"Logged in as {client.user}")
+    util.log(f"Guilds: {[g.name for g in client.guilds]}")
 
     await storage.manager.init_database()
     await api.wynncraft.wynnAPI.init_sessions()
@@ -42,7 +43,8 @@ async def on_ready():
 
     commands.commandListener.register_commands(
         commands.prefixed.helpCommand.HelpCommand(),
-        commands.prefixed.playtimeCommand.PlaytimeCommand()
+        commands.prefixed.playtimeCommand.PlaytimeCommand(),
+        commands.prefixed.wandererCommand.WandererCommand(),
     )
 
     today = datetime.now(timezone.utc).date()
@@ -53,10 +55,9 @@ async def on_ready():
         status=discord.Status.online,
         activity=discord.Activity(
             name=f"{await api.wynncraft.network.player_sum()} players play Wynncraft",
-            type=discord.ActivityType.watching
-
-        ))
-
+            type=discord.ActivityType.watching,
+        ),
+    )
 
 @client.event
 async def on_message(message: discord.Message):
@@ -66,7 +67,9 @@ async def on_message(message: discord.Message):
 def main():
     print("\n  *:･ﾟ✧(=^･ω･^=)*:･ﾟ✧\n")
 
-    client.run(os.environ.get("BOT_TOKEN"))
+    client.run(
+        "MTExMjMxMzE5MzI4NTU2MjM4OA.Gw01zn.OvCVoJqwZuLNehk9NE_JH5XpmeUI3rf6yzbNLM"
+    )
 
 
 async def stop():
