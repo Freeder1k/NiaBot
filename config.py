@@ -1,5 +1,5 @@
 # NiaBot config file
-PREFIX = ">"
+PREFIX = "."
 DEV_USER_ID = 470696578403794967
 
 # EMBED COLORS
