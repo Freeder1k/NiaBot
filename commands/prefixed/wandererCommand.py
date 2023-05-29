@@ -1,9 +1,6 @@
 from datetime import timedelta, datetime, timezone
 
-import discord.utils
 from discord import Permissions, Embed
-
-import math
 
 import api.wynncraft.guild
 import config
@@ -31,81 +28,30 @@ class WandererCommand(command.Command):
         old_members = {}
 
         longest_name_len = 0
+        longest_date_len = 0
 
         for m in nia.members:
             if m.rank == "RECRUIT":
                 join_date = datetime.fromisoformat(m.joined)
+                join_date_str = util.get_relative_date_str(join_date) + " ago"
                 if join_date < seven_days_ago:
-                    old_members[m.name] = join_date
+                    old_members[m.name] = join_date_str
                 else:
-                    new_members[m.name] = join_date
+                    new_members[m.name] = join_date_str
                 longest_name_len = max(len(m.name), longest_name_len)
+                longest_date_len = max(len(join_date_str), longest_date_len)
+
+        table_head_str = f"_ _ _ _ _ _ NAME {'_ ' * 44}JOINED"
+        fields = (("**Wanderers eligible for promotion**\n\n" + table_head_str, old_members),
+                  ("**Wanderers not eligible for promotion**\n\n" + table_head_str, new_members))
 
         embed = Embed(color=config.DEFAULT_COLOR, )
 
-
-        old_members_str = "\n".join(
-                tuple(
-                    f"{name}"
-                    f": {'᲼'* max(0, 10 + longest_name_len - len(name) - _date_str_len(date))}"
-                    f"{discord.utils.format_dt(date, style='R')}"
-                      for name, date in old_members.items()))
-        new_members_str = "\n".join(
-                tuple(
-                    f"{name}"
-                    f": {'᲼'* max(0, 10 + longest_name_len - len(name) - _date_str_len(date))}"
-                    f"{discord.utils.format_dt(date, style='R')}"
-                      for name, date in new_members.items()))
-        table_head_str = f"᲼᲼**Name**{'᲼'* min(30, 3 + longest_name_len)}**JOINED**"
-
-        first = True
-
-        for s in util.split_str(old_members_str, 1000, "\n"):
-            embed.add_field(
-                name="Wanderers eligible for promotion\n" + table_head_str if first else "",
-                value=">>> " + s,
-                inline=False
-            )
-            first = False
-        first = True
-        for s in util.split_str(new_members_str, 1000, "\n"):
-            embed.add_field(
-                name="Wanderers not eligible for promotion\n" + table_head_str if first else "",
-                value=">>> " + s,
-                inline=False
-            )
-            first = False
-
+        util.add_table_fields(
+            base_embed=embed,
+            max_l_len=longest_name_len,
+            max_r_len=longest_date_len,
+            splitter=True,
+            fields=[(fname, [(name, join_date) for name, join_date in val.items()]) for fname, val in fields]
+        )
         await event.channel.send(embed=embed)
-
-
-def _date_str_len(dt: datetime):
-    delta = (datetime.now(timezone.utc) - dt)
-    l = 0
-
-    if delta.days >= 2 * 365:
-        l += 5 + int(math.log10(delta.days//365)) # years
-    elif delta.days >= 365:
-        l += 4  # year
-    elif delta.days >= 2 * 30:
-        l += 6 + int(math.log10(delta.days//30)) # months
-    elif delta.days >= 30:
-        l += 5  # month
-    elif delta.days >= 2:
-        l += 4 + int(math.log10(delta.days)) # days
-    elif delta.days >= 1:
-        l += 3  # day
-    elif delta.seconds >= 2 * 60 * 60:
-        l += 5 + int(math.log10(delta.seconds//(60*60))) # hours
-    elif delta.seconds >= 60 * 60:
-        l += 4 # hour
-    elif delta.seconds >= 2 * 60:
-        l += 7 + int(math.log10(delta.seconds//60)) # minutes
-    elif delta.seconds >= 60:
-        l += 6 # minute
-    elif delta.seconds >= 2:
-        l += 7 + int(math.log10(delta.seconds)) # seconds
-    else:
-        l += 6 # second
-
-    return l

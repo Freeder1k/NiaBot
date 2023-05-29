@@ -1,15 +1,12 @@
-from datetime import timedelta, datetime, timezone
+import asyncio
+from datetime import datetime, timezone
 
-import discord.utils
 from discord import Permissions, Embed
-
-import math
 
 import api.wynncraft.guild
 import api.wynncraft.player
 import config
 import util
-
 from commands import command, commandEvent
 
 
@@ -17,7 +14,7 @@ class LastSeenCommand(command.Command):
     def __init__(self):
         super().__init__(
             name="lastseen",
-            aliases=("ls"),
+            aliases=("ls", "seen"),
             usage=f"{config.PREFIX}lastseen",
             description="Get players last seen in Wynncraft",
             req_perms=Permissions().none(),
@@ -26,6 +23,8 @@ class LastSeenCommand(command.Command):
 
     async def _execute(self, event: commandEvent.CommandEvent):
         nia = await api.wynncraft.guild.stats("Nerfuria")
+        now = datetime.now(timezone.utc)
+
         lastonline = {
             "OWNER": {},
             "CHIEF": {},
@@ -34,87 +33,41 @@ class LastSeenCommand(command.Command):
             "RECRUITER": {},
             "RECRUIT": {}
         }
-        
-        longest_name_len = 0
-        longest_lj_len = 0
-        
-        for m in nia.members:
-            player = await api.wynncraft.player.stats(m.uuid)
-            
-            try:
-                last_Join = datetime.fromisoformat(player.meta.lastJoin)
-                print(m.name + ": Last joined " + str(last_Join))
-                
-                lastonline[m.rank][m.name] = last_Join
-                
-                longest_name_len = max(len(m.name), longest_name_len)
-                longest_lj_len = max(len(str(last_Join)), longest_lj_len)
 
-            except AttributeError:
-                print("The 'meta' attribute or 'lastJoin' attribute is not available for " + m.name)
+        longest_name_len = 0
+        longest_date_len = 0
+
+        players = await asyncio.gather(*tuple(api.wynncraft.player.stats(m.uuid) for m in nia.members))
+
+        for m, p in zip(nia.members, players):
+            if p is None:
                 continue
-        
+            if p.meta.location.online:
+                lastonline[m.rank][m.name] = (now, f"online({p.meta.location.server})")
+            else:
+                last_join = datetime.fromisoformat(p.meta.lastJoin)
+                last_join_str = util.get_relative_date_str(last_join) + " ago"
+                lastonline[m.rank][m.name] = (last_join, last_join_str)
+
+                longest_name_len = max(len(m.name), longest_name_len)
+                longest_date_len = max(len(last_join_str), longest_date_len)
+
         for k, v in lastonline.items():
             lastonline[k] = \
-                {name: lastonline for name, lastonline in sorted(v.items(), key=lambda item: item[1], reverse=True)}
-        
+                {name: last_join[1] for name, last_join in sorted(v.items(), key=lambda item: item[1][0], reverse=True)}
+
         embed = Embed(
             color=config.DEFAULT_COLOR,
-            title="**Nerfuria last seen online**",
-            description='⎯'*41,
-            timestamp=datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
+            title="**Last Sightings of Nia Members**",
+            description='⎯' * 35,
         )
-         
-        for k, v in lastonline.items():
-            text = util.split_str(
-                s='\n'.join((
-                     f"{name}"
-                     f": {discord.utils.format_dt(lo, style='R')}"
-                     for name, lo in v.items())),
-                length=1000,
-                splitter="\n"
-            )
 
-            first = True
-            for s in text:
-                embed.add_field(
-                    name=k if first else "",
-                    value=f">>> ```\n{s}```",
-                    inline=False
-                )
-                first = False
-
-        embed.set_footer(text="Last update")
+        util.add_table_fields(
+            base_embed=embed,
+            max_l_len=longest_name_len,
+            max_r_len=longest_date_len,
+            splitter=False,
+            fields=[(fname, [(name, lo_date) for name, lo_date in val.items()]) for fname, val in lastonline.items()]
+        )
 
         await event.channel.send(embed=embed)
-
-def _date_str_len(dt: datetime):
-    delta = (datetime.now(timezone.utc) - dt)
-    l = 0
-
-    if delta.days >= 2 * 365:
-        l += 5 + int(math.log10(delta.days//365)) # years
-    elif delta.days >= 365:
-        l += 4  # year
-    elif delta.days >= 2 * 30:
-        l += 6 + int(math.log10(delta.days//30)) # months
-    elif delta.days >= 30:
-        l += 5  # month
-    elif delta.days >= 2:
-        l += 4 + int(math.log10(delta.days)) # days
-    elif delta.days >= 1:
-        l += 3  # day
-    elif delta.seconds >= 2 * 60 * 60:
-        l += 5 + int(math.log10(delta.seconds//(60*60))) # hours
-    elif delta.seconds >= 60 * 60:
-        l += 4 # hour
-    elif delta.seconds >= 2 * 60:
-        l += 7 + int(math.log10(delta.seconds//60)) # minutes
-    elif delta.seconds >= 60:
-        l += 6 # minute
-    elif delta.seconds >= 2:
-        l += 7 + int(math.log10(delta.seconds)) # seconds
-    else:
-        l += 6 # second
-
-    return l

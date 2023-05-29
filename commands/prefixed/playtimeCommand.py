@@ -56,30 +56,19 @@ class PlaytimeCommand(command.Command):
 
         embed = Embed(
             color=config.DEFAULT_COLOR,
-            title="**Nerfuria playtimes for the last week**",
-            description='⎯'*41,
+            title="**Weekly Playtimes in Nia**",
+            description='⎯' * 32,
             timestamp=datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
         )
 
-        for k, v in playtimes.items():
-            text = util.split_str(
-                s='\n'.join((f'{name:<{longest_name_len}}'
-                             f' {" " * max(0, (30 - longest_name_len - longest_pt_len))}'
-                             f'{pt:>{longest_pt_len}} min'
-                             for name, pt in v.items())
-                            ),
-                length=1000,
-                splitter="\n"
-            )
-
-            first = True
-            for s in text:
-                embed.add_field(
-                    name=k if first else "",
-                    value=f">>> ```\n{s}```",
-                    inline=False
-                )
-                first = False
+        util.add_table_fields(
+            base_embed=embed,
+            max_l_len=longest_name_len,
+            max_r_len=longest_pt_len + 4,
+            splitter=False,
+            fields=[(fname, [(name, f"{playtime} min") for name, playtime in val.items()]) for fname, val in
+                    playtimes.items()]
+        )
 
         embed.set_footer(text="Last update")
 

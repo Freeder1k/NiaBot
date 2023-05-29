@@ -2,7 +2,7 @@ import dataclasses
 import datetime
 import re
 import typing
-from datetime import datetime
+from datetime import datetime, timezone
 
 from discord import TextChannel, Embed, Guild, Member, Permissions
 
@@ -177,3 +177,67 @@ def split_str(s: str, length: int, splitter: chr) -> list[str]:
         while s[i - 1] != splitter:
             i -= 1
         res.append(s[start:i])
+
+
+def get_relative_date_str(dt: datetime) -> str:
+    delta = (datetime.now(timezone.utc) - dt)
+
+    if delta.days >= 2 * 365:
+        return f"{delta.days // 365} years"
+    elif delta.days >= 365:
+        return "1 year"
+    elif delta.days >= 2 * 30:
+        return f"{delta.days // 30} months"
+    elif delta.days >= 30:
+        return "1 month"
+    elif delta.days >= 2:
+        return f"{delta.days} days"
+    elif delta.days >= 1:
+        return "1 day"
+    elif delta.seconds >= 2 * 60 * 60:
+        return f"{delta.seconds // (60 * 60)} hours"
+    elif delta.seconds >= 60 * 60:
+        return "1 hour"
+    elif delta.seconds >= 2 * 60:
+        return f"{delta.seconds // 60} minutes"
+    elif delta.seconds >= 60:
+        return "1 minute"
+    elif delta.seconds >= 2:
+        return f"{delta.seconds} seconds"
+    else:
+        return "1 second"
+
+
+def add_table_fields(base_embed: Embed, max_l_len:int, max_r_len:int, splitter: bool,
+                       fields: typing.Iterable[tuple[str, list[tuple[str, str]]]]):
+    """
+    Create an embed in the form of a table.
+
+    :param base_embed: The base embed to add the fields to
+    :param fields: The fields of the embed in the form: ``(field_name, [(left_entry, right_entry),...])``
+    :param max_l_len: The max length of the left entries
+    :param max_r_len: The max length of the right entries
+    """
+    embed = base_embed
+    space_num = max(0, 25 - max_l_len - max_r_len)
+
+    first_field = True
+
+    for field in fields:
+        if splitter and not first_field:
+            embed.add_field(name='⎯' * 32, value='', inline=False)
+        else:
+            first_field = False
+
+        name = field[0]
+        val = "\n".join([f"{l_val:<{max_l_len}} {' ' * space_num}{r_val:>{max_r_len}}"
+                         for l_val, r_val in field[1]])
+
+        first = True
+        for s in split_str(val, 1000, '\n'):
+            embed.add_field(
+                name=name if first else "",
+                value=">>> ```\n" + s + "```",
+                inline=False
+            )
+            first = False
