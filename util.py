@@ -141,7 +141,7 @@ def from_dict(cls, json: dict):
 
     fieldtypes = {f.name: f.type for f in dataclasses.fields(cls)}
     fields = {}
-    for f in json:
+    for f in fieldtypes:
         fields[f] = _f_d_inner(fieldtypes[f], json[f])
     return cls(**fields)
 
@@ -208,8 +208,8 @@ def get_relative_date_str(dt: datetime) -> str:
         return "1 second"
 
 
-def add_table_fields(base_embed: Embed, max_l_len:int, max_r_len:int, splitter: bool,
-                       fields: typing.Iterable[tuple[str, list[tuple[str, str]]]]):
+def add_table_fields(base_embed: Embed, max_l_len: int, max_r_len: int, splitter: bool,
+                     fields: typing.Iterable[tuple[str, list[tuple[str, str]]]]):
     """
     Create an embed in the form of a table.
 

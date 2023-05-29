@@ -5,13 +5,15 @@ from datetime import datetime, timezone
 import discord
 from dotenv import load_dotenv
 
+import api.nasa
 import api.wynncraft.network
 import api.wynncraft.wynnAPI
 import commands.commandListener
 import commands.prefixed.helpCommand
-import commands.prefixed.playtimeCommand
-import commands.prefixed.wandererCommand
 import commands.prefixed.lastseenCommand
+import commands.prefixed.playtimeCommand
+import commands.prefixed.spaceCommand
+import commands.prefixed.wandererCommand
 import scheduling
 import storage.manager
 import storage.playtimeData
@@ -37,6 +39,7 @@ async def on_ready():
 
     await storage.manager.init_database()
     await api.wynncraft.wynnAPI.init_sessions()
+    await api.nasa.init_session()
 
     scheduling.start_scheduling(client)
 
@@ -47,6 +50,7 @@ async def on_ready():
         commands.prefixed.playtimeCommand.PlaytimeCommand(),
         commands.prefixed.wandererCommand.WandererCommand(),
         commands.prefixed.lastseenCommand.LastSeenCommand(),
+        commands.prefixed.spaceCommand.SpaceCommand(),
     )
 
     today = datetime.now(timezone.utc).date()
@@ -60,6 +64,7 @@ async def on_ready():
             type=discord.ActivityType.watching,
         ),
     )
+
 
 @client.event
 async def on_message(message: discord.Message):
@@ -77,6 +82,7 @@ async def stop():
     scheduling.stop_scheduling()
     await client.close()
     await api.wynncraft.wynnAPI.close()
+    await api.nasa.close()
     await storage.manager.close()
 
 
