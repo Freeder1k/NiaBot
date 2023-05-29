@@ -11,6 +11,7 @@ import commands.commandListener
 import commands.prefixed.helpCommand
 import commands.prefixed.playtimeCommand
 import commands.prefixed.wandererCommand
+import commands.prefixed.lastseenCommand
 import scheduling
 import storage.manager
 import storage.playtimeData
@@ -45,6 +46,7 @@ async def on_ready():
         commands.prefixed.helpCommand.HelpCommand(),
         commands.prefixed.playtimeCommand.PlaytimeCommand(),
         commands.prefixed.wandererCommand.WandererCommand(),
+        commands.prefixed.lastseenCommand.LastSeenCommand(),
     )
 
     today = datetime.now(timezone.utc).date()
@@ -67,7 +69,8 @@ async def on_message(message: discord.Message):
 def main():
     print("\n  *:･ﾟ✧(=^･ω･^=)*:･ﾟ✧\n")
 
-    client.run(os.environ.get("BOT_TOKEN"))
+    # client.run(os.environ.get("BOT_TOKEN"))
+    client.run("MTExMjMxMzE5MzI4NTU2MjM4OA.Gp-dBk.KNJ4-2mZ5T3k-Tj72ejk4BEzNPQSYbt_UpG5B4")
 
 
 async def stop():
