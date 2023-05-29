@@ -69,7 +69,7 @@ async def on_message(message: discord.Message):
 def main():
     print("\n  *:･ﾟ✧(=^･ω･^=)*:･ﾟ✧\n")
 
-    client.run(os.environ.get("BOT_TOKEN"))
+    client.run(os.getenv('BOT_TOKEN'))
 
 
 async def stop():
