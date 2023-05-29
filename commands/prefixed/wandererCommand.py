@@ -33,7 +33,7 @@ class WandererCommand(command.Command):
         for m in nia.members:
             if m.rank == "RECRUIT":
                 join_date = datetime.fromisoformat(m.joined)
-                join_date_str = util.get_relative_date_str(join_date) + " ago"
+                join_date_str = util.get_relative_date_str(join_date, days=True) + " ago"
                 if join_date < seven_days_ago:
                     old_members[m.name] = join_date_str
                 else:

@@ -179,33 +179,45 @@ def split_str(s: str, length: int, splitter: chr) -> list[str]:
         res.append(s[start:i])
 
 
-def get_relative_date_str(dt: datetime) -> str:
+def get_relative_date_str(dt: datetime, years=False, months=False, weeks=False, days=False, hours=False, minutes=False,
+                          seconds=False) -> str:
+    """
+    Get a string of the date relative to today in the form "x time".
+     The boolean parameters indicate if that specific time form should be enabled.
+    """
     delta = (datetime.now(timezone.utc) - dt)
 
-    if delta.days >= 2 * 365:
+    if years and delta.days >= 2 * 365:
         return f"{delta.days // 365} years"
-    elif delta.days >= 365:
+    elif years and delta.days >= 365:
         return "1 year"
-    elif delta.days >= 2 * 30:
+    elif months and delta.days >= 2 * 30:
         return f"{delta.days // 30} months"
-    elif delta.days >= 30:
+    elif months and delta.days >= 30:
         return "1 month"
-    elif delta.days >= 2:
+    elif weeks and delta.days >= 2 * 7:
+        return f"{delta.days // 7} weeks"
+    elif weeks and delta.days >= 7:
+        return "1 week"
+    elif days and delta.days >= 2:
         return f"{delta.days} days"
-    elif delta.days >= 1:
+    elif days and delta.days >= 1:
         return "1 day"
-    elif delta.seconds >= 2 * 60 * 60:
+
+    elif hours and delta.seconds >= 2 * 60 * 60:
         return f"{delta.seconds // (60 * 60)} hours"
-    elif delta.seconds >= 60 * 60:
+    elif hours and delta.seconds >= 60 * 60:
         return "1 hour"
-    elif delta.seconds >= 2 * 60:
+    elif minutes and delta.seconds >= 2 * 60:
         return f"{delta.seconds // 60} minutes"
-    elif delta.seconds >= 60:
+    elif minutes and delta.seconds >= 60:
         return "1 minute"
-    elif delta.seconds >= 2:
+    elif seconds and delta.seconds >= 2:
         return f"{delta.seconds} seconds"
-    else:
+    elif seconds and delta.seconds >= 1:
         return "1 second"
+    else:
+        return ""
 
 
 def add_table_fields(base_embed: Embed, max_l_len: int, max_r_len: int, splitter: bool,

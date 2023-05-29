@@ -46,7 +46,8 @@ class LastSeenCommand(command.Command):
                 lastonline[m.rank][m.name] = (now, f"online({p.meta.location.server})")
             else:
                 last_join = datetime.fromisoformat(p.meta.lastJoin)
-                last_join_str = util.get_relative_date_str(last_join) + " ago"
+                last_join_str = util.get_relative_date_str(last_join, days=True, hours=True, minutes=True,
+                                                           seconds=True) + " ago"
                 lastonline[m.rank][m.name] = (last_join, last_join_str)
 
                 longest_name_len = max(len(m.name), longest_name_len)
