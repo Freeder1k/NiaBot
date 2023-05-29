@@ -9,16 +9,16 @@ player_rate_limit = rateLimit.RateLimit(750, 30)
 rateLimit.add_ratelimit(player_rate_limit)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Stats:
-    @dataclass
+    @dataclass(frozen=True)
     class Meta:
-        @dataclass
+        @dataclass(frozen=True)
         class Location:
             online: bool
             server: str
 
-        @dataclass
+        @dataclass(frozen=True)
         class Tag:
             display: bool
             value: str
@@ -30,7 +30,7 @@ class Stats:
         tag: Tag
         veteran: bool
 
-    @dataclass
+    @dataclass(frozen=True)
     class Guild:
         name: str
         rank: str

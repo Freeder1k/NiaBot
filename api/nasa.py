@@ -13,7 +13,7 @@ rateLimit.add_ratelimit(_nasa_rate_limit)
 _nasa_api_session: ClientSession = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class APOD:
     copyright: str
     date: str

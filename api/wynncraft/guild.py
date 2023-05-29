@@ -4,9 +4,9 @@ import util
 from . import wynnAPI
 
 
-@dataclass
+@dataclass(frozen=True)
 class Stats:
-    @dataclass
+    @dataclass(frozen=True)
     class Member:
         name: str
         uuid: str
@@ -15,7 +15,7 @@ class Stats:
         joined: str
         joinedFriendly: str
 
-    @dataclass
+    @dataclass(frozen=True)
     class Guild:
         name: str
         rank: str
