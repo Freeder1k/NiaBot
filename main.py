@@ -17,7 +17,7 @@ import commands.prefixed.wandererCommand
 import scheduling
 import storage.manager
 import storage.playtimeData
-import util
+import utils.logging
 
 load_dotenv()
 import os
@@ -34,8 +34,8 @@ stopped = threading.Event()
 
 @client.event
 async def on_ready():
-    util.log(f"Logged in as {client.user}")
-    util.log(f"Guilds: {[g.name for g in client.guilds]}")
+    utils.logging.log(f"Logged in as {client.user}")
+    utils.logging.log(f"Guilds: {[g.name for g in client.guilds]}")
 
     await storage.manager.init_database()
     await api.wynncraft.wynnAPI.init_sessions()

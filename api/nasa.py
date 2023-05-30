@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import aiohttp
 from aiohttp import ClientSession
 
-import util
+import utils.misc
 from api import rateLimit
 
 _nasa_rate_limit = rateLimit.RateLimit(1000, 60)
@@ -36,7 +36,7 @@ async def get_random_apod() -> APOD:
             json = json[0]
             if "copyright" not in json:
                 json["copyright"] = ""
-            return util.from_dict(APOD, json)
+            return utils.misc.dataclass_from_json(APOD, json)
 
 
 async def init_session():

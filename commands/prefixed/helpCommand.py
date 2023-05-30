@@ -1,7 +1,7 @@
 from discord import Permissions, Embed
 
 import config
-import util
+import utils.discord
 from commands import commandListener, command, commandEvent
 
 
@@ -24,7 +24,7 @@ class HelpCommand(command.Command):
             if cmd in cmd_map:
                 await cmd_map[cmd].send_help(event.channel)
             else:
-                await util.send_error(event.channel, f"Unknown command: ``{cmd}``")
+                await utils.discord.send_error(event.channel, f"Unknown command: ``{cmd}``")
             return
 
         commands = commandListener.get_commands()

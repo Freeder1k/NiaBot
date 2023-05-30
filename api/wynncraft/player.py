@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-import util
+import utils.misc
 from . import wynnAPI
 from .. import rateLimit
 
@@ -55,4 +55,4 @@ async def stats(player: str) -> Stats | None:
         json = json[0]
 
         json["global_stats"] = json.pop("global")
-        return util.from_dict(Stats, json)
+        return utils.misc.dataclass_from_json(Stats, json)

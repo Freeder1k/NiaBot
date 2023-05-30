@@ -5,7 +5,7 @@ from typing import Collection
 from discord import Permissions, Member, TextChannel, Embed
 
 import config
-import util
+import utils.discord
 from commands.commandEvent import CommandEvent
 
 
@@ -39,7 +39,7 @@ class Command(ABC):
                 await command_event.channel.send("Please give me the Embed Links permission to run commands.")
                 return
 
-            m_perms = util.get_missing_perms(command_event.channel, self.req_perms)
+            m_perms = utils.discord.get_missing_perms(command_event.channel, self.req_perms)
             if m_perms != Permissions.none():
                 embed = Embed(
                     color=config.ERROR_COLOR,

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-import util
+import utils.misc
 from . import wynnAPI
 
 
@@ -36,4 +36,4 @@ async def guild_list():
 
 
 async def stats(guild: str) -> Stats:
-    return util.from_dict(Stats, await wynnAPI.get_legacy("guildStats", guild))
+    return utils.misc.dataclass_from_json(Stats, await wynnAPI.get_legacy("guildStats", guild))

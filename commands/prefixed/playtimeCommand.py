@@ -5,7 +5,7 @@ from discord import Permissions, Embed
 import api.wynncraft.guild
 import config
 import storage.playtimeData
-import util
+import utils.discord
 from commands import command, commandEvent
 
 
@@ -61,7 +61,7 @@ class PlaytimeCommand(command.Command):
             timestamp=datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
         )
 
-        util.add_table_fields(
+        utils.discord.add_table_fields(
             base_embed=embed,
             max_l_len=longest_name_len,
             max_r_len=longest_pt_len + 4,

@@ -4,7 +4,8 @@ from discord import Permissions, Embed
 
 import api.wynncraft.guild
 import config
-import util
+import utils.discord
+import utils.misc
 from commands import command, commandEvent
 
 
@@ -33,7 +34,7 @@ class WandererCommand(command.Command):
         for m in nia.members:
             if m.rank == "RECRUIT":
                 join_date = datetime.fromisoformat(m.joined)
-                join_date_str = util.get_relative_date_str(join_date, days=True) + " ago"
+                join_date_str = utils.misc.get_relative_date_str(join_date, days=True) + " ago"
                 if join_date < seven_days_ago:
                     old_members[m.name] = join_date_str
                 else:
@@ -47,7 +48,7 @@ class WandererCommand(command.Command):
 
         embed = Embed(color=config.DEFAULT_COLOR, )
 
-        util.add_table_fields(
+        utils.discord.add_table_fields(
             base_embed=embed,
             max_l_len=longest_name_len,
             max_r_len=longest_date_len,

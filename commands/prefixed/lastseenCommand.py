@@ -6,7 +6,8 @@ from discord import Permissions, Embed
 import api.wynncraft.guild
 import api.wynncraft.player
 import config
-import util
+import utils.discord
+import utils.misc
 from commands import command, commandEvent
 
 
@@ -46,8 +47,8 @@ class LastSeenCommand(command.Command):
                     lastonline[m.rank][m.name] = (now, f"online({p.meta.location.server})")
                 else:
                     last_join = datetime.fromisoformat(p.meta.lastJoin)
-                    last_join_str = util.get_relative_date_str(last_join, days=True, hours=True, minutes=True,
-                                                               seconds=True) + " ago"
+                    last_join_str = utils.misc.get_relative_date_str(last_join, days=True, hours=True, minutes=True,
+                                                                     seconds=True) + " ago"
                     lastonline[m.rank][m.name] = (last_join, last_join_str)
 
                     longest_name_len = max(len(m.name), longest_name_len)
@@ -64,7 +65,7 @@ class LastSeenCommand(command.Command):
                 description='⎯' * 35,
             )
 
-            util.add_table_fields(
+            utils.discord.add_table_fields(
                 base_embed=embed,
                 max_l_len=longest_name_len,
                 max_r_len=longest_date_len,

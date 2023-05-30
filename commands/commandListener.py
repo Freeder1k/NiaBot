@@ -4,7 +4,7 @@ from re import Pattern
 from discord import Message, TextChannel, Client
 
 import config
-import util
+import utils.discord
 from commands.command import Command
 from commands.commandEvent import CommandEvent
 
@@ -64,6 +64,6 @@ async def on_message(message: Message):
     try:
         await _command_map[args[0]].run(command_event)
     except Exception as e:
-        await util.send_exception(message.channel, e)
+        await utils.discord.send_exception(message.channel, e)
         print(message)
         raise e
