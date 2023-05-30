@@ -56,7 +56,7 @@ class LastSeenCommand(command.Command):
             for k, v in lastonline.items():
                 lastonline[k] = \
                     {name: last_join[1] for name, last_join in
-                     sorted(v.items(), key=lambda item: item[1][0], reverse=True)}
+                     sorted(v.items(), key=lambda item: item[1][0])}
 
             embed = Embed(
                 color=config.DEFAULT_COLOR,
