@@ -3,7 +3,7 @@ import typing
 
 from discord import TextChannel, Embed, Guild, Member, Permissions
 
-import config
+import const
 from utils.misc import split_str
 
 mention_reg = re.compile(r"\\?<(?:#|@[!&]?)(\d+)>")

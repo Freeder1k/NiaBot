@@ -1,6 +1,6 @@
 from discord import Permissions, Embed
 
-import config
+import const
 import utils.discord
 from commands import commandListener, command, commandEvent
 

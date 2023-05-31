@@ -3,7 +3,7 @@ from datetime import datetime
 from discord import Permissions, Embed
 
 import api.nasa
-import config
+import const
 from commands import command, commandEvent
 
 

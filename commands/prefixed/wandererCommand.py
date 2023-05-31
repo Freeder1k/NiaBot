@@ -3,7 +3,7 @@ from datetime import timedelta, datetime, timezone
 from discord import Permissions, Embed
 
 import api.wynncraft.guild
-import config
+import const
 import utils.discord
 import utils.misc
 from commands import command, commandEvent

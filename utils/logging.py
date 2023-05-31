@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import config
+import const
 
 
 def log(*args):

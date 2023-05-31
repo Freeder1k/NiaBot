@@ -4,7 +4,7 @@ from typing import Collection
 
 from discord import Permissions, Member, TextChannel, Embed
 
-import config
+import const
 import utils.discord
 from commands.commandEvent import CommandEvent
 
