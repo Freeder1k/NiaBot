@@ -14,7 +14,7 @@ class WandererCommand(command.Command):
         super().__init__(
             name="wandererpromote",
             aliases=("wpt",),
-            usage=f"{config.PREFIX}wandererpromote",
+            usage=f"{const.PREFIX}wandererpromote",
             description="Get the list of players eligible for Starchild.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE,
@@ -46,7 +46,7 @@ class WandererCommand(command.Command):
         fields = (("**Wanderers eligible for promotion**\n\n" + table_head_str, old_members),
                   ("**Wanderers not eligible for promotion**\n\n" + table_head_str, new_members))
 
-        embed = Embed(color=config.DEFAULT_COLOR, )
+        embed = Embed(color=const.DEFAULT_COLOR, )
 
         utils.discord.add_table_fields(
             base_embed=embed,

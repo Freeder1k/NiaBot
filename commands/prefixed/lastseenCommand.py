@@ -16,7 +16,7 @@ class LastSeenCommand(command.Command):
         super().__init__(
             name="lastseen",
             aliases=("ls", "seen"),
-            usage=f"{config.PREFIX}lastseen",
+            usage=f"{const.PREFIX}lastseen",
             description="Get players last seen in Wynncraft",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
@@ -60,7 +60,7 @@ class LastSeenCommand(command.Command):
                      sorted(v.items(), key=lambda item: item[1][0])}
 
             embed = Embed(
-                color=config.DEFAULT_COLOR,
+                color=const.DEFAULT_COLOR,
                 title="**Last Sightings of Nia Members**",
                 description='⎯' * 35,
             )

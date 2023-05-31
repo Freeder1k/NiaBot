@@ -12,7 +12,7 @@ class SpaceCommand(command.Command):
         super().__init__(
             name="space",
             aliases=(),
-            usage=f"{config.PREFIX}space",
+            usage=f"{const.PREFIX}space",
             description="Send a random space image from NASA's APOD",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
@@ -26,7 +26,7 @@ class SpaceCommand(command.Command):
         embed = Embed(
             title=apod.title,
             timestamp=datetime.strptime(apod.date, "%Y-%m-%d"),
-            color=config.DEFAULT_COLOR,
+            color=const.DEFAULT_COLOR,
             url=f"https://apod.nasa.gov/apod/ap{apod.date[2:].replace('-', '')}.html"
         )
         if apod.copyright != "":

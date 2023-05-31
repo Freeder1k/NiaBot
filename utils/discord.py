@@ -10,20 +10,20 @@ mention_reg = re.compile(r"\\?<(?:#|@[!&]?)(\d+)>")
 
 
 async def send_success(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=config.SUCCESS_COLOR, description=f"{chr(0x2705)} {message}"))
+    await channel.send(embed=Embed(color=const.SUCCESS_COLOR, description=f"{chr(0x2705)} {message}"))
 
 
 async def send_error(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=config.ERROR_COLOR, description=f"{chr(0x274c)} {message}"))
+    await channel.send(embed=Embed(color=const.ERROR_COLOR, description=f"{chr(0x274c)} {message}"))
 
 
 async def send_info(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=config.INFO_COLOR, description=f":information_source: {message}"))
+    await channel.send(embed=Embed(color=const.INFO_COLOR, description=f":information_source: {message}"))
 
 
 async def send_exception(channel: TextChannel, exception: Exception):
     await channel.send(embed=Embed(
-        color=config.ERROR_COLOR,
+        color=const.ERROR_COLOR,
         title=f"A wild {type(exception)} appeared!",
         description=str(exception))
     )

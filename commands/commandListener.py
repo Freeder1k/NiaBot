@@ -46,7 +46,7 @@ async def on_message(message: Message):
     if len(content) == 0:
         return
 
-    if content.startswith(config.PREFIX):
+    if content.startswith(const.PREFIX):
         args = content[1:].split(" ")
     elif _bot_mention.match(content):
         _, *args = message.content.split(" ")

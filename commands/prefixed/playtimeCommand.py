@@ -14,7 +14,7 @@ class PlaytimeCommand(command.Command):
         super().__init__(
             name="playtime",
             aliases=("pt",),
-            usage=f"{config.PREFIX}playtime",
+            usage=f"{const.PREFIX}playtime",
             description="Get the playtime of all members in the past week.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
@@ -55,7 +55,7 @@ class PlaytimeCommand(command.Command):
                 {name: playtime for name, playtime in sorted(v.items(), key=lambda item: item[1], reverse=True)}
 
         embed = Embed(
-            color=config.DEFAULT_COLOR,
+            color=const.DEFAULT_COLOR,
             title="**Weekly Playtimes in Nia**",
             description='⎯' * 32,
             timestamp=datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)

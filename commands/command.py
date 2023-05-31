@@ -42,7 +42,7 @@ class Command(ABC):
             m_perms = utils.discord.get_missing_perms(command_event.channel, self.req_perms)
             if m_perms != Permissions.none():
                 embed = Embed(
-                    color=config.ERROR_COLOR,
+                    color=const.ERROR_COLOR,
                     title="**To use this command please give me the following permission(s):**",
                     description=[p for p in Permissions.VALID_FLAGS if getattr(m_perms, p)]
                 )
@@ -53,7 +53,7 @@ class Command(ABC):
 
     async def send_help(self, channel: TextChannel):
         help_embed = Embed(
-            color=config.DEFAULT_COLOR,
+            color=const.DEFAULT_COLOR,
             title=f"**{self.name} command info:**"
         )
         help_embed.add_field(name="**Usage:**", value=f"``{self.usage}``", inline=False)
@@ -78,7 +78,7 @@ class Command(ABC):
         if self.permission_lvl <= PermissionLevel.ADMIN:
             return member.guild_permissions.administrator
         if self.permission_lvl == PermissionLevel.DEV:
-            return member.id == config.DEV_USER_ID
+            return member.id == const.DEV_USER_ID
 
     def is_this_command(self, command: str) -> bool:
         command = command.lower()

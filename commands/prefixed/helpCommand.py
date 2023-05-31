@@ -11,7 +11,7 @@ class HelpCommand(command.Command):
         super().__init__(
             "help",
             ("?", "h"),
-            f"{config.PREFIX}help [command]",
+            f"{const.PREFIX}help [command]",
             "Displays the command list or info on a command if one is specified.",
             Permissions().none(),
             command.PermissionLevel.ANYONE
@@ -30,10 +30,10 @@ class HelpCommand(command.Command):
         commands = commandListener.get_commands()
 
         help_embed = Embed(
-            color=config.DEFAULT_COLOR,
+            color=const.DEFAULT_COLOR,
             title="**Help:**",
-            description=f"Bot prefix: ``{config.PREFIX}``\n"
-                        f"See: ``{config.PREFIX}help <command>`` for help on individual commands.\n"
+            description=f"Bot prefix: ``{const.PREFIX}``\n"
+                        f"See: ``{const.PREFIX}help <command>`` for help on individual commands.\n"
         )
         anyone = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.ANYONE]
         member = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.MEMBER]
@@ -49,7 +49,7 @@ class HelpCommand(command.Command):
             help_embed.add_field(name="**Moderator commands:**", value='\n'.join(mod), inline=False)
         if len(admin) > 0:
             help_embed.add_field(name="**Admin commands:**", value='\n'.join(admin), inline=False)
-        if len(dev) > 0 and event.sender.id == config.DEV_USER_ID:
+        if len(dev) > 0 and event.sender.id == const.DEV_USER_ID:
             help_embed.add_field(name="**Dev commands:**", value='\n'.join(dev), inline=False)
 
         await event.channel.send(embed=help_embed)

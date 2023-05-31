@@ -9,7 +9,7 @@ class TemplateCommand(command.Command):
         super().__init__(
             name="cmd",
             aliases=(),
-            usage=f"{config.PREFIX}cmd [args]",
+            usage=f"{const.PREFIX}cmd [args]",
             description="",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
