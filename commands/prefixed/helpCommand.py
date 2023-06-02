@@ -1,6 +1,7 @@
 from discord import Permissions, Embed
 
 import const
+import serverConfig
 import utils.discord
 from commands import commandListener, command, commandEvent
 
@@ -11,7 +12,7 @@ class HelpCommand(command.Command):
         super().__init__(
             "help",
             ("?", "h"),
-            f"{const.PREFIX}help [command]",
+            f"help [command]",
             "Displays the command list or info on a command if one is specified.",
             Permissions().none(),
             command.PermissionLevel.ANYONE
@@ -28,28 +29,29 @@ class HelpCommand(command.Command):
             return
 
         commands = commandListener.get_commands()
+        cmd_prefix = serverConfig.get_cmd_prefix(event.guild.id)
 
         help_embed = Embed(
             color=const.DEFAULT_COLOR,
             title="**Help:**",
-            description=f"Bot prefix: ``{const.PREFIX}``\n"
-                        f"See: ``{const.PREFIX}help <command>`` for help on individual commands.\n"
+            description=f"Bot prefix: ``{cmd_prefix}``\n"
+                        f"See: ``{cmd_prefix}help <command>`` for help on individual commands.\n"
         )
-        anyone = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.ANYONE]
-        member = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.MEMBER]
-        mod = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.MOD]
-        admin = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.ADMIN]
-        dev = [f"``{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.DEV]
+        anyone = [f"``{cmd_prefix}{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.ANYONE]
+        member = [f"``{cmd_prefix}{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.MEMBER]
+        mod = [f"``{cmd_prefix}{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.STRAT]
+        admin = [f"``{cmd_prefix}{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.CHIEF]
+        dev = [f"``{cmd_prefix}{c.usage}``" for c in commands if c.permission_lvl == command.PermissionLevel.DEV]
 
         if len(anyone) > 0:
-            help_embed.add_field(name="**General commands:**", value='\n'.join(anyone), inline=False)
+            help_embed.add_field(name="**General Commands:**", value='\n'.join(anyone), inline=False)
         if len(member) > 0:
-            help_embed.add_field(name="**Member-only commands:**", value='\n'.join(member), inline=False)
+            help_embed.add_field(name="**Member-Only Commands:**", value='\n'.join(member), inline=False)
         if len(mod) > 0:
-            help_embed.add_field(name="**Moderator commands:**", value='\n'.join(mod), inline=False)
+            help_embed.add_field(name="**Strat+ Commands:**", value='\n'.join(mod), inline=False)
         if len(admin) > 0:
-            help_embed.add_field(name="**Admin commands:**", value='\n'.join(admin), inline=False)
-        if len(dev) > 0 and event.sender.id == const.DEV_USER_ID:
-            help_embed.add_field(name="**Dev commands:**", value='\n'.join(dev), inline=False)
+            help_embed.add_field(name="**Chief Commands:**", value='\n'.join(admin), inline=False)
+        if len(dev) > 0 and event.sender.id in const.DEV_USER_IDS:
+            help_embed.add_field(name="**Dev Commands:**", value='\n'.join(dev), inline=False)
 
         await event.channel.send(embed=help_embed)

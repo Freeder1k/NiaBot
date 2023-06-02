@@ -16,7 +16,7 @@ class LastSeenCommand(command.Command):
         super().__init__(
             name="lastseen",
             aliases=("ls", "seen"),
-            usage=f"{const.PREFIX}lastseen",
+            usage=f"lastseen",
             description="Get players last seen in Wynncraft",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE

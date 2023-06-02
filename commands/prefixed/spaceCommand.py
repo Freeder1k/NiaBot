@@ -12,7 +12,7 @@ class SpaceCommand(command.Command):
         super().__init__(
             name="space",
             aliases=(),
-            usage=f"{const.PREFIX}space",
+            usage=f"space",
             description="Send a random space image from NASA's APOD",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE

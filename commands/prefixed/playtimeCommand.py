@@ -14,7 +14,7 @@ class PlaytimeCommand(command.Command):
         super().__init__(
             name="playtime",
             aliases=("pt",),
-            usage=f"{const.PREFIX}playtime",
+            usage=f"playtime",
             description="Get the playtime of all members in the past week.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE

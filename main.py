@@ -15,6 +15,7 @@ import commands.prefixed.playtimeCommand
 import commands.prefixed.spaceCommand
 import commands.prefixed.wandererCommand
 import scheduling
+import serverConfig
 import storage.manager
 import storage.playtimeData
 import utils.logging
@@ -37,6 +38,7 @@ async def on_ready():
     utils.logging.log(f"Logged in as {client.user}")
     utils.logging.log(f"Guilds: {[g.name for g in client.guilds]}")
 
+    await serverConfig.load_server_configs()
     await storage.manager.init_database()
     await api.wynncraft.wynnAPI.init_sessions()
     await api.nasa.init_session()

@@ -4,6 +4,7 @@ from re import Pattern
 from discord import Message, TextChannel, Client
 
 import const
+import serverConfig
 import utils.discord
 from commands.command import Command
 from commands.commandEvent import CommandEvent
@@ -46,8 +47,9 @@ async def on_message(message: Message):
     if len(content) == 0:
         return
 
-    if content.startswith(const.PREFIX):
-        args = content[1:].split(" ")
+    cmd_prefix = serverConfig.get_cmd_prefix(message.guild.id)
+    if content.startswith(cmd_prefix):
+        args = content[len(cmd_prefix):].split(" ")
     elif _bot_mention.match(content):
         _, *args = message.content.split(" ")
     else:

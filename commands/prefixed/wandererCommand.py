@@ -14,7 +14,7 @@ class WandererCommand(command.Command):
         super().__init__(
             name="wandererpromote",
             aliases=("wpt",),
-            usage=f"{const.PREFIX}wandererpromote",
+            usage=f"wandererpromote",
             description="Get the list of players eligible for Starchild.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE,

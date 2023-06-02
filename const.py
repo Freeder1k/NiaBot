@@ -1,7 +1,7 @@
 from typing import Final
 
 PREFIX: Final = "."
-DEV_USER_ID: Final = 470696578403794967
+DEV_USER_IDS: Final = (470696578403794967,)
 
 # EMBED COLORS
 DEFAULT_COLOR: Final = 3603854

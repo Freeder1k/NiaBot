@@ -5,6 +5,7 @@ from typing import Collection
 from discord import Permissions, Member, TextChannel, Embed
 
 import const
+import serverConfig
 import utils.discord
 from commands.commandEvent import CommandEvent
 
@@ -12,8 +13,8 @@ from commands.commandEvent import CommandEvent
 class PermissionLevel(Enum):
     ANYONE = 0
     MEMBER = 1
-    MOD = 2
-    ADMIN = 3
+    STRAT = 2
+    CHIEF = 3
     DEV = 4
 
 
@@ -67,18 +68,22 @@ class Command(ABC):
         await channel.send(embed=help_embed)
 
     def _allowed_user(self, member: Member) -> bool:
+        if member.id in const.DEV_USER_IDS:
+            return True
         if self.permission_lvl == PermissionLevel.ANYONE:
             return True
         if self.permission_lvl == PermissionLevel.MEMBER:
-            # TODO
-            return True
-        if self.permission_lvl <= PermissionLevel.MOD:
-            # TODO
-            return True
-        if self.permission_lvl <= PermissionLevel.ADMIN:
+            member_role = serverConfig.get_member_role_id(member.guild.id)
+            if member.get_role(member_role) is not None:
+                return True
+        if self.permission_lvl <= PermissionLevel.STRAT:
+            strat_role = serverConfig.get_strat_role_id(member.guild.id)
+            if member.get_role(strat_role) is not None:
+                return True
+        if self.permission_lvl <= PermissionLevel.CHIEF:
             return member.guild_permissions.administrator
         if self.permission_lvl == PermissionLevel.DEV:
-            return member.id == const.DEV_USER_ID
+            return False
 
     def is_this_command(self, command: str) -> bool:
         command = command.lower()
