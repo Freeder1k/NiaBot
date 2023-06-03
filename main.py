@@ -3,9 +3,12 @@ import threading
 from datetime import datetime, timezone
 
 import discord
+from discord.ext import tasks
 from dotenv import load_dotenv
 
 import api.nasa
+import api.rateLimit
+import api.wynncraft
 import api.wynncraft.network
 import api.wynncraft.wynnAPI
 import commands.commandListener
@@ -14,9 +17,9 @@ import commands.prefixed.lastseenCommand
 import commands.prefixed.playtimeCommand
 import commands.prefixed.spaceCommand
 import commands.prefixed.wandererCommand
-import scheduling
 import serverConfig
 import storage.manager
+import storage.playtimeData
 import storage.playtimeData
 import utils.logging
 
@@ -43,7 +46,7 @@ async def on_ready():
     await api.wynncraft.wynnAPI.init_sessions()
     await api.nasa.init_session()
 
-    scheduling.start_scheduling(client)
+    start_scheduling()
 
     commands.commandListener.on_ready(client)
 
@@ -57,7 +60,7 @@ async def on_ready():
 
     today = datetime.now(timezone.utc).date()
     if (await storage.playtimeData.get_first_date_after(today)) is None:
-        await scheduling.update_playtimes()
+        await storage.playtimeData.update_playtimes()
 
     await client.change_presence(
         status=discord.Status.online,
@@ -73,6 +76,29 @@ async def on_message(message: discord.Message):
     asyncio.create_task(commands.commandListener.on_message(message))
 
 
+@tasks.loop(minutes=1)
+async def update_presence():
+    await client.change_presence(
+        status=discord.Status.online,
+        activity=discord.Activity(
+            name=f"{await api.wynncraft.network.player_sum()} players play Wynncraft",
+            type=discord.ActivityType.watching
+        )
+    )
+
+
+def start_scheduling():
+    api.rateLimit.update_ratelimits.start()
+    storage.playtimeData.update_playtimes.start()
+    update_presence.start(client)
+
+
+def stop_scheduling():
+    update_presence.cancel()
+    storage.playtimeData.update_playtimes.cancel()
+    api.rateLimit.update_ratelimits.cancel()
+
+
 def main():
     print("\n  *:･ﾟ✧(=^･ω･^=)*:･ﾟ✧\n")
 
@@ -81,7 +107,7 @@ def main():
 
 async def stop():
     stopped.set()
-    scheduling.stop_scheduling()
+    stop_scheduling()
     await client.close()
     await api.wynncraft.wynnAPI.close()
     await api.nasa.close()

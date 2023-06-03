@@ -1,3 +1,4 @@
+from discord.ext import tasks
 from queue import Queue
 from threading import Lock
 
@@ -50,6 +51,7 @@ def add_ratelimit(rate_limit: RateLimit):
     _rate_limits.append(rate_limit)
 
 
+@tasks.loop(minutes=1)
 def update_ratelimits():
     for rate_limit in _rate_limits:
         rate_limit.time_passed()

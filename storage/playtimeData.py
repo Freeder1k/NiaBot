@@ -1,6 +1,11 @@
+import asyncio
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, time, timezone, datetime
 
+from discord.ext import tasks
+
+import api.wynncraft.guild
+import api.wynncraft.player
 from storage import manager
 
 
@@ -83,3 +88,14 @@ async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date |
     if 'min(playtime_day)' not in data.keys():
         return None
     return data['min(playtime_day)']
+
+
+@tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc))
+async def update_playtimes():
+    nia = await api.wynncraft.guild.stats("Nerfuria")
+    today = datetime.now(timezone.utc).date()
+
+    res: list[api.wynncraft.player.Stats] = await asyncio.gather(
+        *(api.wynncraft.player.stats(member.uuid) for member in nia.members))
+
+    await asyncio.gather(*(set_playtime(stats.uuid, today, stats.meta.playtime) for stats in res))

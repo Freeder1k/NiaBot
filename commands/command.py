@@ -70,18 +70,23 @@ class Command(ABC):
     def _allowed_user(self, member: Member) -> bool:
         if member.id in const.DEV_USER_IDS:
             return True
+
         if self.permission_lvl == PermissionLevel.ANYONE:
             return True
+
         if self.permission_lvl == PermissionLevel.MEMBER:
             member_role = serverConfig.get_member_role_id(member.guild.id)
             if member.get_role(member_role) is not None:
                 return True
+
         if self.permission_lvl <= PermissionLevel.STRAT:
             strat_role = serverConfig.get_strat_role_id(member.guild.id)
             if member.get_role(strat_role) is not None:
                 return True
+
         if self.permission_lvl <= PermissionLevel.CHIEF:
             return member.guild_permissions.administrator
+
         if self.permission_lvl == PermissionLevel.DEV:
             return False
 
