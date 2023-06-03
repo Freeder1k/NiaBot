@@ -90,7 +90,7 @@ async def update_presence():
 def start_scheduling():
     api.rateLimit.update_ratelimits.start()
     storage.playtimeData.update_playtimes.start()
-    update_presence.start(client)
+    update_presence.start()
 
 
 def stop_scheduling():

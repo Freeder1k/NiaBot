@@ -52,6 +52,6 @@ def add_ratelimit(rate_limit: RateLimit):
 
 
 @tasks.loop(minutes=1)
-def update_ratelimits():
+async def update_ratelimits():
     for rate_limit in _rate_limits:
         rate_limit.time_passed()
