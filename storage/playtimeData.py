@@ -6,6 +6,7 @@ from discord.ext import tasks
 
 import api.wynncraft.guild
 import api.wynncraft.player
+from api import minecraft
 from storage import manager
 
 
@@ -95,7 +96,8 @@ async def update_playtimes():
     nia = await api.wynncraft.guild.stats("Nerfuria")
     today = datetime.now(timezone.utc).date()
 
+    usernames = await asyncio.gather(*tuple(minecraft.uuid_to_username(m.uuid) for m in nia.members))
     res: list[api.wynncraft.player.Stats] = await asyncio.gather(
-        *(api.wynncraft.player.stats(member.uuid) for member in nia.members))
+        *(api.wynncraft.player.stats(name) for name in usernames))
 
     await asyncio.gather(*(set_playtime(stats.uuid, today, stats.meta.playtime) for stats in res))

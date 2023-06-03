@@ -22,6 +22,7 @@ import storage.manager
 import storage.playtimeData
 import storage.playtimeData
 import utils.logging
+import api.minecraft
 
 load_dotenv()
 import os
@@ -45,6 +46,7 @@ async def on_ready():
     await storage.manager.init_database()
     await api.wynncraft.wynnAPI.init_sessions()
     await api.nasa.init_session()
+    await api.minecraft.init_session()
 
     start_scheduling()
 
@@ -111,6 +113,7 @@ async def stop():
     await client.close()
     await api.wynncraft.wynnAPI.close()
     await api.nasa.close()
+    await api.minecraft.close()
     await storage.manager.close()
 
 

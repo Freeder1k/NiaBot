@@ -9,6 +9,7 @@ import const
 import utils.discord
 import utils.misc
 from commands import command, commandEvent
+from api import minecraft
 
 
 class LastSeenCommand(command.Command):
@@ -38,7 +39,8 @@ class LastSeenCommand(command.Command):
 
             longest_name_len = 0
             longest_date_len = 0
-            players = await asyncio.gather(*tuple(api.wynncraft.player.stats(m.uuid) for m in nia.members))
+            usernames = await asyncio.gather(*tuple(minecraft.uuid_to_username(m.uuid) for m in nia.members))
+            players = await asyncio.gather(*tuple(api.wynncraft.player.stats(name) for name in usernames))
 
             for m, p in zip(nia.members, players):
                 if p is None:
