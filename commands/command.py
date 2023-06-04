@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import IntEnum
 from typing import Collection
 
 from discord import Permissions, Member, TextChannel, Embed
@@ -10,7 +10,7 @@ import utils.discord
 from commands.commandEvent import CommandEvent
 
 
-class PermissionLevel(Enum):
+class PermissionLevel(IntEnum):
     ANYONE = 0
     MEMBER = 1
     STRAT = 2

@@ -1,3 +1,4 @@
 /.env
 /nia-bot.log
 /NiaBot.db
+/server_conf.json
