@@ -35,6 +35,9 @@ def parse_id(input_str: str) -> int:
 
     :return: The ID contained in the str or 0 if it couldn't be parsed.
     """
+    if input_str.isnumeric():
+        return int(input_str)
+
     match = mention_reg.fullmatch(input_str)
     if match:
         return int(match.group(1))

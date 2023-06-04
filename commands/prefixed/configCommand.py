@@ -65,6 +65,7 @@ class ConfigCommand(command.Command):
                 if role is None:
                     await utils.discord.send_error(event.channel, f"Couldn't parse role: {event.args[2]}\n"
                                                                   f"Please use a role mention or specify the role ID.")
+                    return
 
                 await serverConfig.set_strat_role_id(server_id, role_id)
                 await utils.discord.send_info(event.channel, f"Set the strat role to <@&{role_id}>")
@@ -74,6 +75,7 @@ class ConfigCommand(command.Command):
                 if role is None:
                     await utils.discord.send_error(event.channel, f"Couldn't parse role: {event.args[2]}\n"
                                                                   f"Please use a role mention or specify the role ID.")
+                    return
 
                 await serverConfig.set_member_role_id(server_id, role_id)
                 await utils.discord.send_info(event.channel, f"Set the member role to <@&{role_id}>")
@@ -83,6 +85,7 @@ class ConfigCommand(command.Command):
                 if channel is None:
                     await utils.discord.send_error(event.channel, f"Couldn't parse channel: {event.args[2]}\n"
                                                                   f"Please use a channel mention or specify the channel ID.")
+                    return
 
                 await serverConfig.set_log_channel_id(server_id, channel_id)
                 await utils.discord.send_info(event.channel, f"Set the log channel to <#{channel_id}>")
