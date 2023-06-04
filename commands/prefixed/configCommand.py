@@ -24,7 +24,7 @@ class ConfigCommand(command.Command):
         if len(event.args) < 2:
             embed = Embed(
                 color=const.DEFAULT_COLOR,
-                title=f"{event.guild.name} server config:",
+                title=f"{event.guild.name} Server Config:",
                 description=f"- Prefix: ``{serverConfig.get_cmd_prefix(server_id)}``\n"
                             f"- Strat Role: <@&{serverConfig.get_strat_role_id(server_id)}>\n"
                             f"- Member Role:  <@&{serverConfig.get_member_role_id(server_id)}>\n"
@@ -58,7 +58,7 @@ class ConfigCommand(command.Command):
                 if len(prefix) > 1 and prefix[0] == "\"" and prefix[-1] == "\"":
                     prefix = prefix[1:-1]
                 await serverConfig.set_cmd_prefix(server_id, prefix)
-                await utils.discord.send_info(event.channel, f"Set the command prefix to ``{prefix}``")
+                await utils.discord.send_success(event.channel, f"Set the command prefix to ``{prefix}``")
             case "stratrole":
                 role_id = utils.discord.parse_id(event.args[2])
                 role = event.guild.get_role(role_id)
@@ -68,7 +68,7 @@ class ConfigCommand(command.Command):
                     return
 
                 await serverConfig.set_strat_role_id(server_id, role_id)
-                await utils.discord.send_info(event.channel, f"Set the strat role to <@&{role_id}>")
+                await utils.discord.send_success(event.channel, f"Set the strat role to <@&{role_id}>")
             case "memberrole":
                 role_id = utils.discord.parse_id(event.args[2])
                 role = event.guild.get_role(role_id)
@@ -78,7 +78,7 @@ class ConfigCommand(command.Command):
                     return
 
                 await serverConfig.set_member_role_id(server_id, role_id)
-                await utils.discord.send_info(event.channel, f"Set the member role to <@&{role_id}>")
+                await utils.discord.send_success(event.channel, f"Set the member role to <@&{role_id}>")
             case "logchannel":
                 channel_id = utils.discord.parse_id(event.args[2])
                 channel = event.guild.get_channel(channel_id)
@@ -88,7 +88,7 @@ class ConfigCommand(command.Command):
                     return
 
                 await serverConfig.set_log_channel_id(server_id, channel_id)
-                await utils.discord.send_info(event.channel, f"Set the log channel to <#{channel_id}>")
+                await utils.discord.send_success(event.channel, f"Set the log channel to <#{channel_id}>")
             case "_":
                 await utils.discord.send_error(event.channel, f"Invalid option: {event.args[1]}.\n"
                                                               f"Valid options are: ``prefix``, ``stratrole``, ``memberrole``, ``logchannel``")
