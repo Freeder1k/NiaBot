@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import os.path
 from dataclasses import dataclass
@@ -27,13 +28,13 @@ async def load_server_configs():
             content = await f.read()
             data = json.loads(content)
             global _server_configs
-            _server_configs = {server_id: utils.misc.dataclass_from_json(_ServerConfig, v) for server_id, v in
+            _server_configs = {int(server_id): utils.misc.dataclass_from_json(_ServerConfig, v) for server_id, v in
                                data.items()}
 
 
 async def _store_server_configs():
     async with aiofiles.open(_configs_file, mode='w') as f:
-        await f.write(json.dumps(_server_configs))
+        await f.write(json.dumps({k: dataclasses.asdict(v) for k, v in _server_configs.items()}, indent=4))
 
 
 async def _set(server_id: int, attr: str, value):
@@ -42,6 +43,7 @@ async def _set(server_id: int, attr: str, value):
 
     setattr(_server_configs[server_id], attr, value)
     await _store_server_configs()
+
 
 
 def get_cmd_prefix(server_id: int) -> str:

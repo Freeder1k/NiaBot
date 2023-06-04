@@ -17,7 +17,7 @@ class WandererCommand(command.Command):
             usage=f"wandererpromote",
             description="Get the list of players eligible for Starchild.",
             req_perms=Permissions().none(),
-            permission_lvl=command.PermissionLevel.ANYONE,
+            permission_lvl=command.PermissionLevel.STRAT,
         )
 
     async def _execute(self, event: commandEvent.CommandEvent):

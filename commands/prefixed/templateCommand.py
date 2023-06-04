@@ -1,6 +1,5 @@
 from discord import Permissions
 
-import const
 from commands import command, commandEvent
 
 

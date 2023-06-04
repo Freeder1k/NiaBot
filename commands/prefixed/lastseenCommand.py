@@ -20,7 +20,7 @@ class LastSeenCommand(command.Command):
             usage=f"lastseen",
             description="Get players last seen in Wynncraft",
             req_perms=Permissions().none(),
-            permission_lvl=command.PermissionLevel.ANYONE
+            permission_lvl=command.PermissionLevel.STRAT
         )
 
     async def _execute(self, event: commandEvent.CommandEvent):

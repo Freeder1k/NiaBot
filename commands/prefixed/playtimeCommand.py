@@ -17,7 +17,7 @@ class PlaytimeCommand(command.Command):
             usage=f"playtime",
             description="Get the playtime of all members in the past week.",
             req_perms=Permissions().none(),
-            permission_lvl=command.PermissionLevel.ANYONE
+            permission_lvl=command.PermissionLevel.STRAT
         )
 
     async def _execute(self, event: commandEvent.CommandEvent):

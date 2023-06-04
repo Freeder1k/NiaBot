@@ -55,7 +55,7 @@ class Command(ABC):
     async def send_help(self, channel: TextChannel):
         help_embed = Embed(
             color=const.DEFAULT_COLOR,
-            title=f"**{self.name} command info:**"
+            title=f"**{self.name.capitalize()} Command Info:**"
         )
         help_embed.add_field(name="**Usage:**", value=f"``{self.usage}``", inline=False)
         if len(self.aliases) > 0:

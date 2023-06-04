@@ -17,6 +17,7 @@ import commands.prefixed.lastseenCommand
 import commands.prefixed.playtimeCommand
 import commands.prefixed.spaceCommand
 import commands.prefixed.wandererCommand
+import commands.prefixed.configCommand
 import serverConfig
 import storage.manager
 import storage.playtimeData
@@ -58,6 +59,7 @@ async def on_ready():
         commands.prefixed.wandererCommand.WandererCommand(),
         commands.prefixed.lastseenCommand.LastSeenCommand(),
         commands.prefixed.spaceCommand.SpaceCommand(),
+        commands.prefixed.configCommand.ConfigCommand(),
     )
 
     today = datetime.now(timezone.utc).date()
