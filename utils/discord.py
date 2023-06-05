@@ -4,6 +4,8 @@ import typing
 from discord import TextChannel, Embed, Guild, Member, Permissions
 
 import const
+import main
+from commands.commandEvent import CommandEvent
 from utils.misc import split_str
 
 mention_reg = re.compile(r"\\?<(?:#|@[!&]?)(\d+)>")
@@ -21,12 +23,27 @@ async def send_info(channel: TextChannel, message: str):
     await channel.send(embed=Embed(color=const.INFO_COLOR, description=f":information_source: {message}"))
 
 
-async def send_exception(channel: TextChannel, exception: Exception):
-    await channel.send(embed=Embed(
+async def send_exception(event: CommandEvent, exception: Exception):
+    await event.channel.send(embed=Embed(
         color=const.ERROR_COLOR,
         title=f"A wild {type(exception)} appeared!",
-        description=str(exception))
+        description="Please scream at the bot owner to fix it."
+    ))
+
+    devs = [event.client.get_user(uid) for uid in const.DEV_USER_IDS]
+
+    embed = Embed(
+        color=const.ERROR_COLOR,
+        title=f"A wild {type(exception)} appeared!",
+        description=f"Server: ``{event.guild}``\n"
+                    f"Channel: ``#{event.channel.name}``\n"
+                    f"Message: {event.message.jump_url}"
     )
+    embed.add_field(name="Command Event:", value=f"```\n{event}```", inline=False)
+    embed.add_field(name="", value="", inline=False)
+    embed.add_field(name="Exception:", value=f"```\n{exception}```", inline=False)
+    for dev in devs:
+        await dev.send(embed=embed)
 
 
 def parse_id(input_str: str) -> int:

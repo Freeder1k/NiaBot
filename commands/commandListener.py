@@ -12,6 +12,7 @@ from commands.commandEvent import CommandEvent
 _bot_mention: Pattern
 _commands: list[Command] = []
 _command_map: dict[str, Command] = {}
+_client: Client = None
 
 
 def register_commands(*new_commands: Command):
@@ -31,8 +32,9 @@ def get_command_map() -> dict[str, Command]:
 
 
 def on_ready(client: Client):
-    global _bot_mention
+    global _bot_mention, _client
     _bot_mention = re.compile(f"\?<@!?{client.user.id}>")
+    _client = client
 
 
 async def on_message(message: Message):
@@ -61,11 +63,11 @@ async def on_message(message: Message):
     if args[0] not in _command_map:
         return
 
-    command_event = CommandEvent(message, args, message.author, message.channel, message.guild)
+    command_event = CommandEvent(message, args, message.author, message.channel, message.guild, _client)
 
     try:
         await _command_map[args[0]].run(command_event)
     except Exception as e:
-        await utils.discord.send_exception(message.channel, e)
+        await utils.discord.send_exception(command_event, e)
         print(message)
         raise e

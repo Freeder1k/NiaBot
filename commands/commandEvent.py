@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from discord import Message, Member, Guild, TextChannel
+from discord import Message, Member, Guild, TextChannel, Client
 
 
 @dataclass(frozen=True)
@@ -10,3 +10,4 @@ class CommandEvent:
     sender: Member
     channel: TextChannel
     guild: Guild
+    client: Client
