@@ -28,7 +28,7 @@ async def load_server_configs():
             content = await f.read()
             data = json.loads(content)
             global _server_configs
-            _server_configs = {int(server_id): utils.misc.dataclass_from_json(_ServerConfig, v) for server_id, v in
+            _server_configs = {int(server_id): utils.misc.dataclass_from_dict(_ServerConfig, v) for server_id, v in
                                data.items()}
 
 

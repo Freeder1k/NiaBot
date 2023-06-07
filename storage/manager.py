@@ -12,12 +12,20 @@ async def init_database():
 
     await _cur.execute("""
                 CREATE TABLE IF NOT EXISTS playtimes (
-                    player_uuid char(32),
-                    playtime_day date,
-                    playtime int,
-                    PRIMARY KEY (player_uuid, playtime_day)
+                    uuid TEXT,
+                    day DATE,
+                    playtime INTEGER,
+                    PRIMARY KEY (uuid, day)
                 )
             """)
+    await _cur.execute("""
+                    CREATE TABLE IF NOT EXISTS strikes (
+                        strike_id INTEGER PRIMARY KEY,
+                        user_id INTEGER,
+                        strike_date DATE,
+                        reason TEXT
+                    )
+                """)
 
 
 def get_connection() -> aiosqlite.Connection:

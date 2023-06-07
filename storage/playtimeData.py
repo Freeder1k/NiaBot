@@ -23,15 +23,15 @@ async def get_playtime(uuid: str, day: date) -> Playtime | None:
     cur = manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM playtimes
-                WHERE player_uuid = ?
-                AND playtime_day = ?
+                WHERE uuid = ?
+                AND day = ?
             """, (uuid, day))
 
-    data = await res.fetchone()
-    if data is None:
+    data = tuple(await res.fetchall())
+    if len(data) == 0:
         return None
 
-    return Playtime(data["player_uuid"], data["playtime_day"], data["playtime"])
+    return Playtime(**{k: data[0][k] for k in data[0].keys()})
 
 
 async def get_all_playtimes(uuid: str) -> tuple[Playtime]:
@@ -40,7 +40,7 @@ async def get_all_playtimes(uuid: str) -> tuple[Playtime]:
     cur = manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM playtimes
-                WHERE player_uuid = ?
+                WHERE uuid = ?
             """, (uuid,))
 
     return tuple(Playtime(data["player_uuid"], data["playtime_day"], data["playtime"]) for data in await res.fetchall())
@@ -61,16 +61,16 @@ async def set_playtime(uuid: str, day: date, playtime: int):
 async def get_first_date_after(date_before: date) -> date | None:
     cur = manager.get_cursor()
     res = await cur.execute("""
-                    SELECT min(playtime_day) FROM playtimes
-                    WHERE playtime_day >= ?
+                    SELECT min(day) FROM playtimes
+                    WHERE day >= ?
                 """, (date_before,))
 
-    data = await res.fetchone()
-    if data is None:
+    data = tuple(await res.fetchall())
+    if len(data) == 0:
         return None
-    if 'min(playtime_day)' not in data.keys():
+    if 'min(playtime_day)' not in data[0].keys():
         return None
-    return data['min(playtime_day)']
+    return data[0]['min(playtime_day)']
 
 
 async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date | None:
@@ -78,17 +78,17 @@ async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date |
 
     cur = manager.get_cursor()
     res = await cur.execute("""
-                    SELECT min(playtime_day) FROM playtimes
-                    WHERE player_uuid = ?
-                    AND playtime_day >= ?
+                    SELECT min(day) FROM playtimes
+                    WHERE uuid = ?
+                    AND day >= ?
                 """, (uuid, date_before))
 
-    data = await res.fetchone()
-    if data is None:
+    data = tuple(await res.fetchall())
+    if len(data) == 0:
         return None
-    if 'min(playtime_day)' not in data.keys():
+    if 'min(playtime_day)' not in data[0].keys():
         return None
-    return data['min(playtime_day)']
+    return data[0]['min(playtime_day)']
 
 
 @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc))

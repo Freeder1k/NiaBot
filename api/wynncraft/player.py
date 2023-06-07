@@ -56,4 +56,4 @@ async def stats(player: str) -> Stats | None:
 
         json["global_stats"] = json.pop("global")
         json["meta"]["playtime"] = int(json["meta"]["playtime"] * 4.7)
-        return utils.misc.dataclass_from_json(Stats, json)
+        return utils.misc.dataclass_from_dict(Stats, json)

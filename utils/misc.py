@@ -1,7 +1,7 @@
 import dataclasses
 import datetime
 from datetime import datetime, timezone
-from typing import TypeVar, Any
+from typing import TypeVar, Any, Type
 
 from utils.logging import elog
 
@@ -19,12 +19,12 @@ def parse_name(nickname: str):
 T = TypeVar("T")
 
 
-def dataclass_from_json(dataclass: type[T], json: dict) -> T:
+def dataclass_from_dict(dataclass: Type[T], d: dict) -> T:
     """
     Convert a dictionary to the specified dataclass.
 
     :param dataclass: the dataclass to convert to
-    :param json: the (nested) dictionary corresponding to the cls
+    :param d: the (nested) dictionary corresponding to the cls
     :return: an instance of cls
     """
     if not dataclasses.is_dataclass(dataclass):
@@ -33,7 +33,7 @@ def dataclass_from_json(dataclass: type[T], json: dict) -> T:
     fieldtypes = {f.name: f.type for f in dataclasses.fields(dataclass)}
     fields = {}
     for f in fieldtypes:
-        fields[f] = _from_json_inner(fieldtypes[f], json[f])
+        fields[f] = _from_json_inner(fieldtypes[f], d[f])
     return dataclass(**fields)
 
 
@@ -42,7 +42,7 @@ def _from_json_inner(cls: Any, json: dict) -> Any:
         return [_from_json_inner(cls.__args__[0], j) for j in json]
     elif isinstance(cls, type):
         if dataclasses.is_dataclass(cls):
-            return dataclass_from_json(cls, json)
+            return dataclass_from_dict(cls, json)
         elif cls == Any:
             return json
         elif isinstance(json, cls):

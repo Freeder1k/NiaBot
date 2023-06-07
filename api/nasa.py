@@ -36,7 +36,7 @@ async def get_random_apod() -> APOD:
             json = json[0]
             if "copyright" not in json:
                 json["copyright"] = ""
-            return utils.misc.dataclass_from_json(APOD, json)
+            return utils.misc.dataclass_from_dict(APOD, json)
 
 
 async def init_session():

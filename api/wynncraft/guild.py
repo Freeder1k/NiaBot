@@ -36,4 +36,4 @@ async def guild_list():
 
 
 async def stats(guild: str) -> Stats:
-    return utils.misc.dataclass_from_json(Stats, await wynnAPI.get_legacy("guildStats", guild))
+    return utils.misc.dataclass_from_dict(Stats, await wynnAPI.get_legacy("guildStats", guild))
