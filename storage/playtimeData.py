@@ -68,9 +68,9 @@ async def get_first_date_after(date_before: date) -> date | None:
     data = tuple(await res.fetchall())
     if len(data) == 0:
         return None
-    if 'min(playtime_day)' not in data[0].keys():
+    if 'min(day)' not in data[0].keys():
         return None
-    return data[0]['min(playtime_day)']
+    return data[0]['min(day)']
 
 
 async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date | None:
@@ -86,9 +86,9 @@ async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date |
     data = tuple(await res.fetchall())
     if len(data) == 0:
         return None
-    if 'min(playtime_day)' not in data[0].keys():
+    if 'min(day)' not in data[0].keys():
         return None
-    return data[0]['min(playtime_day)']
+    return data[0]['min(day)']
 
 
 @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc))

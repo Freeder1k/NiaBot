@@ -12,18 +12,19 @@ async def init_database():
 
     await _cur.execute("""
                 CREATE TABLE IF NOT EXISTS playtimes (
-                    uuid TEXT,
-                    day DATE,
-                    playtime INTEGER,
+                    uuid TEXT NOT NULL,
+                    day DATE NOT NULL,
+                    playtime INTEGER NOT NULL,
                     PRIMARY KEY (uuid, day)
                 )
             """)
     await _cur.execute("""
                     CREATE TABLE IF NOT EXISTS strikes (
                         strike_id INTEGER PRIMARY KEY,
-                        user_id INTEGER,
-                        strike_date DATE,
-                        reason TEXT
+                        user_id INTEGER NOT NULL,
+                        strike_date DATE NOT NULL,
+                        reason TEXT NOT NULL,
+                        pardoned INTEGER NOT NULL
                     )
                 """)
 
