@@ -1,6 +1,6 @@
 from discord import Permissions, Embed
 
-import const
+import bot_config
 import serverConfig
 import utils.discord
 from commands import command, commandEvent
@@ -23,7 +23,7 @@ class ConfigCommand(command.Command):
 
         if len(event.args) < 2:
             embed = Embed(
-                color=const.DEFAULT_COLOR,
+                color=bot_config.DEFAULT_COLOR,
                 title=f"{event.guild.name} Server Config:",
                 description=f"- Prefix: ``{serverConfig.get_cmd_prefix(server_id)}``\n"
                             f"- Strat Role: <@&{serverConfig.get_strat_role_id(server_id)}>\n"

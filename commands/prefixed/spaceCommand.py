@@ -3,7 +3,7 @@ from datetime import datetime
 from discord import Permissions, Embed
 
 import api.nasa
-import const
+import bot_config
 from commands import command, commandEvent
 
 
@@ -26,7 +26,7 @@ class SpaceCommand(command.Command):
         embed = Embed(
             title=apod.title,
             timestamp=datetime.strptime(apod.date, "%Y-%m-%d"),
-            color=const.DEFAULT_COLOR,
+            color=bot_config.DEFAULT_COLOR,
             url=f"https://apod.nasa.gov/apod/ap{apod.date[2:].replace('-', '')}.html"
         )
         if apod.copyright != "":

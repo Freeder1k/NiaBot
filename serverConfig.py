@@ -5,13 +5,13 @@ from dataclasses import dataclass
 
 import aiofiles
 
-import const
+import bot_config
 import utils.misc
 
 
 @dataclass
 class _ServerConfig:
-    cmd_prefix: str = const.PREFIX
+    cmd_prefix: str = bot_config.PREFIX
     member_role_id: int = 0
     strat_role_id: int = 0
     log_channel_id: int = 0

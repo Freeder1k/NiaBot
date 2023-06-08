@@ -3,7 +3,7 @@ from datetime import timedelta, datetime, timezone
 from discord import Permissions, Embed
 
 import api.wynncraft.guild
-import const
+import bot_config
 import storage.playtimeData
 import utils.discord
 from commands import command, commandEvent
@@ -55,7 +55,7 @@ class PlaytimeCommand(command.Command):
                 {name: playtime for name, playtime in sorted(v.items(), key=lambda item: item[1], reverse=True)}
 
         embed = Embed(
-            color=const.DEFAULT_COLOR,
+            color=bot_config.DEFAULT_COLOR,
             title="**Weekly Playtimes in Nia**",
             description='⎯' * 32,
             timestamp=datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)

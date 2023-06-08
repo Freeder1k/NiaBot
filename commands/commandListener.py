@@ -3,7 +3,6 @@ from re import Pattern
 
 from discord import Message, TextChannel, Client
 
-import const
 import serverConfig
 import utils.discord
 from commands.command import Command

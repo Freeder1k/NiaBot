@@ -3,7 +3,7 @@ from datetime import timedelta, datetime, timezone
 from discord import Permissions, Embed
 
 import api.wynncraft.guild
-import const
+import bot_config
 import utils.discord
 import utils.misc
 from commands import command, commandEvent
@@ -46,7 +46,7 @@ class WandererCommand(command.Command):
         fields = (("**Wanderers eligible for promotion**\n\n" + table_head_str, old_members),
                   ("**Wanderers not eligible for promotion**\n\n" + table_head_str, new_members))
 
-        embed = Embed(color=const.DEFAULT_COLOR, )
+        embed = Embed(color=bot_config.DEFAULT_COLOR, )
 
         utils.discord.add_table_fields(
             base_embed=embed,

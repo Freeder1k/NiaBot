@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from discord import Permissions, Embed
 
-import const
+import bot_config
 import storage.strikeData
 import utils.discord
 from commands import command, commandEvent
@@ -48,7 +48,7 @@ class StrikesCommand(command.Command):
 
         embed = Embed(
             title=f"Strikes for {name}",
-            color=const.DEFAULT_COLOR,
+            color=bot_config.DEFAULT_COLOR,
             timestamp=datetime.now(timezone.utc)
         )
 
