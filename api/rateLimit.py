@@ -3,9 +3,7 @@ from queue import Queue
 from threading import Lock
 
 from discord.ext import tasks
-
-from api.httpNonSuccessException import HTTPNonSuccessException
-
+from aiohttp import ClientResponseError
 
 class RateLimitException(Exception):
     pass
@@ -39,7 +37,7 @@ class RateLimit:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         with self._enter_lock:
-            if exc_type is HTTPNonSuccessException and exc_val.code == HTTPStatus.TOO_MANY_REQUESTS:
+            if exc_type is ClientResponseError and exc_val.status == HTTPStatus.TOO_MANY_REQUESTS:
                 self.set_full()
                 raise RateLimitException(f"Rate limit of {self.max_amount} requests per {self.time_min}min reached!")
 

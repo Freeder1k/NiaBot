@@ -1,10 +1,7 @@
-from http import HTTPStatus
-
 import aiohttp
 from aiohttp.client import ClientSession
 
 from api import rateLimit
-from api.httpNonSuccessException import HTTPNonSuccessException
 
 legacy_rate_limit = rateLimit.RateLimit(1200, 20)
 rateLimit.register_ratelimit(legacy_rate_limit)
@@ -19,8 +16,8 @@ async def get_legacy(action: str, command: str = "") -> dict:
     """
     with legacy_rate_limit:
         async with _legacy_session.get("/public_api.php", params={"action": action, "command": command}) as resp:
-            if resp.status != HTTPStatus.OK:
-                raise HTTPNonSuccessException(resp)
+            resp.raise_for_status()
+
             json = await resp.json()
             json.pop("request")
             return json
@@ -32,8 +29,8 @@ async def get_v2(url: str) -> dict:
     ratelimit.
     """
     async with _v2_session.get(f"/v2{url}") as resp:
-        if resp.status != HTTPStatus.OK:
-            raise HTTPNonSuccessException(resp)
+        resp.raise_for_status()
+
         json = await resp.json()
         if "data" not in json:
             print(json)
