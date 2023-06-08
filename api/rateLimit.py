@@ -1,6 +1,10 @@
-from discord.ext import tasks
+from http import HTTPStatus
 from queue import Queue
 from threading import Lock
+
+from discord.ext import tasks
+
+from api.httpNonSuccessException import HTTPNonSuccessException
 
 
 class RateLimitException(Exception):
@@ -8,36 +12,43 @@ class RateLimitException(Exception):
 
 
 class RateLimit:
-    def __init__(self, amount: int, time: int):
+    def __init__(self, max_amount: int, time_min: int):
         """
         A ratelimit checker. Use with 'with RateLimit:'. If amount requests in the specified time were exceeded throws
         RateLimitException.
 
-        :param amount: The amount of requests allowed
-        :param time: The time in minutes for the allowed amount
+        :param max_amount: The amount of requests allowed
+        :param time_min: The time in minutes for the allowed amount
         """
-        self.amount = amount
-        self.time = time
-        self.request_amounts = Queue(maxsize=time)
+        self.max_amount = max_amount
+        self.time_min = time_min
+        self.request_amounts = Queue(maxsize=time_min)
         self.curr_req_amount = 0
         self._enter_lock = Lock()
 
     def __enter__(self):
         """
         :raises RateLimitException: If the rate limit was exceeded.
+         Also catches NonSuccessExceptions and checks for TOO_MANY_REQUESTS code and sets the rate limit to full if so.
         """
         with self._enter_lock:
-            if sum(list(self.request_amounts.queue)) + self.curr_req_amount > self.amount:
-                raise RateLimitException(f"Rate limit of {self.amount} requests per {self.time}min reached!")
+            if sum(self.request_amounts.queue) + self.curr_req_amount >= self.max_amount:
+                raise RateLimitException(f"Rate limit of {self.max_amount} requests per {self.time_min}min reached!")
 
             self.curr_req_amount += 1
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-    def time_passed(self):
         with self._enter_lock:
-            while self.request_amounts.qsize() >= self.time:
+            if exc_type is HTTPNonSuccessException and exc_val.code == HTTPStatus.TOO_MANY_REQUESTS:
+                self.set_full()
+                raise RateLimitException(f"Rate limit of {self.max_amount} requests per {self.time_min}min reached!")
+
+    def set_full(self):
+        self.curr_req_amount += self.max_amount - sum(self.request_amounts.queue)
+
+    def _minute_passed(self):
+        with self._enter_lock:
+            while self.request_amounts.qsize() >= self.time_min:
                 self.request_amounts.get()
 
             self.request_amounts.put(self.curr_req_amount)
@@ -47,11 +58,17 @@ class RateLimit:
 _rate_limits = []
 
 
-def add_ratelimit(rate_limit: RateLimit):
+def register_new_ratelimit(max_amount: int, time_min: int) -> RateLimit:
+    r = RateLimit(max_amount, time_min)
+    register_ratelimit(r)
+    return r
+
+
+def register_ratelimit(rate_limit: RateLimit):
     _rate_limits.append(rate_limit)
 
 
 @tasks.loop(minutes=1)
-async def update_ratelimits():
+async def ratelimit_updater():
     for rate_limit in _rate_limits:
-        rate_limit.time_passed()
+        rate_limit._minute_passed()

@@ -1,14 +1,16 @@
 import os
 from dataclasses import dataclass
+from http import HTTPStatus
 
 import aiohttp
 from aiohttp import ClientSession
 
 import utils.misc
 from api import rateLimit
+from api.httpNonSuccessException import HTTPNonSuccessException
 
 _nasa_rate_limit = rateLimit.RateLimit(1000, 60)
-rateLimit.add_ratelimit(_nasa_rate_limit)
+rateLimit.register_ratelimit(_nasa_rate_limit)
 
 _nasa_api_session: ClientSession = None
 
@@ -32,6 +34,9 @@ async def get_random_apod() -> APOD:
     with _nasa_rate_limit:
         async with _nasa_api_session.get("/planetary/apod",
                                          params={"api_key": os.getenv('NASA_API_KEY'), "count": 1}) as resp:
+            if resp.status != HTTPStatus.OK:
+                raise HTTPNonSuccessException(resp)
+
             json = await resp.json()
             json = json[0]
             if "copyright" not in json:

@@ -2,6 +2,7 @@ from typing import Final
 
 PREFIX: Final = "."
 DEV_USER_IDS: Final = (470696578403794967,)
+GUILD_NAME :Final = "Nerfuria"
 
 # EMBED COLORS
 DEFAULT_COLOR: Final = 3603854
