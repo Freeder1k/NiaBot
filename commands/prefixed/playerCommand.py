@@ -60,7 +60,7 @@ class PlayerCommand(command.Command):
             color=bot_config.DEFAULT_COLOR
         )
         embed.add_field(name="UUID", value=stats.uuid, inline=False)
-        embed.add_field(name="Rank", value=stats.rank, inline=False)
+        embed.add_field(name="Rank", value=stats.meta.tag.value, inline=False)
         embed.add_field(name="First Joined", value=stats.meta.firstJoin, inline=False)
 
         if stats.meta.location.online:
@@ -72,7 +72,7 @@ class PlayerCommand(command.Command):
             seen_value = f"offline for {last_join_str}"
         embed.add_field(name="Seen", value=seen_value, inline=False)
 
-        embed.add_field(name="Playtime", value=f"{stats.meta.playtime} mins", inline=False)
+        embed.add_field(name="Playtime", value=f"{round(stats.meta.playtime/60, 2)} hours", inline=False)
 
         if stats.guild.name is None:
             guild_value = "None"

@@ -30,6 +30,9 @@ async def username_to_uuid(username: str) -> str | None:
     """
     with _mojang_rate_limit:
         async with _mojang_api_session.get(f"/users/profiles/minecraft/{username}") as resp:
+            if resp.status == HTTPStatus.NOT_FOUND:
+                return None
+
             resp.raise_for_status()
 
             if resp.status == HTTPStatus.NO_CONTENT:
@@ -46,6 +49,9 @@ async def uuid_to_username(uuid: str) -> str | None:
     """
     with _sessionserver_rate_limit:
         async with _mojang_sessionserver_sesion.get(f"/session/minecraft/profile/{uuid}") as resp:
+            if resp.status == HTTPStatus.NOT_FOUND:
+                return None
+
             resp.raise_for_status()
 
             if resp.status == HTTPStatus.NO_CONTENT:
