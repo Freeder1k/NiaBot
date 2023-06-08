@@ -35,7 +35,7 @@ class EvalCommand(command.Command):
         lines[-1] = "return " + lines[-1]
         lines = ["    " + l for l in lines]
 
-        with event.channel.typing():
+        async with event.channel.typing():
             try:
                 exec("async def f():\n" + '\n'.join(lines), context)
                 res = await eval("f()", context)
