@@ -14,14 +14,15 @@ import api.wynncraft.network
 import api.wynncraft.wynnAPI
 import commands.commandListener
 import commands.prefixed.configCommand
+import commands.prefixed.evalCommand
 import commands.prefixed.helpCommand
 import commands.prefixed.lastseenCommand
 import commands.prefixed.playtimeCommand
 import commands.prefixed.spaceCommand
-import commands.prefixed.wandererCommand
 import commands.prefixed.strikeCommand
 import commands.prefixed.strikesCommand
 import commands.prefixed.unstrikeCommand
+import commands.prefixed.wandererCommand
 import serverConfig
 import storage.manager
 import storage.playtimeData
@@ -70,6 +71,7 @@ async def on_ready():
             commands.prefixed.strikeCommand.StrikeCommand(),
             commands.prefixed.strikesCommand.StrikesCommand(),
             commands.prefixed.unstrikeCommand.UnstrikeCommand(),
+            commands.prefixed.evalCommand.EvalCommand(),
         )
 
         today = datetime.now(timezone.utc).date()
