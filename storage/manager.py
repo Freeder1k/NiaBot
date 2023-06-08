@@ -22,6 +22,7 @@ async def init_database():
                     CREATE TABLE IF NOT EXISTS strikes (
                         strike_id INTEGER PRIMARY KEY,
                         user_id INTEGER NOT NULL,
+                        server_id INTEGER NOT NULL,
                         strike_date DATE NOT NULL,
                         reason TEXT NOT NULL,
                         pardoned INTEGER NOT NULL

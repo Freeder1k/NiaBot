@@ -13,7 +13,7 @@ from storage import manager
 @dataclass(frozen=True)
 class Playtime:
     uuid: str
-    day: date
+    day: str
     playtime: int
 
 

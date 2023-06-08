@@ -8,43 +8,59 @@ from storage import manager
 class Strike:
     strike_id: int
     user_id: int
-    strike_date: date
+    server_id: int
+    strike_date: str
     reason: str
     pardoned: bool
 
 
-async def get_strikes(userid: int) -> tuple[Strike]:
+async def get_strikes(user_id: int, server_id: int) -> tuple[Strike]:
     cur = manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM strikes
                 WHERE user_id = ?
-            """, (userid,))
+                AND server_id = ?
+            """, (user_id, server_id))
 
     data = await res.fetchall()
 
-    return tuple(Strike(**{k: res[k] for k in res.keys()}) for res in data)
+    return tuple(Strike(**{k: row[k] for k in row.keys()}) for row in data)
 
 
-async def get_strikes_after(userid: int, day: date) -> tuple[Strike]:
+async def get_strikes_after(userid: int, server_id: int, day: date) -> tuple[Strike]:
     cur = manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM strikes
                 WHERE user_id = ?
+                AND server_id = ?
                 AND strike_date >= ?
-            """, (userid, day))
+            """, (userid, server_id, day))
 
     data = await res.fetchall()
 
-    return tuple(Strike(**{k: res[k] for k in res.keys()}) for res in data)
+    return tuple(Strike(**{k: row[k] for k in row.keys()}) for row in data)
 
 
-async def add_strike(user_id: int, strike_date: date, reason: str):
+async def get_strike_by_id(strike_id: int) -> Strike | None:
+    cur = manager.get_cursor()
+    res = await cur.execute("""
+                SELECT * FROM strikes
+                WHERE strike_id = ?
+            """, (strike_id,))
+
+    data = tuple(await res.fetchall())
+    if len(data) == 0:
+        return None
+
+    return Strike(**{k: data[0][k] for k in data[0].keys()})
+
+async def add_strike(user_id: int, server_id: int, strike_date: date, reason: str):
     con = manager.get_connection()
     cur = manager.get_cursor()
     await cur.execute("""
-            INSERT INTO strikes (user_id, strike_date, reason, pardoned)
-            VALUES (?, ?, ?, 0)
-        """, (user_id, strike_date, reason))
+            INSERT INTO strikes (user_id, server_id, strike_date, reason, pardoned)
+            VALUES (?, ?, ?, ?, 0)
+        """, (user_id, server_id, strike_date, reason))
 
     await con.commit()
 
