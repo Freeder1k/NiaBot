@@ -27,12 +27,13 @@ async def get_strikes(user_id: int, server_id: int) -> tuple[Strike]:
     return tuple(Strike(**{k: row[k] for k in row.keys()}) for row in data)
 
 
-async def get_strikes_after(userid: int, server_id: int, day: date) -> tuple[Strike]:
+async def get_unpardoned_strikes_after(userid: int, server_id: int, day: date) -> tuple[Strike]:
     cur = manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM strikes
                 WHERE user_id = ?
                 AND server_id = ?
+                AND pardoned = 0
                 AND strike_date >= ?
             """, (userid, server_id, day))
 

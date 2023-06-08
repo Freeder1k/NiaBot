@@ -48,7 +48,7 @@ class StrikeCommand(command.Command):
 
         await strikeData.add_strike(member.id, event.guild.id, date_today, reason)
 
-        strike_amount = len(await strikeData.get_strikes_after(member.id, event.guild.id, date_today + relativedelta(months=-2)))
+        strike_amount = len(await strikeData.get_unpardoned_strikes_after(member.id, event.guild.id, date_today + relativedelta(months=-2)))
 
         embed = Embed(
             title=f"You were striked in {event.guild.name}!",
