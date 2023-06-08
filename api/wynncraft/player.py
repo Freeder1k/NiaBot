@@ -46,6 +46,10 @@ class Stats:
 
 
 async def stats(player: str) -> Stats | None:
+    """
+    Get the wynncraft stats of the specified player.
+    :param player: Either the username or the uuid in dashed form (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+    """
     with player_rate_limit:
         json = await wynnAPI.get_v2(f"/player/{player}/stats")
 

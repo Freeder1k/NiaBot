@@ -54,6 +54,13 @@ async def uuid_to_username(uuid: str) -> str | None:
             return (await resp.json())["name"]
 
 
+def uuid_to_avatar(uuid: str) -> str:
+    """
+    Get a crafatar url for the avatar of the uuid.
+    """
+    return f"https://crafatar.com/avatars/{uuid}?overlay=True"
+
+
 async def init_session():
     global _mojang_api_session, _mojang_sessionserver_sesion
     _mojang_api_session = aiohttp.ClientSession("https://api.mojang.com")

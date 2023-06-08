@@ -33,13 +33,13 @@ def dataclass_from_dict(dataclass: Type[T], d: dict) -> T:
     fieldtypes = {f.name: f.type for f in dataclasses.fields(dataclass)}
     fields = {}
     for f in fieldtypes:
-        fields[f] = _from_json_inner(fieldtypes[f], d[f])
+        fields[f] = _from_dict_inner(fieldtypes[f], d[f])
     return dataclass(**fields)
 
 
-def _from_json_inner(cls: Any, json: dict) -> Any:
+def _from_dict_inner(cls: Any, json: dict) -> Any:
     if type(json) == list:
-        return [_from_json_inner(cls.__args__[0], j) for j in json]
+        return [_from_dict_inner(cls.__args__[0], j) for j in json]
     elif isinstance(cls, type):
         if dataclasses.is_dataclass(cls):
             return dataclass_from_dict(cls, json)
@@ -48,7 +48,7 @@ def _from_json_inner(cls: Any, json: dict) -> Any:
         elif isinstance(json, cls):
             return json
     elif type(json) == dict:
-        return {k: _from_json_inner(cls.__args__[0], v) for k, v in json.items()}
+        return {k: _from_dict_inner(cls.__args__[0], v) for k, v in json.items()}
     else:
         elog(f"Couldn't determine type of {json} in {cls} in dict conversion.")
         return json
@@ -114,3 +114,10 @@ def get_relative_date_str(dt: datetime, years=False, months=False, weeks=False, 
         return "1 second"
     else:
         return ""
+
+
+def get_dashed_uuid(uuid: str) -> str:
+    if len(uuid) != 32:
+        raise ValueError("uuid parameter must be a string of length 32")
+
+    return f"{uuid[0:8]}-{uuid[8:12]}-{uuid[12:16]}-{uuid[16:20]}-{uuid[20:32]}"

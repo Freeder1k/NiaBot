@@ -23,6 +23,7 @@ import commands.prefixed.strikeCommand
 import commands.prefixed.strikesCommand
 import commands.prefixed.unstrikeCommand
 import commands.prefixed.wandererCommand
+import commands.prefixed.playerCommand
 import serverConfig
 import storage.manager
 import storage.playtimeData
@@ -72,6 +73,7 @@ async def on_ready():
             commands.prefixed.strikesCommand.StrikesCommand(),
             commands.prefixed.unstrikeCommand.UnstrikeCommand(),
             commands.prefixed.evalCommand.EvalCommand(),
+            commands.prefixed.playerCommand.PlayerCommand(),
         )
 
         today = datetime.now(timezone.utc).date()
