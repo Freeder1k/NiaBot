@@ -11,7 +11,7 @@ class ConfigCommand(command.Command):
         super().__init__(
             name="config",
             aliases=(),
-            usage=f"config <option> <value>",
+            usage=f"config [option] [value]",
             description="Modify/see server config options.\n"
                         "Valid options are: ``prefix``, ``stratrole``, ``memberrole``, ``logchannel``",
             req_perms=Permissions().none(),

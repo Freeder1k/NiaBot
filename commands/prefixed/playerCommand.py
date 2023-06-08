@@ -20,7 +20,7 @@ class PlayerCommand(command.Command):
             name="player",
             aliases=("playerstats", "stats"),
             usage=f"player <username|uuid>",
-            description="",
+            description="See the wynncraft stats of the provided player.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.STRAT
         )
