@@ -32,7 +32,6 @@ class StrikesCommand(command.Command):
             return
 
         strikes = await storage.strikeData.get_strikes(user_id, event.guild.id)
-        print(strikes)
 
         if len(strikes) == 0:
             await utils.discord.send_info(event.channel, f"<@{user_id}> has no strikes.")
