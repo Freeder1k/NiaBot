@@ -2,7 +2,6 @@ from http import HTTPStatus
 
 import aiohttp
 from aiohttp import ClientSession
-from api.httpNonSuccessException import HTTPNonSuccessException
 
 from api import rateLimit
 
@@ -47,11 +46,10 @@ async def uuid_to_username(uuid: str) -> str | None:
     """
     with _sessionserver_rate_limit:
         async with _mojang_sessionserver_sesion.get(f"/session/minecraft/profile/{uuid}") as resp:
+            resp.raise_for_status()
+
             if resp.status == HTTPStatus.NO_CONTENT:
                 return None
-
-            if resp.status != HTTPStatus.OK:
-                raise HTTPNonSuccessException(resp)
 
             return (await resp.json())["name"]
 
