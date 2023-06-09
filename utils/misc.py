@@ -113,14 +113,16 @@ def get_relative_date_str(dt: datetime, years=False, months=False, weeks=False, 
     elif seconds and delta.seconds >= 1:
         return "1 second"
     else:
-        return "0 " + ("seconds" if seconds \
-            else "minutes" if minutes \
-            else "hours" if hours \
-            else "days" if days \
-            else "weeks" if weeks \
-            else "months" if months \
-            else "years" if years \
-            else "")
+        return "0 " + (
+            "seconds" if seconds
+            else "minutes" if minutes
+            else "hours" if hours
+            else "days" if days
+            else "weeks" if weeks
+            else "months" if months
+            else "years" if years
+            else ""
+        )
 
 
 def get_dashed_uuid(uuid: str) -> str:
