@@ -42,7 +42,9 @@ class WandererCommand(command.Command):
                 longest_name_len = max(len(m.name), longest_name_len)
                 longest_date_len = max(len(join_date_str), longest_date_len)
 
-        table_head_str = f"_ _ _ _ _ _ NAME {'_ ' * 44}JOINED"
+        content_with = max(0, 25 - longest_name_len - longest_date_len) + longest_name_len + longest_date_len
+        table_head_space = int((((content_with * 7.7) + 14 - 39 - 49)//6))*2
+        table_head_str = f"_ _ _ _ _ _ NAME{'_ ' * table_head_space}JOINED"
         fields = (("**Wanderers eligible for promotion**\n\n" + table_head_str, old_members),
                   ("**Wanderers not eligible for promotion**\n\n" + table_head_str, new_members))
 
