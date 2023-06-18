@@ -47,10 +47,11 @@ class RateLimit:
 
     def _minute_passed(self):
         with self._enter_lock:
-            while not self.request_amounts.empty() and self.request_amounts.qsize() + 1 >= self.time_min:
+            while not self.request_amounts.empty() and self.request_amounts.qsize() >= self.time_min:
                 self.request_amounts.get()
 
-            self.request_amounts.put(self.curr_req_amount)
+            if self.time_min >= 1:
+                self.request_amounts.put(self.curr_req_amount)
             self.curr_req_amount = 0
 
     def curr_usage(self):

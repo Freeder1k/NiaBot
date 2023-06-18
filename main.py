@@ -29,6 +29,7 @@ import storage.manager
 import storage.playtimeData
 import storage.playtimeData
 import utils.logging
+import storage.mcUsernameData
 
 load_dotenv()
 import os
@@ -103,9 +104,11 @@ def start_scheduling():
     api.rateLimit.ratelimit_updater.start()
     storage.playtimeData.update_playtimes.start()
     update_presence.start()
+    storage.mcUsernameData.update_players.start()
 
 
 def stop_scheduling():
+    storage.mcUsernameData.update_players.cancel()
     update_presence.cancel()
     storage.playtimeData.update_playtimes.cancel()
     api.rateLimit.ratelimit_updater.cancel()

@@ -28,6 +28,12 @@ async def init_database():
                         pardoned INTEGER NOT NULL
                     )
                 """)
+    await _cur.execute("""
+                    CREATE TABLE IF NOT EXISTS minecraft_usernames (
+                        uuid TEXT PRIMARY KEY NOT NULL,
+                        name TEXT UNIQUE NOT NULL COLLATE NOCASE
+                    )
+                """)
 
 
 def get_connection() -> aiosqlite.Connection:

@@ -5,8 +5,10 @@ from aiohttp import ClientSession
 
 from api import rateLimit
 
-_mojang_rate_limit = rateLimit.RateLimit(600, 10)
+_mojang_rate_limit = rateLimit.RateLimit(60, 1)
 rateLimit.register_ratelimit(_mojang_rate_limit)
+_usernames_rate_limit = rateLimit.RateLimit(20, 0)
+rateLimit.register_ratelimit(_usernames_rate_limit)
 
 _sessionserver_rate_limit = rateLimit.RateLimit(200, 1)
 rateLimit.register_ratelimit(_sessionserver_rate_limit)
@@ -41,6 +43,31 @@ async def username_to_uuid(username: str) -> str | None:
             return (await resp.json())["id"]
 
 
+async def usernames_to_uuids(usernames: list[str]) -> list[tuple[str, str]] | None:
+    """
+    Get the minecraft uuids of up to 10 users via the usernames.
+
+    Any name that is under 25 characters and fits the regex ^(?=.*?(\w|^)(\w|$))((?![#&\\\|\/"])\w){1,25}$ will not trigger this error.
+
+    :return: list of tuple of (case corrected username), (The uuid without "-") for each name that exists.
+        or None if an error occurred.
+    """
+    if len(usernames) > 10:
+        raise TypeError("usernames list can't contain more than 10 items!")
+
+    with _usernames_rate_limit:
+        async with _mojang_api_session.post(f"/profiles/minecraft", json=usernames) as resp:
+            if resp.status == HTTPStatus.NOT_FOUND:
+                return None
+
+            resp.raise_for_status()
+
+            if resp.status == HTTPStatus.NO_CONTENT:
+                return None
+
+            return [(player["name"], player["id"]) for player in await resp.json()]
+
+
 async def uuid_to_username(uuid: str) -> str | None:
     """
     Get the minecraft username of a user via the uuid.
@@ -57,7 +84,7 @@ async def uuid_to_username(uuid: str) -> str | None:
             if resp.status == HTTPStatus.NO_CONTENT:
                 return None
 
-            return (await resp.json())["name"]
+            res = (await resp.json())["name"]
 
 
 def uuid_to_avatar(uuid: str) -> str:
