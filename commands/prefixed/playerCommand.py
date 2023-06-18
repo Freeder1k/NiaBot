@@ -80,6 +80,6 @@ class PlayerCommand(command.Command):
             guild_value = f"{stats.guild.rank} in {stats.guild.name}"
         embed.add_field(name="Guild", value=guild_value, inline=False)
 
-        embed.set_thumbnail(url=api.minecraft.uuid_to_avatar(uuid))
+        embed.set_thumbnail(url=api.minecraft.uuid_to_avatar_url(uuid))
 
         await event.channel.send(embed=embed)

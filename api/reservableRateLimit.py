@@ -17,6 +17,8 @@ class ReservableRateLimit(RateLimit):
         """
         Reserve a portion of the ratelimit and recieve an ID to identify usages of the reserved ratelimit amount.
         """
+        if self.max_amount - amount < 0:
+            raise TypeError("Total amount of reservations exceeds ratelimit maximum.")
         curr_id = self._next_reserver_id
         self._next_reserver_id += 1
 
@@ -24,18 +26,18 @@ class ReservableRateLimit(RateLimit):
         self.max_amount -= amount
         return curr_id
 
-    def free(self, reserver_id: int):
-        if reserver_id not in self._reservations:
-            raise TypeError(f"There is no reservation with ID {reserver_id}.")
+    def free(self, reservation_id: int):
+        if reservation_id not in self._reservations:
+            raise TypeError(f"There is no reservation with ID {reservation_id}.")
 
-        reservation = self._reservations[reserver_id]
+        reservation = self._reservations[reservation_id]
         self.curr_req_amount -= reservation.max_amount - reservation.curr_usage()
-        self._reservations[reserver_id].set_full()
+        self._reservations[reservation_id].set_full()
 
-    def get_reservation(self, reserver_id: int) -> RateLimit:
-        if reserver_id not in self._reservations:
-            raise TypeError(f"There is no reservation with ID {reserver_id}.")
-        return self._reservations[reserver_id]
+    def get_reservation(self, reservation_id: int) -> RateLimit:
+        if reservation_id not in self._reservations:
+            raise TypeError(f"There is no reservation with ID {reservation_id}.")
+        return self._reservations[reservation_id]
 
     def set_full(self):
         for reservation in self._reservations.values():
@@ -46,6 +48,3 @@ class ReservableRateLimit(RateLimit):
         for reservation in self._reservations.values():
             reservation._minute_passed()
         super()._minute_passed()
-
-    def curr_usage(self):
-        return sum(r.curr_usage() for r in self._reservations.values()) + super().curr_usage()
