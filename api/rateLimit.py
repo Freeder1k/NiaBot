@@ -30,7 +30,7 @@ class RateLimit:
          Also catches NonSuccessExceptions and checks for TOO_MANY_REQUESTS code and sets the rate limit to full if so.
         """
         with self._enter_lock:
-            if sum(self.request_amounts.queue) + self.curr_req_amount >= self.max_amount:
+            if self.curr_usage() >= self.max_amount:
                 raise RateLimitException(f"Rate limit of {self.max_amount} requests per {self.time_min}min reached!")
 
             self.curr_req_amount += 1
@@ -38,19 +38,23 @@ class RateLimit:
     def __exit__(self, exc_type, exc_val, exc_tb):
         with self._enter_lock:
             if exc_type is ClientResponseError and exc_val.status == HTTPStatus.TOO_MANY_REQUESTS:
+                req_amount = self.curr_req_amount
                 self.set_full()
-                raise RateLimitException(f"Rate limit of {self.max_amount} requests per {self.time_min}min reached!")
+                raise RateLimitException(f"Rate limit of {self.max_amount} requests per {self.time_min}min reached! (Request amount: {req_amount})")
 
     def set_full(self):
         self.curr_req_amount += self.max_amount - sum(self.request_amounts.queue)
 
     def _minute_passed(self):
         with self._enter_lock:
-            while self.request_amounts.qsize() >= self.time_min:
+            while not self.request_amounts.empty() and self.request_amounts.qsize() + 1 >= self.time_min:
                 self.request_amounts.get()
 
             self.request_amounts.put(self.curr_req_amount)
             self.curr_req_amount = 0
+
+    def curr_usage(self):
+        return sum(self.request_amounts.queue) + self.curr_req_amount
 
 
 _rate_limits = []
