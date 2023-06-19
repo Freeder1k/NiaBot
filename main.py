@@ -24,6 +24,7 @@ import commands.prefixed.strikesCommand
 import commands.prefixed.unstrikeCommand
 import commands.prefixed.wandererCommand
 import commands.prefixed.playerCommand
+import commands.prefixed.playerPlaytimeCommand
 import player
 import serverConfig
 import storage.manager
@@ -78,6 +79,7 @@ async def on_ready():
                 commands.prefixed.unstrikeCommand.UnstrikeCommand(),
                 commands.prefixed.evalCommand.EvalCommand(),
                 commands.prefixed.playerCommand.PlayerCommand(),
+                commands.prefixed.playerPlaytimeCommand.PlayerPlaytimeCommand(),
             )
 
             # await player.update_nia()

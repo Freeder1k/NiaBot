@@ -43,9 +43,10 @@ async def get_all_playtimes(uuid: str) -> tuple[Playtime]:
     res = await cur.execute("""
                 SELECT * FROM playtimes
                 WHERE uuid = ?
+                ORDER BY day
             """, (uuid,))
 
-    return tuple(Playtime(data["player_uuid"], data["playtime_day"], data["playtime"]) for data in await res.fetchall())
+    return tuple(Playtime(data["uuid"], data["day"], data["playtime"]) for data in await res.fetchall())
 
 
 async def set_playtime(uuid: str, day: date, playtime: int):
