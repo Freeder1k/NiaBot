@@ -6,6 +6,7 @@ from discord import Permissions, Embed
 import api.wynncraft.guild
 import api.wynncraft.player
 import bot_config
+import player
 import utils.discord
 import utils.misc
 from commands import command, commandEvent
@@ -39,10 +40,10 @@ class LastSeenCommand(command.Command):
 
             longest_name_len = 0
             longest_date_len = 0
-            usernames = await asyncio.gather(*tuple(minecraft.uuid_to_username(m.uuid) for m in nia.members))
-            players = await asyncio.gather(*tuple(api.wynncraft.player.stats(name) for name in usernames))
+            players = await player.get_players(uuids=[m.uuid for m in nia.members])
+            stats = await asyncio.gather(*tuple(api.wynncraft.player.stats(p.uuid) for p in players))
 
-            for m, p in zip(nia.members, players):
+            for m, p in zip(nia.members, stats):
                 if p is None:
                     continue
                 if p.meta.location.online:

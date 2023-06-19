@@ -31,6 +31,7 @@ import storage.playtimeData
 import storage.playtimeData
 import utils.logging
 import storage.usernameData
+import traceback
 
 load_dotenv()
 import os
@@ -48,41 +49,48 @@ initialized = False
 
 @client.event
 async def on_ready():
-    utils.logging.log("Ready")
-    utils.logging.log(f"Logged in as {client.user}")
-    utils.logging.log(f"Guilds: {[g.name for g in client.guilds]}")
+    try:
+        utils.logging.log("Ready")
+        utils.logging.log(f"Logged in as {client.user}")
+        utils.logging.log(f"Guilds: {[g.name for g in client.guilds]}")
 
-    global initialized
-    if not initialized:
-        await serverConfig.load_server_configs()
-        await storage.manager.init_database()
-        await api.wynncraft.wynnAPI.init_sessions()
-        await api.nasa.init_session()
-        await api.minecraft.init_session()
+        global initialized
+        if not initialized:
+            await serverConfig.load_server_configs()
+            await storage.manager.init_database()
+            await api.wynncraft.wynnAPI.init_sessions()
+            await api.nasa.init_session()
+            await api.minecraft.init_session()
 
-        start_scheduling()
+            start_scheduling()
 
-        commands.commandListener.on_ready(client)
+            commands.commandListener.on_ready(client)
 
-        commands.commandListener.register_commands(
-            commands.prefixed.helpCommand.HelpCommand(),
-            commands.prefixed.playtimeCommand.PlaytimeCommand(),
-            commands.prefixed.wandererCommand.WandererCommand(),
-            commands.prefixed.lastseenCommand.LastSeenCommand(),
-            commands.prefixed.spaceCommand.SpaceCommand(),
-            commands.prefixed.configCommand.ConfigCommand(),
-            commands.prefixed.strikeCommand.StrikeCommand(),
-            commands.prefixed.strikesCommand.StrikesCommand(),
-            commands.prefixed.unstrikeCommand.UnstrikeCommand(),
-            commands.prefixed.evalCommand.EvalCommand(),
-            commands.prefixed.playerCommand.PlayerCommand(),
-        )
+            commands.commandListener.register_commands(
+                commands.prefixed.helpCommand.HelpCommand(),
+                commands.prefixed.playtimeCommand.PlaytimeCommand(),
+                commands.prefixed.wandererCommand.WandererCommand(),
+                commands.prefixed.lastseenCommand.LastSeenCommand(),
+                commands.prefixed.spaceCommand.SpaceCommand(),
+                commands.prefixed.configCommand.ConfigCommand(),
+                commands.prefixed.strikeCommand.StrikeCommand(),
+                commands.prefixed.strikesCommand.StrikesCommand(),
+                commands.prefixed.unstrikeCommand.UnstrikeCommand(),
+                commands.prefixed.evalCommand.EvalCommand(),
+                commands.prefixed.playerCommand.PlayerCommand(),
+            )
 
-        today = datetime.now(timezone.utc).date()
-        if (await storage.playtimeData.get_first_date_after(today)) is None:
-            await storage.playtimeData.update_playtimes()
+            # await player.update_nia()
+            today = datetime.now(timezone.utc).date()
+            if (await storage.playtimeData.get_first_date_after(today)) is None:
+                await storage.playtimeData.update_playtimes()
 
-        initialized = True
+            initialized = True
+    except Exception as e:
+        print(e)
+        traceback.print_exc()
+        raise e
+
 
 
 @client.event

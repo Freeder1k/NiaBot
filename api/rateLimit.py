@@ -2,8 +2,9 @@ from http import HTTPStatus
 from queue import Queue
 from threading import Lock
 
-from discord.ext import tasks
 from aiohttp import ClientResponseError
+from discord.ext import tasks
+
 
 class RateLimitException(Exception):
     pass
@@ -40,7 +41,8 @@ class RateLimit:
             if exc_type is ClientResponseError and exc_val.status == HTTPStatus.TOO_MANY_REQUESTS:
                 req_amount = self.curr_req_amount
                 self.set_full()
-                raise RateLimitException(f"Rate limit of {self.max_amount} requests per {self.time_min}min reached! (Request amount: {req_amount})")
+                raise RateLimitException(
+                    f"Rate limit of {self.max_amount} requests per {self.time_min}min reached! (Request amount: {req_amount})")
 
     def set_full(self):
         self.curr_req_amount += self.max_amount - sum(self.request_amounts.queue)
@@ -56,6 +58,9 @@ class RateLimit:
 
     def curr_usage(self):
         return sum(self.request_amounts.queue) + self.curr_req_amount
+
+    def get_remaining(self):
+        return self.max_amount - self.curr_usage()
 
 
 _rate_limits = []

@@ -6,8 +6,10 @@ from discord.ext import tasks
 
 import api.wynncraft.guild
 import api.wynncraft.player
+import player
 from api import minecraft
 from storage import manager
+import traceback
 
 
 @dataclass(frozen=True)
@@ -93,11 +95,14 @@ async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date |
 
 @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc))
 async def update_playtimes():
-    nia = await api.wynncraft.guild.stats("Nerfuria")
-    today = datetime.now(timezone.utc).date()
+    try:
+        nia = await api.wynncraft.guild.stats("Nerfuria")
 
-    usernames = await asyncio.gather(*tuple(minecraft.uuid_to_username(m.uuid) for m in nia.members))
-    res: list[api.wynncraft.player.Stats] = await asyncio.gather(
-        *(api.wynncraft.player.stats(name) for name in usernames))
+        # players = await player.get_players(uuids=[m.uuid for m in nia.members])
+        pstats: list[api.wynncraft.player.Stats] = await asyncio.gather(
+            *(api.wynncraft.player.stats(m.uuid) for m in nia.members))
 
-    await asyncio.gather(*(set_playtime(stats.uuid, today, stats.meta.playtime) for stats in res))
+        today = datetime.now(timezone.utc).date()
+        await asyncio.gather(*(set_playtime(stats.uuid, today, stats.meta.playtime) for stats in pstats))
+    except Exception:
+        traceback.print_exc()

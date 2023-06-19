@@ -4,6 +4,8 @@ from queue import Queue
 from discord.ext import tasks
 
 import api.minecraft
+import api.rateLimit
+import api.wynncraft.guild
 import api.wynncraft.network
 import storage.usernameData
 import utils.logging
@@ -14,29 +16,51 @@ _unknown_players = Queue()
 _reservation_id = api.minecraft._usernames_rate_limit.reserve(20)
 
 
+async def _get_and_store_from_api(*, uuid: str = None, username: str = None) -> Player | None:
+    p = await api.minecraft.get_player(uuid=uuid, username=username)
+    if p is not None:
+        await storage.usernameData.update(*p)
+    return p
+
+
+# TODO caching
 async def get_player(*, uuid: str = None, username: str = None) -> Player | None:
-    if (uuid is None) and (username is not None):
-        p = await storage.usernameData.get_player(uuid=uuid, username=username)
-        if p is not None:
-            return p
-
-        p = await api.minecraft.username_to_player(username)
-        if p is not None:
-            await storage.usernameData.update(*p)
+    p = await storage.usernameData.get_player(uuid=uuid, username=username)
+    if p is not None:
         return p
 
-    elif (uuid is not None) and (username is None):
-        p = await storage.usernameData.get_player(uuid=uuid, username=username)
-        if p is not None:
-            return p
+    return await _get_and_store_from_api(uuid=uuid, username=username)
 
-        p = await api.minecraft.uuid_to_player(uuid)
-        if p is not None:
-            await storage.usernameData.update(*p)
-        return p
 
-    else:
-        raise TypeError("Exactly one argument (either uuid or username) must be provided.")
+async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -> list[Player]:
+    """
+    Get a list of players by uuids and names.
+
+    :return: A list containing all players that were found.
+    """
+    if uuids is None:
+        uuids = []
+    if usernames is None or len(usernames) == 0:
+        usernames = []
+
+    uuids = [uuid.replace("-", "").lower() for uuid in uuids]
+
+    stored = await storage.usernameData.get_players(uuids=uuids, usernames=usernames)
+    known_uuids = {p.uuid for p in stored}
+    known_names = {p.name for p in stored}
+
+    unkown_uuids = set(uuids) - known_uuids
+    unknown_names = set(usernames) - known_names
+
+    if len(unkown_uuids) + len(unknown_names) > api.minecraft._mojang_rate_limit.get_remaining():
+        raise api.rateLimit.RateLimitException("API usage would exceed ratelimit!")
+
+    stored += [p for p in (await asyncio.gather(_get_and_store_from_api(uuid=uuid) for uuid in unkown_uuids)) if
+               p is not None]
+    stored += [p for p in (await asyncio.gather(_get_and_store_from_api(username=name) for name in unknown_names)) if
+               p is not None]
+
+    return stored
 
 
 def get_online_wynncraft_players() -> set[str]:
@@ -69,3 +93,25 @@ async def update_players():
             if not any(name == t_name for _, t_name in res):
                 utils.logging.dlog(f"{name} not a minecraft name but online on wynncraft!")
     api.minecraft._usernames_rate_limit.free(_reservation_id)
+
+
+async def update_nia():
+    nia = await api.wynncraft.guild.stats("Nerfuria")
+    known_uuids = {p.uuid for p in await storage.usernameData.get_players(uuids=[m.uuid for m in nia.members])}
+    unknown_uuids = [m.uuid.replace("-", "").lower() for m in nia.members if
+                     m.uuid.replace("-", "").lower() not in known_uuids]
+    print(list(known_uuids))
+    print(unknown_uuids)
+    to_update = Queue()
+
+    for i in range(0, len(unknown_uuids), 50):
+        to_update.put(unknown_uuids[i:i + 50])
+    print(to_update.qsize())
+    while not to_update.empty():
+        l = to_update.get()
+        print(f"Updating {len(l)} Nia members")
+        for uuid in l:
+            await get_player(uuid=uuid)
+        await asyncio.sleep(65)
+
+    print("done updating")

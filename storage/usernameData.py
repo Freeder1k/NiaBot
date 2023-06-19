@@ -13,6 +13,8 @@ async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -
     if usernames is None or len(usernames) == 0:
         usernames = [""]
 
+    uuids = [uuid.replace("-", "").lower() for uuid in uuids]
+
     cur = manager.get_cursor()
     res = await cur.execute(f"""
                 SELECT * FROM minecraft_usernames
@@ -36,7 +38,7 @@ async def get_player(*, uuid: str = None, username: str = None) -> Player | None
         match = username
     elif (uuid is not None) and (username is None):
         selector = "uuid"
-        match = uuid
+        match = uuid.replace("-", "").lower()
     else:
         raise TypeError("Exactly one argument (either uuid or username) must be provided.")
 

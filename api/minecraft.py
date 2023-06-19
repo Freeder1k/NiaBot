@@ -4,6 +4,7 @@ import aiohttp
 from aiohttp import ClientSession
 
 from api import rateLimit, reservableRateLimit
+from data_types import Player
 
 # TODO create accessing methods for reservations
 _mojang_rate_limit = rateLimit.RateLimit(60, 1)
@@ -11,13 +12,7 @@ rateLimit.register_ratelimit(_mojang_rate_limit)
 _usernames_rate_limit = reservableRateLimit.ReservableRateLimit(20, 0)
 rateLimit.register_ratelimit(_usernames_rate_limit)
 
-_sessionserver_rate_limit = rateLimit.RateLimit(200, 1)
-rateLimit.register_ratelimit(_sessionserver_rate_limit)
-
 _mojang_api_session: ClientSession = None
-_mojang_sessionserver_sesion: ClientSession = None
-
-from data_types import Player
 
 
 def format_uuid(uuid: str) -> str:
@@ -35,16 +30,14 @@ async def get_player(*, uuid: str = None, username: str = None) -> Player | None
     :return: A player object if the player exists otherwise None.
     """
     if (uuid is None) and (username is not None):
-        rlimit = _mojang_rate_limit
-        request_cm = _mojang_api_session.get(f"/users/profiles/minecraft/{username}")
+        request = f"/users/profiles/minecraft/{username}"
     elif (uuid is not None) and (username is None):
-        rlimit = _sessionserver_rate_limit
-        request_cm = _mojang_sessionserver_sesion.get(f"/session/minecraft/profile/{uuid}")
+        request = f"/user/profile/{uuid}"
     else:
         raise TypeError("Exactly one argument (either uuid or username) must be provided.")
 
-    with rlimit:
-        async with request_cm as resp:
+    with _mojang_rate_limit:
+        async with _mojang_api_session.get(request) as resp:
             if resp.status == HTTPStatus.NOT_FOUND:
                 return None
 
@@ -54,46 +47,6 @@ async def get_player(*, uuid: str = None, username: str = None) -> Player | None
                 return None
             json = await resp.json()
             return Player(json["id"], json["name"])
-
-
-# TODO remove old methods and redirect usages to player.py
-async def username_to_uuid(username: str) -> str | None:
-    """
-    Get the minecraft uuid of a user via the username.
-
-    :return: None, if the name doesn't exist. The uuid without "-" otherwise.
-    """
-    with _mojang_rate_limit:
-        async with _mojang_api_session.get(f"/users/profiles/minecraft/{username}") as resp:
-            if resp.status == HTTPStatus.NOT_FOUND:
-                return None
-
-            resp.raise_for_status()
-
-            if resp.status == HTTPStatus.NO_CONTENT:
-                return None
-
-            return (await resp.json())["id"]
-
-
-# TODO remove
-async def username_to_player(username: str) -> tuple[str, str] | None:
-    """
-    Get the minecraft uuid of a user via the username.
-
-    :return: None, if the name doesn't exist. The uuid without "-" otherwise.
-    """
-    with _mojang_rate_limit:
-        async with _mojang_api_session.get(f"/users/profiles/minecraft/{username}") as resp:
-            if resp.status == HTTPStatus.NOT_FOUND:
-                return None
-
-            resp.raise_for_status()
-
-            if resp.status == HTTPStatus.NO_CONTENT:
-                return None
-            json = await resp.json()
-            return json["id"], json["name"]
 
 
 async def get_players_from_usernames(usernames: list[str], reservation_id: int = -1) -> list[Player] | None:
@@ -126,46 +79,6 @@ async def get_players_from_usernames(usernames: list[str], reservation_id: int =
             return [Player(player["id"], player["name"]) for player in await resp.json()]
 
 
-# TODO remove
-async def uuid_to_username(uuid: str) -> str | None:
-    """
-    Get the minecraft username of a user via the uuid.
-
-    :return: None, if the uuid doesn't exist. The username otherwise.
-    """
-    with _sessionserver_rate_limit:
-        async with _mojang_sessionserver_sesion.get(f"/session/minecraft/profile/{uuid}") as resp:
-            if resp.status == HTTPStatus.NOT_FOUND:
-                return None
-
-            resp.raise_for_status()
-
-            if resp.status == HTTPStatus.NO_CONTENT:
-                return None
-
-            return (await resp.json())["name"]
-
-
-# TODO remove
-async def uuid_to_player(uuid: str) -> tuple[str, str] | None:
-    """
-    Get the minecraft username of a user via the uuid.
-
-    :return: None, if the uuid doesn't exist. The username otherwise.
-    """
-    with _sessionserver_rate_limit:
-        async with _mojang_sessionserver_sesion.get(f"/session/minecraft/profile/{uuid}") as resp:
-            if resp.status == HTTPStatus.NOT_FOUND:
-                return None
-
-            resp.raise_for_status()
-
-            if resp.status == HTTPStatus.NO_CONTENT:
-                return None
-            json = await resp.json()
-            return json["id"], json["name"]
-
-
 def uuid_to_avatar_url(uuid: str) -> str:
     """
     Get a crafatar url for the avatar of the uuid.
@@ -174,11 +87,9 @@ def uuid_to_avatar_url(uuid: str) -> str:
 
 
 async def init_session():
-    global _mojang_api_session, _mojang_sessionserver_sesion
+    global _mojang_api_session
     _mojang_api_session = aiohttp.ClientSession("https://api.mojang.com")
-    _mojang_sessionserver_sesion = aiohttp.ClientSession("https://sessionserver.mojang.com")
 
 
 async def close():
     await _mojang_api_session.close()
-    await _mojang_sessionserver_sesion.close()

@@ -9,6 +9,7 @@ import bot_config
 import utils.discord
 import utils.misc
 from commands import command, commandEvent
+import player
 
 _username_re = re.compile(r'[0-9A-Za-z_]+$')
 _uuid_re = re.compile(r'[0-9a-f]+$')
@@ -31,35 +32,35 @@ class PlayerCommand(command.Command):
             return
 
         user_str = event.args[1]
-        uuid = None
 
+        p = None
+        use_uuid = False
         if len(user_str) <= 16:
             if _username_re.match(user_str):
-                uuid = await api.minecraft.username_to_uuid(user_str)
+                p = await player.get_player(username=user_str)
         else:
-            user_str = user_str.replace("-", "")
+            user_str = user_str.replace("-", "").lower()
 
             if len(user_str) == 32 and _uuid_re.match(user_str):
-                uuid = user_str
+                p = await player.get_player(uuid=user_str)
+                use_uuid = True
 
-        if uuid is None:
-            await utils.discord.send_error(event.channel, f"Couldn't parse user {event.args[1]}")
+        if p is None:
+            await utils.discord.send_error(event.channel, f"Couldn't parse user ``{event.args[1]}``")
             return
 
-        uuid = utils.misc.get_dashed_uuid(uuid)
-
-        stats = await api.wynncraft.player.stats(uuid)
+        stats = await api.wynncraft.player.stats(api.minecraft.format_uuid(p.uuid) if use_uuid else p.name)
 
         if stats is None:
-            await utils.discord.send_error(event.channel, f"Couldn't find user {event.args[1]}")
+            await utils.discord.send_error(event.channel, f"Couldn't get stats for {p.name}")
             return
 
         embed = Embed(
-            title=f"**Stats for {stats.username}:**",
+            title=f"**Stats for {p.name}:**",
             description="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
             color=bot_config.DEFAULT_COLOR
         )
-        embed.add_field(name="UUID", value=stats.uuid, inline=False)
+        embed.add_field(name="UUID", value=p.uuid, inline=False)
         embed.add_field(name="Rank", value=stats.meta.tag.value, inline=False)
         embed.add_field(name="First Joined", value=stats.meta.firstJoin, inline=False)
 
@@ -80,6 +81,6 @@ class PlayerCommand(command.Command):
             guild_value = f"{stats.guild.rank} in {stats.guild.name}"
         embed.add_field(name="Guild", value=guild_value, inline=False)
 
-        embed.set_thumbnail(url=api.minecraft.uuid_to_avatar_url(uuid))
+        embed.set_thumbnail(url=api.minecraft.uuid_to_avatar_url(p.uuid))
 
         await event.channel.send(embed=embed)
