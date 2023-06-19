@@ -9,7 +9,7 @@ import api.wynncraft.guild
 import api.wynncraft.network
 import storage.usernameData
 import utils.logging
-from data_types import Player
+from dataTypes import Player
 
 _online_players = set()
 _unknown_players = Queue()

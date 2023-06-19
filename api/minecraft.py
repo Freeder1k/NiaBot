@@ -4,7 +4,7 @@ import aiohttp
 from aiohttp import ClientSession
 
 from api import rateLimit, reservableRateLimit
-from data_types import Player
+from dataTypes import Player
 
 # TODO create accessing methods for reservations
 _mojang_rate_limit = rateLimit.RateLimit(60, 1)
