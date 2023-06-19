@@ -40,8 +40,8 @@ class LastSeenCommand(command.Command):
 
             longest_name_len = 0
             longest_date_len = 0
-            players = await player.get_players(uuids=[m.uuid for m in nia.members])
-            stats = await asyncio.gather(*tuple(api.wynncraft.player.stats(p.uuid) for p in players))
+            # players = await player.get_players(uuids=[m.uuid for m in nia.members])
+            stats = await asyncio.gather(*tuple(api.wynncraft.player.stats(m.uuid) for m in nia.members))
 
             for m, p in zip(nia.members, stats):
                 if p is None:

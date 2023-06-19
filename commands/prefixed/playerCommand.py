@@ -33,6 +33,7 @@ class PlayerCommand(command.Command):
 
         user_str = event.args[1]
 
+        # TODO make this better?
         p = None
         use_uuid = False
         if len(user_str) <= 16:
@@ -60,7 +61,7 @@ class PlayerCommand(command.Command):
             description="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
             color=bot_config.DEFAULT_COLOR
         )
-        embed.add_field(name="UUID", value=p.uuid, inline=False)
+        embed.add_field(name="UUID", value=api.minecraft.format_uuid(p.uuid), inline=False)
         embed.add_field(name="Rank", value=stats.meta.tag.value, inline=False)
         embed.add_field(name="First Joined", value=stats.meta.firstJoin, inline=False)
 
