@@ -3,7 +3,7 @@ import typing
 
 from discord import TextChannel, Embed, Guild, Member, Permissions
 
-import bot_config
+import botConfig
 import main
 from commands.commandEvent import CommandEvent
 from utils.misc import split_str
@@ -12,28 +12,28 @@ mention_reg = re.compile(r"\\?<(?:#|@[!&]?)(\d+)>")
 
 
 async def send_success(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=bot_config.SUCCESS_COLOR, description=f"{chr(0x2705)} {message}"))
+    await channel.send(embed=Embed(color=botConfig.SUCCESS_COLOR, description=f"{chr(0x2705)} {message}"))
 
 
 async def send_error(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=bot_config.ERROR_COLOR, description=f"{chr(0x274c)} {message}"))
+    await channel.send(embed=Embed(color=botConfig.ERROR_COLOR, description=f"{chr(0x274c)} {message}"))
 
 
 async def send_info(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=bot_config.INFO_COLOR, description=f":information_source: {message}"))
+    await channel.send(embed=Embed(color=botConfig.INFO_COLOR, description=f":information_source: {message}"))
 
 
 async def send_exception(event: CommandEvent, exception: Exception):
     await event.channel.send(embed=Embed(
-        color=bot_config.ERROR_COLOR,
+        color=botConfig.ERROR_COLOR,
         title=f"A wild {type(exception)} appeared!",
         description="Please scream at the bot owner to fix it."
     ))
 
-    devs = [event.client.get_user(uid) for uid in bot_config.DEV_USER_IDS]
+    devs = [event.client.get_user(uid) for uid in botConfig.DEV_USER_IDS]
 
     embed = Embed(
-        color=bot_config.ERROR_COLOR,
+        color=botConfig.ERROR_COLOR,
         title=f"A wild {type(exception)} appeared!",
         description=f"Server: ``{event.guild}``\n"
                     f"Channel: ``#{event.channel.name}``\n"

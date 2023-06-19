@@ -4,7 +4,7 @@ from typing import Collection
 
 from discord import Permissions, Member, TextChannel, Embed
 
-import bot_config
+import botConfig
 import serverConfig
 import utils.discord
 from commands.commandEvent import CommandEvent
@@ -43,7 +43,7 @@ class Command(ABC):
             m_perms = utils.discord.get_missing_perms(command_event.channel, self.req_perms)
             if m_perms != Permissions.none():
                 embed = Embed(
-                    color=bot_config.ERROR_COLOR,
+                    color=botConfig.ERROR_COLOR,
                     title="**To use this command please give me the following permission(s):**",
                     description=[p for p in Permissions.VALID_FLAGS if getattr(m_perms, p)]
                 )
@@ -54,7 +54,7 @@ class Command(ABC):
 
     async def send_help(self, channel: TextChannel):
         help_embed = Embed(
-            color=bot_config.DEFAULT_COLOR,
+            color=botConfig.DEFAULT_COLOR,
             title=f"**{self.name.capitalize()} Command Info:**"
         )
         help_embed.add_field(name="**Usage:**", value=f"``{self.usage}``", inline=False)
@@ -68,7 +68,7 @@ class Command(ABC):
         await channel.send(embed=help_embed)
 
     def _allowed_user(self, member: Member) -> bool:
-        if member.id in bot_config.DEV_USER_IDS:
+        if member.id in botConfig.DEV_USER_IDS:
             return True
 
         if self.permission_lvl == PermissionLevel.ANYONE:

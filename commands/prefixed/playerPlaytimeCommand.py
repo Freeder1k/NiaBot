@@ -10,7 +10,7 @@ import re
 import player
 from datetime import datetime
 import matplotlib.pyplot as plt
-import bot_config
+import botConfig
 
 _username_re = re.compile(r'[0-9A-Za-z_]+$')
 _uuid_re = re.compile(r'[0-9a-f]+$')
@@ -78,7 +78,7 @@ class PlayerPlaytimeCommand(command.Command):
         data_stream.seek(0)
         chart = discord.File(data_stream, filename="playtime.png")
 
-        embed = Embed(title=f"Playtime for {p.name}", color=bot_config.DEFAULT_COLOR)
+        embed = Embed(title=f"Playtime for {p.name}", color=botConfig.DEFAULT_COLOR)
         embed.set_image(
             url="attachment://playtime.png"
         )

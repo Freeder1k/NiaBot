@@ -5,7 +5,7 @@ from discord import Permissions, Embed
 
 import api.wynncraft.guild
 import api.wynncraft.player
-import bot_config
+import botConfig
 import player
 import utils.discord
 import utils.misc
@@ -63,7 +63,7 @@ class LastSeenCommand(command.Command):
                      sorted(v.items(), key=lambda item: item[1][0])}
 
             embed = Embed(
-                color=bot_config.DEFAULT_COLOR,
+                color=botConfig.DEFAULT_COLOR,
                 title="**Last Sightings of Nia Members**",
                 description='⎯' * 35,
             )

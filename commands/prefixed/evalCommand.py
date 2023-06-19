@@ -2,7 +2,7 @@ import inspect
 
 from discord import Permissions, Embed
 
-import bot_config
+import botConfig
 import utils.discord
 from commands import command, commandEvent
 
@@ -42,7 +42,7 @@ class EvalCommand(command.Command):
                 if res is not None:
                     await event.channel.send(embed=Embed(
                         description=f"```{res}```",
-                        color=bot_config.DEFAULT_COLOR
+                        color=botConfig.DEFAULT_COLOR
                     ))
             except Exception as e:
                 await utils.discord.send_exception(event, e)

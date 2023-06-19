@@ -5,7 +5,7 @@ from discord import Permissions, Embed
 
 import api.minecraft
 import api.wynncraft.player
-import bot_config
+import botConfig
 import utils.discord
 import utils.misc
 from commands import command, commandEvent
@@ -59,7 +59,7 @@ class PlayerCommand(command.Command):
         embed = Embed(
             title=f"**Stats for {p.name}:**",
             description="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
-            color=bot_config.DEFAULT_COLOR
+            color=botConfig.DEFAULT_COLOR
         )
         embed.add_field(name="UUID", value=api.minecraft.format_uuid(p.uuid), inline=False)
         embed.add_field(name="Rank", value=stats.meta.tag.value, inline=False)

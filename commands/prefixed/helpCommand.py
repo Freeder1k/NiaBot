@@ -1,6 +1,6 @@
 from discord import Permissions, Embed
 
-import bot_config
+import botConfig
 import serverConfig
 import utils.discord
 from commands import commandListener, command, commandEvent
@@ -32,7 +32,7 @@ class HelpCommand(command.Command):
         cmd_prefix = serverConfig.get_cmd_prefix(event.guild.id)
 
         help_embed = Embed(
-            color=bot_config.DEFAULT_COLOR,
+            color=botConfig.DEFAULT_COLOR,
             title="**Help:**",
             description=f"Bot prefix: ``{cmd_prefix}``\n"
                         f"See: ``{cmd_prefix}help <command>`` for help on individual commands.\n"
@@ -51,7 +51,7 @@ class HelpCommand(command.Command):
             help_embed.add_field(name="**Strat+ Commands:**", value='\n'.join(mod), inline=False)
         if len(admin) > 0:
             help_embed.add_field(name="**Chief Commands:**", value='\n'.join(admin), inline=False)
-        if len(dev) > 0 and event.sender.id in bot_config.DEV_USER_IDS:
+        if len(dev) > 0 and event.sender.id in botConfig.DEV_USER_IDS:
             help_embed.add_field(name="**Dev Commands:**", value='\n'.join(dev), inline=False)
 
         await event.channel.send(embed=help_embed)
