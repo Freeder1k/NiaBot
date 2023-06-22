@@ -1,3 +1,4 @@
+import traceback
 from http import HTTPStatus
 from queue import Queue
 from threading import Lock
@@ -76,7 +77,11 @@ def register_ratelimit(rate_limit: RateLimit):
     _rate_limits.append(rate_limit)
 
 
-@tasks.loop(minutes=1)
+@tasks.loop(minutes=1, reconnect=True)
 async def ratelimit_updater():
-    for rate_limit in _rate_limits:
-        rate_limit._minute_passed()
+    try:
+        for rate_limit in _rate_limits:
+            rate_limit._minute_passed()
+    except Exception as ex:
+        traceback.print_exc()
+        raise ex

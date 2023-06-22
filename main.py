@@ -1,5 +1,6 @@
 import asyncio
 import threading
+import traceback
 from datetime import datetime, timezone
 
 import discord
@@ -13,26 +14,25 @@ import api.wynncraft
 import api.wynncraft.network
 import api.wynncraft.wynnAPI
 import commands.commandListener
+import commands.prefixed.activityCommand
 import commands.prefixed.configCommand
 import commands.prefixed.evalCommand
 import commands.prefixed.helpCommand
+import commands.prefixed.playerCommand
+import commands.prefixed.playtimeCommand
 import commands.prefixed.seenCommand
-import commands.prefixed.activityCommand
 import commands.prefixed.spaceCommand
 import commands.prefixed.strikeCommand
 import commands.prefixed.strikesCommand
 import commands.prefixed.unstrikeCommand
 import commands.prefixed.wandererCommand
-import commands.prefixed.playerCommand
-import commands.prefixed.playtimeCommand
 import player
 import serverConfig
 import storage.manager
 import storage.playtimeData
 import storage.playtimeData
-import utils.logging
 import storage.usernameData
-import traceback
+import utils.logging
 
 load_dotenv()
 import os
@@ -93,21 +93,24 @@ async def on_ready():
         traceback.print_exc()
 
 
-
 @client.event
 async def on_message(message: discord.Message):
     asyncio.create_task(commands.commandListener.on_message(message))
 
 
-@tasks.loop(minutes=1)
+@tasks.loop(minutes=1, reconnect=True)
 async def update_presence():
-    await client.change_presence(
-        status=discord.Status.online,
-        activity=discord.Activity(
-            name=f"{await api.wynncraft.network.player_sum()} players play Wynncraft",
-            type=discord.ActivityType.watching
+    try:
+        await client.change_presence(
+            status=discord.Status.online,
+            activity=discord.Activity(
+                name=f"{await api.wynncraft.network.player_sum()} players play Wynncraft",
+                type=discord.ActivityType.watching
+            )
         )
-    )
+    except Exception as ex:
+        traceback.print_exc()
+        raise ex
 
 
 def start_scheduling():

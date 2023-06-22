@@ -94,7 +94,7 @@ async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date |
     return data[0]['min(day)']
 
 
-@tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc))
+@tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc), reconnect=True)
 async def update_playtimes():
     try:
         nia = await api.wynncraft.guild.stats("Nerfuria")
@@ -105,5 +105,6 @@ async def update_playtimes():
 
         today = datetime.now(timezone.utc).date()
         await asyncio.gather(*(set_playtime(stats.uuid, today, stats.meta.playtime) for stats in pstats))
-    except Exception:
+    except Exception as ex:
         traceback.print_exc()
+        raise ex

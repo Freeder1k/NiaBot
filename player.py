@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from queue import Queue
 
 from discord.ext import tasks
@@ -59,7 +60,8 @@ async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -
         stored += [p for p in (await asyncio.gather(*(_get_and_store_from_api(uuid=uuid) for uuid in unkown_uuids))) if
                    p is not None]
     if len(unknown_names) > 0:
-        stored += [p for p in (await asyncio.gather(*(_get_and_store_from_api(username=name) for name in unknown_names))) if
+        stored += [p for p in
+                   (await asyncio.gather(*(_get_and_store_from_api(username=name) for name in unknown_names))) if
                    p is not None]
 
     return stored
@@ -69,32 +71,36 @@ def get_online_wynncraft_players() -> set[str]:
     return _online_players
 
 
-@tasks.loop(minutes=1)
+@tasks.loop(minutes=1, reconnect=True)
 async def update_players():
-    global _online_players, _unknown_players
-    now_online_players = set().union(*((await api.wynncraft.network.server_list()).values()))
-    new_joins = now_online_players - _online_players
-    _online_players = now_online_players
+    try:
+        global _online_players, _unknown_players
+        now_online_players = set().union(*((await api.wynncraft.network.server_list()).values()))
+        new_joins = now_online_players - _online_players
+        _online_players = now_online_players
 
-    known_names = {p.name for p in await storage.usernameData.get_players(usernames=list(new_joins))}
-    unknown_joined_players = [name for name in new_joins if name not in known_names]
-    for i in range(0, len(unknown_joined_players), 10):
-        _unknown_players.put(unknown_joined_players[i:i + 10])
-    if not _unknown_players.empty():
-        utils.logging.dlog(
-            f"Updating {sum((len(_unknown_players.queue[i]) for i in range(min(_unknown_players.qsize(), 20))))}"
-            f" minecraft usernames.")
+        known_names = {p.name for p in await storage.usernameData.get_players(usernames=list(new_joins))}
+        unknown_joined_players = [name for name in new_joins if name not in known_names]
+        for i in range(0, len(unknown_joined_players), 10):
+            _unknown_players.put(unknown_joined_players[i:i + 10])
+        if not _unknown_players.empty():
+            utils.logging.dlog(
+                f"Updating {sum((len(_unknown_players.queue[i]) for i in range(min(_unknown_players.qsize(), 20))))}"
+                f" minecraft usernames.")
 
-    for i in range(0, min(_unknown_players.qsize(), 20)):
-        curr_unkn_p = _unknown_players.get()
+        for i in range(0, min(_unknown_players.qsize(), 20)):
+            curr_unkn_p = _unknown_players.get()
 
-        res = await api.minecraft.get_players_from_usernames(curr_unkn_p, reservation_id=_reservation_id)
-        await asyncio.gather(*(storage.usernameData.update(uuid, name) for uuid, name in res))
+            res = await api.minecraft.get_players_from_usernames(curr_unkn_p, reservation_id=_reservation_id)
+            await asyncio.gather(*(storage.usernameData.update(uuid, name) for uuid, name in res))
 
-        for name in curr_unkn_p:
-            if not any(name == t_name for _, t_name in res):
-                utils.logging.dlog(f"{name} not a minecraft name but online on wynncraft!")
-    api.minecraft._usernames_rate_limit.free(_reservation_id)
+            for name in curr_unkn_p:
+                if not any(name == t_name for _, t_name in res):
+                    utils.logging.dlog(f"{name} not a minecraft name but online on wynncraft!")
+        api.minecraft._usernames_rate_limit.free(_reservation_id)
+    except Exception as ex:
+        traceback.print_exc()
+        raise ex
 
 
 async def update_nia():
