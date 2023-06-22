@@ -45,14 +45,16 @@ class GuildCommand(command.Command):
             await utils.discord.send_error(event.channel, "Please specify a guild!")
             return
 
-        if not _guild_re.match(event.args[1]):
-            await utils.discord.send_error(event.channel, f"Invalid guild name ``{event.args[1]}``")
+        guild_str = event.message.content.split(" ", 1)[1]
+
+        if not _guild_re.match(guild_str):
+            await utils.discord.send_error(event.channel, f"Invalid guild name ``{guild_str}``")
             return
 
-        guild = await api.wynncraft.guild.stats(event.args[1])
+        guild = await api.wynncraft.guild.stats(guild_str)
 
         if guild is None:
-            await utils.discord.send_error(event.channel, f"Couldn't find guild ``{event.args[1]}``")
+            await utils.discord.send_error(event.channel, f"Couldn't find guild ``{guild_str}``")
             return
 
         embed = Embed(
