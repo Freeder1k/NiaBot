@@ -3,7 +3,8 @@ from discord import Permissions, Embed
 import botConfig
 import serverConfig
 import utils.discord
-from commands import commandListener, command, commandEvent
+from commands import commandListener, command
+from dataTypes import CommandEvent
 
 
 class HelpCommand(command.Command):
@@ -18,7 +19,7 @@ class HelpCommand(command.Command):
             command.PermissionLevel.ANYONE
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
+    async def _execute(self, event: CommandEvent):
         if len(event.args) > 1:
             cmd = event.args[1]
             cmd_map = commandListener.get_command_map()

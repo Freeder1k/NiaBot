@@ -1,10 +1,9 @@
-import inspect
-
 from discord import Permissions, Embed
 
 import botConfig
 import utils.discord
-from commands import command, commandEvent
+from commands import command
+from dataTypes import CommandEvent
 
 
 class EvalCommand(command.Command):
@@ -18,14 +17,14 @@ class EvalCommand(command.Command):
             permission_lvl=command.PermissionLevel.DEV
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
+    async def _execute(self, event: CommandEvent):
         if len(event.args) < 2:
             return
 
         context = {"event": event}
         code = event.message.content.split(" ", 1)[1]
         if code.startswith("```python\n") and code.endswith("```"):
-            code = code [10:-3]
+            code = code[10:-3]
 
         lines = code.split("\n")
         if lines[-1] == "":

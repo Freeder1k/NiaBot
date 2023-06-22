@@ -5,7 +5,8 @@ from discord import Permissions, Embed, Forbidden
 
 import botConfig
 import utils.discord
-from commands import command, commandEvent
+from commands import command
+from dataTypes import CommandEvent
 from storage import strikeData
 
 
@@ -30,7 +31,7 @@ class StrikeCommand(command.Command):
             permission_lvl=command.PermissionLevel.CHIEF
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
+    async def _execute(self, event: CommandEvent):
         if len(event.args) < 2:
             await utils.discord.send_error(event.channel, "Please specify a user!")
             return
@@ -48,7 +49,8 @@ class StrikeCommand(command.Command):
 
         await strikeData.add_strike(member.id, event.guild.id, date_today, reason)
 
-        strike_amount = len(await strikeData.get_unpardoned_strikes_after(member.id, event.guild.id, date_today + relativedelta(months=-2)))
+        strike_amount = len(await strikeData.get_unpardoned_strikes_after(member.id, event.guild.id,
+                                                                          date_today + relativedelta(months=-2)))
 
         embed = Embed(
             title=f"You were striked in {event.guild.name}!",

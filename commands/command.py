@@ -7,7 +7,7 @@ from discord import Permissions, Member, TextChannel, Embed
 import botConfig
 import serverConfig
 import utils.discord
-from commands.commandEvent import CommandEvent
+from dataTypes import CommandEvent
 
 
 class PermissionLevel(IntEnum):
@@ -33,24 +33,29 @@ class Command(ABC):
         pass
 
     async def run(self, command_event: CommandEvent):
-        if self._allowed_user(command_event.sender):
-            if not command_event.channel.permissions_for(command_event.guild.me).send_messages:
-                return
-            if not command_event.channel.permissions_for(command_event.guild.me).embed_links:
-                await command_event.channel.send("Please give me the Embed Links permission to run commands.")
-                return
+        if not command_event.channel.permissions_for(command_event.guild.me).send_messages:
+            return
 
-            m_perms = utils.discord.get_missing_perms(command_event.channel, self.req_perms)
-            if m_perms != Permissions.none():
-                embed = Embed(
-                    color=botConfig.ERROR_COLOR,
-                    title="**To use this command please give me the following permission(s):**",
-                    description=[p for p in Permissions.VALID_FLAGS if getattr(m_perms, p)]
-                )
-                await command_event.channel.send(embed=embed)
-                return
+        if not command_event.channel.permissions_for(command_event.guild.me).embed_links:
+            await command_event.channel.send("Please give me the Embed Links permission to run commands.")
+            return
 
-            await self._execute(command_event)
+        if not self._allowed_user(command_event.sender):
+            await utils.discord.send_error(command_event.channel,
+                                           f"This command is only available for {self.permission_lvl.name}s.")
+            return
+
+        m_perms = utils.discord.get_missing_perms(command_event.channel, self.req_perms)
+        if m_perms != Permissions.none():
+            embed = Embed(
+                color=botConfig.ERROR_COLOR,
+                title="**To use this command please give me the following permission(s):**",
+                description=[p for p in Permissions.VALID_FLAGS if getattr(m_perms, p)]
+            )
+            await command_event.channel.send(embed=embed)
+            return
+
+        await self._execute(command_event)
 
     async def send_help(self, channel: TextChannel):
         help_embed = Embed(

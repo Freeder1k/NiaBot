@@ -6,7 +6,9 @@ from discord import Message, TextChannel, Client
 import serverConfig
 import utils.discord
 from commands.command import Command
-from commands.commandEvent import CommandEvent
+from dataTypes import CommandEvent
+
+import traceback
 
 _bot_mention: Pattern
 _commands: list[Command] = []
@@ -69,4 +71,4 @@ async def on_message(message: Message):
     except Exception as e:
         await utils.discord.send_exception(command_event, e)
         print(message)
-        raise e
+        traceback.print_exc()

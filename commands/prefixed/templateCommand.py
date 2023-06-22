@@ -1,6 +1,7 @@
 from discord import Permissions
 
-from commands import command, commandEvent
+from commands import command
+from dataTypes import CommandEvent
 
 
 class TemplateCommand(command.Command):
@@ -14,5 +15,5 @@ class TemplateCommand(command.Command):
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
+    async def _execute(self, event: CommandEvent):
         pass

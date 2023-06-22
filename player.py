@@ -9,14 +9,14 @@ import api.wynncraft.guild
 import api.wynncraft.network
 import storage.usernameData
 import utils.logging
-from dataTypes import Player
+from dataTypes import MinecraftPlayer
 
 _online_players = set()
 _unknown_players = Queue()
 _reservation_id = api.minecraft._usernames_rate_limit.reserve(20)
 
 
-async def _get_and_store_from_api(*, uuid: str = None, username: str = None) -> Player | None:
+async def _get_and_store_from_api(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
     p = await api.minecraft.get_player(uuid=uuid, username=username)
     if p is not None:
         await storage.usernameData.update(*p)
@@ -24,7 +24,7 @@ async def _get_and_store_from_api(*, uuid: str = None, username: str = None) -> 
 
 
 # TODO caching
-async def get_player(*, uuid: str = None, username: str = None) -> Player | None:
+async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
     p = await storage.usernameData.get_player(uuid=uuid, username=username)
     if p is not None:
         return p
@@ -32,7 +32,7 @@ async def get_player(*, uuid: str = None, username: str = None) -> Player | None
     return await _get_and_store_from_api(uuid=uuid, username=username)
 
 
-async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -> list[Player]:
+async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -> list[MinecraftPlayer]:
     """
     Get a list of players by uuids and names.
 
@@ -55,10 +55,12 @@ async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -
     if len(unkown_uuids) + len(unknown_names) > api.minecraft._mojang_rate_limit.get_remaining():
         raise api.rateLimit.RateLimitException("API usage would exceed ratelimit!")
 
-    stored += [p for p in (await asyncio.gather(_get_and_store_from_api(uuid=uuid) for uuid in unkown_uuids)) if
-               p is not None]
-    stored += [p for p in (await asyncio.gather(_get_and_store_from_api(username=name) for name in unknown_names)) if
-               p is not None]
+    if len(unkown_uuids) > 0:
+        stored += [p for p in (await asyncio.gather(*(_get_and_store_from_api(uuid=uuid) for uuid in unkown_uuids))) if
+                   p is not None]
+    if len(unknown_names) > 0:
+        stored += [p for p in (await asyncio.gather(*(_get_and_store_from_api(username=name) for name in unknown_names))) if
+                   p is not None]
 
     return stored
 

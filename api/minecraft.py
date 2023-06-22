@@ -4,7 +4,7 @@ import aiohttp
 from aiohttp import ClientSession
 
 from api import rateLimit, reservableRateLimit
-from dataTypes import Player
+from dataTypes import MinecraftPlayer
 
 # TODO create accessing methods for reservations
 _mojang_rate_limit = rateLimit.RateLimit(60, 1)
@@ -22,7 +22,7 @@ def format_uuid(uuid: str) -> str:
     return "-".join((uuid[:8], uuid[8:12], uuid[12:16], uuid[16:20], uuid[20:32]))
 
 
-async def get_player(*, uuid: str = None, username: str = None) -> Player | None:
+async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
     """
     Get a player via either their uuid or their username. Exactly one argument must be provided.
     May raise a RatelimitException or ClientResponseError.
@@ -46,10 +46,10 @@ async def get_player(*, uuid: str = None, username: str = None) -> Player | None
             if resp.status == HTTPStatus.NO_CONTENT:
                 return None
             json = await resp.json()
-            return Player(json["id"], json["name"])
+            return MinecraftPlayer(json["id"], json["name"])
 
 
-async def get_players_from_usernames(usernames: list[str], reservation_id: int = -1) -> list[Player] | None:
+async def get_players_from_usernames(usernames: list[str], reservation_id: int = -1) -> list[MinecraftPlayer] | None:
     """
     Get the minecraft uuids of up to 10 users via the usernames.
 
@@ -76,7 +76,7 @@ async def get_players_from_usernames(usernames: list[str], reservation_id: int =
             if resp.status == HTTPStatus.NO_CONTENT:
                 return None
 
-            return [Player(player["id"], player["name"]) for player in await resp.json()]
+            return [MinecraftPlayer(player["id"], player["name"]) for player in await resp.json()]
 
 
 def uuid_to_avatar_url(uuid: str) -> str:

@@ -16,15 +16,15 @@ import commands.commandListener
 import commands.prefixed.configCommand
 import commands.prefixed.evalCommand
 import commands.prefixed.helpCommand
-import commands.prefixed.lastseenCommand
-import commands.prefixed.playtimeCommand
+import commands.prefixed.seenCommand
+import commands.prefixed.activityCommand
 import commands.prefixed.spaceCommand
 import commands.prefixed.strikeCommand
 import commands.prefixed.strikesCommand
 import commands.prefixed.unstrikeCommand
 import commands.prefixed.wandererCommand
 import commands.prefixed.playerCommand
-import commands.prefixed.playerPlaytimeCommand
+import commands.prefixed.playtimeCommand
 import player
 import serverConfig
 import storage.manager
@@ -69,9 +69,9 @@ async def on_ready():
 
             commands.commandListener.register_commands(
                 commands.prefixed.helpCommand.HelpCommand(),
-                commands.prefixed.playtimeCommand.PlaytimeCommand(),
+                commands.prefixed.activityCommand.ActivityCommand(),
                 commands.prefixed.wandererCommand.WandererCommand(),
-                commands.prefixed.lastseenCommand.LastSeenCommand(),
+                commands.prefixed.seenCommand.SeenCommand(),
                 commands.prefixed.spaceCommand.SpaceCommand(),
                 commands.prefixed.configCommand.ConfigCommand(),
                 commands.prefixed.strikeCommand.StrikeCommand(),
@@ -79,7 +79,7 @@ async def on_ready():
                 commands.prefixed.unstrikeCommand.UnstrikeCommand(),
                 commands.prefixed.evalCommand.EvalCommand(),
                 commands.prefixed.playerCommand.PlayerCommand(),
-                commands.prefixed.playerPlaytimeCommand.PlayerPlaytimeCommand(),
+                commands.prefixed.playtimeCommand.PlaytimeCommand(),
             )
 
             # await player.update_nia()
@@ -91,7 +91,6 @@ async def on_ready():
     except Exception as e:
         print(e)
         traceback.print_exc()
-        raise e
 
 
 

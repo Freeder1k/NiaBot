@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
 
+import aiohttp.client_exceptions
+
 import utils.misc
 from . import wynnAPI
 from .. import rateLimit
@@ -47,11 +49,16 @@ class Stats:
 
 async def stats(player: str) -> Stats | None:
     """
-    Get the wynncraft stats of the specified player.
+    Returns a Stats Object, which details public statistical information about the player.
     :param player: Either the username or the uuid in dashed form (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
     """
     with player_rate_limit:
-        json = await wynnAPI.get_v2(f"/player/{player}/stats")
+        try:
+            json = await wynnAPI.get_v2(f"/player/{player}/stats")
+        except aiohttp.client_exceptions.ClientResponseError as ex:
+            if ex.status == 400:
+                return None
+            raise ex
 
         if len(json) == 0:
             return None

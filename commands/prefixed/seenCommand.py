@@ -9,24 +9,24 @@ import botConfig
 import player
 import utils.discord
 import utils.misc
-from commands import command, commandEvent
-from api import minecraft
+from commands import command
+from dataTypes import CommandEvent
 
 
-class LastSeenCommand(command.Command):
+class SeenCommand(command.Command):
     def __init__(self):
         super().__init__(
-            name="lastseen",
-            aliases=("ls", "seen"),
-            usage=f"lastseen",
-            description="Get players last seen in Wynncraft",
+            name="seen",
+            aliases=("ls", "lastseen"),
+            usage=f"seen",
+            description=f"Get a list of the last join dates for members in {botConfig.GUILD_NAME}.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.STRAT
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
+    async def _execute(self, event: CommandEvent):
         async with event.channel.typing():
-            nia = await api.wynncraft.guild.stats("Nerfuria")
+            guild = await api.wynncraft.guild.stats(botConfig.GUILD_NAME)
             now = datetime.now(timezone.utc)
 
             lastonline = {
@@ -40,21 +40,22 @@ class LastSeenCommand(command.Command):
 
             longest_name_len = 0
             longest_date_len = 0
-            # players = await player.get_players(uuids=[m.uuid for m in nia.members])
-            stats = await asyncio.gather(*tuple(api.wynncraft.player.stats(m.uuid) for m in nia.members))
+            names = {uuid: name for uuid, name in await player.get_players(uuids=[m.uuid for m in guild.members])}
+            stats = await asyncio.gather(*tuple(api.wynncraft.player.stats(m.uuid) for m in guild.members))
 
-            for m, p in zip(nia.members, stats):
+            for m, p in zip(guild.members, stats):
                 if p is None:
                     continue
+                name = names.get(m.uuid, m.name)
                 if p.meta.location.online:
-                    lastonline[m.rank][m.name] = (now, f"online({p.meta.location.server})")
+                    lastonline[m.rank][name] = (now, f"online({p.meta.location.server})")
                 else:
                     last_join = datetime.fromisoformat(p.meta.lastJoin)
                     last_join_str = utils.misc.get_relative_date_str(last_join, days=True, hours=True, minutes=True,
                                                                      seconds=True) + " ago"
-                    lastonline[m.rank][m.name] = (last_join, last_join_str)
+                    lastonline[m.rank][name] = (last_join, last_join_str)
 
-                    longest_name_len = max(len(m.name), longest_name_len)
+                    longest_name_len = max(len(name), longest_name_len)
                     longest_date_len = max(len(last_join_str), longest_date_len)
 
             for k, v in lastonline.items():

@@ -6,10 +6,11 @@ from discord import Permissions, Embed
 import api.minecraft
 import api.wynncraft.player
 import botConfig
+import player
 import utils.discord
 import utils.misc
-from commands import command, commandEvent
-import player
+from commands import command
+from dataTypes import CommandEvent
 
 _username_re = re.compile(r'[0-9A-Za-z_]+$')
 _uuid_re = re.compile(r'[0-9a-f]+$')
@@ -19,26 +20,24 @@ class PlayerCommand(command.Command):
     def __init__(self):
         super().__init__(
             name="player",
-            aliases=("playerstats", "stats"),
+            aliases=("p", "stats"),
             usage=f"player <username|uuid>",
             description="See the wynncraft stats of the provided player.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.STRAT
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
+    async def _execute(self, event: CommandEvent):
         if len(event.args) < 2:
             await utils.discord.send_error(event.channel, "Please specify a username or uuid!")
             return
 
         user_str = event.args[1]
 
-        # TODO make this better?
         p = None
         use_uuid = False
-        if len(user_str) <= 16:
-            if _username_re.match(user_str):
-                p = await player.get_player(username=user_str)
+        if len(user_str) <= 16 and _username_re.match(user_str):
+            p = await player.get_player(username=user_str)
         else:
             user_str = user_str.replace("-", "").lower()
 
@@ -53,7 +52,7 @@ class PlayerCommand(command.Command):
         stats = await api.wynncraft.player.stats(api.minecraft.format_uuid(p.uuid) if use_uuid else p.name)
 
         if stats is None:
-            await utils.discord.send_error(event.channel, f"Couldn't get stats for {p.name}")
+            await utils.discord.send_error(event.channel, f"Couldn't get stats for ``{p.name}``")
             return
 
         embed = Embed(
@@ -74,7 +73,7 @@ class PlayerCommand(command.Command):
             seen_value = f"offline for {last_join_str}"
         embed.add_field(name="Seen", value=seen_value, inline=False)
 
-        embed.add_field(name="Playtime", value=f"{round(stats.meta.playtime/60, 2)} hours", inline=False)
+        embed.add_field(name="Playtime", value=f"{round(stats.meta.playtime / 60, 2)} hours", inline=False)
 
         if stats.guild.name is None:
             guild_value = "None"

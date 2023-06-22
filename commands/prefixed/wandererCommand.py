@@ -6,7 +6,8 @@ import api.wynncraft.guild
 import botConfig
 import utils.discord
 import utils.misc
-from commands import command, commandEvent
+from commands import command
+from dataTypes import CommandEvent
 
 
 class WandererCommand(command.Command):
@@ -15,13 +16,13 @@ class WandererCommand(command.Command):
             name="wandererpromote",
             aliases=("wpt",),
             usage=f"wandererpromote",
-            description="Get the list of players eligible for Starchild.",
+            description="Get the list of recruits eligible for promotion.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.STRAT,
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
-        nia = await api.wynncraft.guild.stats("Nerfuria")
+    async def _execute(self, event: CommandEvent):
+        nia = await api.wynncraft.guild.stats(botConfig.GUILD_NAME)
 
         seven_days_ago = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59) - timedelta(days=7)
 
@@ -43,7 +44,7 @@ class WandererCommand(command.Command):
                 longest_date_len = max(len(join_date_str), longest_date_len)
 
         content_with = max(0, 25 - longest_name_len - longest_date_len) + longest_name_len + longest_date_len
-        table_head_space = int((((content_with * 7.7) + 14 - 39 - 49)//6))*2
+        table_head_space = int((((content_with * 7.7) + 14 - 39 - 49) // 6)) * 2
         table_head_str = f"_ _ _ _ _ _ NAME{'_ ' * table_head_space}JOINED"
         fields = (("**Wanderers eligible for promotion**\n\n" + table_head_str, old_members),
                   ("**Wanderers not eligible for promotion**\n\n" + table_head_str, new_members))

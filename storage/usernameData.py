@@ -1,8 +1,8 @@
-from dataTypes import Player
+from dataTypes import MinecraftPlayer
 from storage import manager
 
 
-async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -> list[Player]:
+async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -> list[MinecraftPlayer]:
     """
     Get a list of players by uuids and names.
 
@@ -24,10 +24,10 @@ async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -
 
     data = await res.fetchall()
 
-    return [Player(row["uuid"], row["name"]) for row in data]
+    return [MinecraftPlayer(row["uuid"], row["name"]) for row in data]
 
 
-async def get_player(*, uuid: str = None, username: str = None) -> Player | None:
+async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
     """
     Get a player by either their uuid or username. Exactly one of the arguments must be provided.
 
@@ -52,10 +52,10 @@ async def get_player(*, uuid: str = None, username: str = None) -> Player | None
     if len(data) == 0:
         return None
 
-    return Player(data[0]["uuid"], data[0]["name"])
+    return MinecraftPlayer(data[0]["uuid"], data[0]["name"])
 
 
-async def update(uuid: str, username: str) -> Player | None:
+async def update(uuid: str, username: str) -> MinecraftPlayer | None:
     """
     Update a player in the database. If any entries exist with the same uuid or (case-insensitive) username these get replaced.
 

@@ -27,6 +27,9 @@ class ReservableRateLimit(RateLimit):
         return curr_id
 
     def free(self, reservation_id: int):
+        """
+        Free up the rest of the reserved ratelimit portion for the ratelimit duration.
+        """
         if reservation_id not in self._reservations:
             raise TypeError(f"There is no reservation with ID {reservation_id}.")
 

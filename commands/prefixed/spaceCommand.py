@@ -1,10 +1,14 @@
 from datetime import datetime
 
+import aiohttp.client_exceptions
 from discord import Permissions, Embed
 
 import api.nasa
 import botConfig
-from commands import command, commandEvent
+import utils.discord
+from commands import command
+from dataTypes import CommandEvent
+from api.rateLimit import RateLimitException
 
 
 class SpaceCommand(command.Command):
@@ -18,10 +22,17 @@ class SpaceCommand(command.Command):
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
-        apod = await api.nasa.get_random_apod()
-        while apod.media_type != "image":
+    async def _execute(self, event: CommandEvent):
+        try:
             apod = await api.nasa.get_random_apod()
+            while apod.media_type != "image":
+                apod = await api.nasa.get_random_apod()
+        except aiohttp.client_exceptions.ClientResponseError as ex:
+            await utils.discord.send_error(event.channel, f"Failed to access Nasa API. Status: {ex.status} ({ex.message})")
+            return
+        except RateLimitException:
+            await utils.discord.send_error(event.channel, f"Rate limited. Please wait a few minutes.")
+            return
 
         embed = Embed(
             title=apod.title,

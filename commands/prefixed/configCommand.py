@@ -3,14 +3,15 @@ from discord import Permissions, Embed
 import botConfig
 import serverConfig
 import utils.discord
-from commands import command, commandEvent
+from commands import command
+from dataTypes import CommandEvent
 
 
 class ConfigCommand(command.Command):
     def __init__(self):
         super().__init__(
             name="config",
-            aliases=(),
+            aliases=("settings", "prefs"),
             usage=f"config [option] [value]",
             description="Modify/see server config options.\n"
                         "Valid options are: ``prefix``, ``stratrole``, ``memberrole``, ``logchannel``",
@@ -18,7 +19,7 @@ class ConfigCommand(command.Command):
             permission_lvl=command.PermissionLevel.CHIEF
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
+    async def _execute(self, event: CommandEvent):
         server_id = event.guild.id
 
         if len(event.args) < 2:

@@ -2,7 +2,8 @@ from discord import Permissions
 
 import storage.strikeData
 import utils.discord
-from commands import command, commandEvent
+from commands import command
+from dataTypes import CommandEvent
 
 
 class UnstrikeCommand(command.Command):
@@ -16,7 +17,7 @@ class UnstrikeCommand(command.Command):
             permission_lvl=command.PermissionLevel.CHIEF
         )
 
-    async def _execute(self, event: commandEvent.CommandEvent):
+    async def _execute(self, event: CommandEvent):
         if len(event.args) < 2:
             await utils.discord.send_error(event.channel, "Please specify a strike!")
             return
