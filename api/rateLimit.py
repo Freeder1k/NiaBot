@@ -73,8 +73,9 @@ def register_new_ratelimit(max_amount: int, time_min: int) -> RateLimit:
     return r
 
 
-def register_ratelimit(rate_limit: RateLimit):
+def register_ratelimit(rate_limit: RateLimit) -> RateLimit:
     _rate_limits.append(rate_limit)
+    return rate_limit
 
 
 @tasks.loop(minutes=1, reconnect=True)

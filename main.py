@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import api.minecraft
 import api.nasa
 import api.rateLimit
+import api.sessionManager
 import api.wynncraft
 import api.wynncraft.network
 import api.wynncraft.wynnAPI
@@ -59,9 +60,7 @@ async def on_ready():
         if not initialized:
             await serverConfig.load_server_configs()
             await storage.manager.init_database()
-            await api.wynncraft.wynnAPI.init_sessions()
-            await api.nasa.init_session()
-            await api.minecraft.init_session()
+            await api.sessionManager.init_sessions()
 
             start_scheduling()
 
@@ -145,9 +144,7 @@ async def stop():
     stopped.set()
     stop_scheduling()
     await client.close()
-    await api.wynncraft.wynnAPI.close()
-    await api.nasa.close()
-    await api.minecraft.close()
+    await api.sessionManager.close()
     await storage.manager.close()
     utils.logging.log("Stopped")
 

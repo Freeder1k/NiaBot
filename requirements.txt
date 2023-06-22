@@ -6,3 +6,4 @@ aiosqlite
 aiofiles
 python-dateutil
 matplotlib
+yarl

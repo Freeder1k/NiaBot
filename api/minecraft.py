@@ -1,9 +1,6 @@
 from http import HTTPStatus
 
-import aiohttp
-from aiohttp import ClientSession
-
-from api import rateLimit, reservableRateLimit
+from api import rateLimit, reservableRateLimit, sessionManager
 from dataTypes import MinecraftPlayer
 
 # TODO create accessing methods for reservations
@@ -12,7 +9,7 @@ rateLimit.register_ratelimit(_mojang_rate_limit)
 _usernames_rate_limit = reservableRateLimit.ReservableRateLimit(20, 0)
 rateLimit.register_ratelimit(_usernames_rate_limit)
 
-_mojang_api_session: ClientSession = None
+_mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")
 
 
 def format_uuid(uuid: str) -> str:
@@ -36,8 +33,9 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
     else:
         raise TypeError("Exactly one argument (either uuid or username) must be provided.")
 
+    session = sessionManager.get_session(_mojang_api_session_id)
     with _mojang_rate_limit:
-        async with _mojang_api_session.get(request) as resp:
+        async with session.get(request) as resp:
             if resp.status == HTTPStatus.NOT_FOUND:
                 return None
 
@@ -66,8 +64,9 @@ async def get_players_from_usernames(usernames: list[str], reservation_id: int =
     else:
         rlimit = _usernames_rate_limit.get_reservation(reservation_id)
 
+    session = sessionManager.get_session(_mojang_api_session_id)
     with rlimit:
-        async with _mojang_api_session.post(f"/profiles/minecraft", json=usernames) as resp:
+        async with session.post(f"/profiles/minecraft", json=usernames) as resp:
             if resp.status == HTTPStatus.NOT_FOUND:
                 return None
 
@@ -84,12 +83,3 @@ def uuid_to_avatar_url(uuid: str) -> str:
     Get a crafatar url for the avatar of the uuid.
     """
     return f"https://crafatar.com/avatars/{uuid}?overlay=True"
-
-
-async def init_session():
-    global _mojang_api_session
-    _mojang_api_session = aiohttp.ClientSession("https://api.mojang.com")
-
-
-async def close():
-    await _mojang_api_session.close()

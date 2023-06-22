@@ -1,16 +1,13 @@
 import os
 from dataclasses import dataclass
 
-import aiohttp
-from aiohttp import ClientSession
-
 import utils.misc
-from api import rateLimit
+from api import rateLimit, sessionManager
 
 _nasa_rate_limit = rateLimit.RateLimit(1000, 60)
 rateLimit.register_ratelimit(_nasa_rate_limit)
 
-_nasa_api_session: ClientSession = None
+_nasa_api_session_id = sessionManager.register_session("https://api.nasa.gov")
 
 
 @dataclass(frozen=True)
@@ -29,9 +26,12 @@ async def get_random_apod() -> APOD:
 
     :return: The URL of the image.
     """
+    session = sessionManager.get_session(_nasa_api_session_id)
     with _nasa_rate_limit:
-        async with _nasa_api_session.get("/planetary/apod",
-                                         params={"api_key": os.getenv('NASA_API_KEY'), "count": 1}) as resp:
+        async with session.get("/planetary/apod",
+                               params={"api_key": os.getenv('NASA_API_KEY'), "count": 1},
+                               timeout=10
+                               ) as resp:
             resp.raise_for_status()
 
             json = await resp.json()
@@ -39,12 +39,3 @@ async def get_random_apod() -> APOD:
             if "copyright" not in json:
                 json["copyright"] = ""
             return utils.misc.dataclass_from_dict(APOD, json)
-
-
-async def init_session():
-    global _nasa_api_session
-    _nasa_api_session = aiohttp.ClientSession("https://api.nasa.gov")
-
-
-async def close():
-    await _nasa_api_session.close()
