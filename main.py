@@ -15,18 +15,6 @@ import api.wynncraft
 import api.wynncraft.network
 import api.wynncraft.wynnAPI
 import commands.commandListener
-import commands.prefixed.activityCommand
-import commands.prefixed.configCommand
-import commands.prefixed.evalCommand
-import commands.prefixed.helpCommand
-import commands.prefixed.playerCommand
-import commands.prefixed.playtimeCommand
-import commands.prefixed.seenCommand
-import commands.prefixed.spaceCommand
-import commands.prefixed.strikeCommand
-import commands.prefixed.strikesCommand
-import commands.prefixed.unstrikeCommand
-import commands.prefixed.wandererCommand
 import player
 import serverConfig
 import storage.manager
@@ -34,6 +22,8 @@ import storage.playtimeData
 import storage.playtimeData
 import storage.usernameData
 import utils.logging
+from commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, configCommand, \
+    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, playtimeCommand, guildCommand
 
 load_dotenv()
 import os
@@ -67,18 +57,19 @@ async def on_ready():
             commands.commandListener.on_ready(client)
 
             commands.commandListener.register_commands(
-                commands.prefixed.helpCommand.HelpCommand(),
-                commands.prefixed.activityCommand.ActivityCommand(),
-                commands.prefixed.wandererCommand.WandererCommand(),
-                commands.prefixed.seenCommand.SeenCommand(),
-                commands.prefixed.spaceCommand.SpaceCommand(),
-                commands.prefixed.configCommand.ConfigCommand(),
-                commands.prefixed.strikeCommand.StrikeCommand(),
-                commands.prefixed.strikesCommand.StrikesCommand(),
-                commands.prefixed.unstrikeCommand.UnstrikeCommand(),
-                commands.prefixed.evalCommand.EvalCommand(),
-                commands.prefixed.playerCommand.PlayerCommand(),
-                commands.prefixed.playtimeCommand.PlaytimeCommand(),
+                helpCommand.HelpCommand(),
+                activityCommand.ActivityCommand(),
+                wandererCommand.WandererCommand(),
+                seenCommand.SeenCommand(),
+                spaceCommand.SpaceCommand(),
+                configCommand.ConfigCommand(),
+                strikeCommand.StrikeCommand(),
+                strikesCommand.StrikesCommand(),
+                unstrikeCommand.UnstrikeCommand(),
+                evalCommand.EvalCommand(),
+                playerCommand.PlayerCommand(),
+                playtimeCommand.PlaytimeCommand(),
+                guildCommand.GuildCommand(),
             )
 
             # await player.update_nia()

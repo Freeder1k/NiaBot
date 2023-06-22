@@ -15,6 +15,7 @@ from dataTypes import MinecraftPlayer
 _online_players = set()
 _unknown_players = Queue()
 _reservation_id = api.minecraft._usernames_rate_limit.reserve(20)
+_server_list = []
 
 
 async def _get_and_store_from_api(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
@@ -71,11 +72,20 @@ def get_online_wynncraft_players() -> set[str]:
     return _online_players
 
 
+async def get_server_list() -> dict[str, list[str]]:
+    global _server_list
+    if _server_list is None:
+        _server_list = await api.wynncraft.network.server_list()
+
+    return _server_list
+
+
 @tasks.loop(minutes=1, reconnect=True)
 async def update_players():
     try:
-        global _online_players, _unknown_players
-        now_online_players = set().union(*((await api.wynncraft.network.server_list()).values()))
+        global _online_players, _unknown_players, _server_list
+        _server_list = await api.wynncraft.network.server_list()
+        now_online_players = set().union(*(_server_list.values()))
         new_joins = now_online_players - _online_players
         _online_players = now_online_players
 

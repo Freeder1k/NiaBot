@@ -6,7 +6,7 @@ _legacy_session_id = sessionManager.register_session("https://api-legacy.wynncra
 _v2_session_id = sessionManager.register_session("https://api.wynncraft.com")
 
 
-async def get_legacy(action: str, command: str = "") -> dict:
+async def get_legacy(action: str, command: str = "") -> dict| None:
     """
     Access the legacy wynncraft API. Ratelimiting is handled by this function.
     """
@@ -16,6 +16,9 @@ async def get_legacy(action: str, command: str = "") -> dict:
             resp.raise_for_status()
 
             json = await resp.json()
+
+            if "error" in json:
+                return None
             json.pop("request")
             return json
 

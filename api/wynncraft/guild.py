@@ -38,9 +38,12 @@ async def guild_list():
     return (await wynnAPI.get_legacy("guildList"))["guilds"]
 
 
-async def stats(guild: str) -> Stats:
+async def stats(guild: str) -> Stats | None:
     """
     Guild information, such as: level, members, territories, xp, and more.
     :param guild: The name of the guild (case-sensitive and can't be the tag).
     """
-    return utils.misc.dataclass_from_dict(Stats, await wynnAPI.get_legacy("guildStats", guild))
+    res = await wynnAPI.get_legacy("guildStats", guild)
+    if res is None:
+        return None
+    return utils.misc.dataclass_from_dict(Stats, res)
