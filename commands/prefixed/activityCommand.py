@@ -43,7 +43,7 @@ class ActivityCommand(command.Command):
             names = {uuid: name for uuid, name in await player.get_players(uuids=[m.uuid for m in guild.members])}
 
             for m in guild.members:
-                name = names.get(m.uuid, m.name)
+                name = names.get(m.uuid.replace("-", "").lower(), m.name)
 
                 prev_date = await storage.playtimeData.get_first_date_after_from_uuid(last_week, m.uuid)
                 if prev_date is None:

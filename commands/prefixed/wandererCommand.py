@@ -32,15 +32,19 @@ class WandererCommand(command.Command):
         longest_name_len = 0
         longest_date_len = 0
 
+        names = {uuid: name for uuid, name in await player.get_players(uuids=[m.uuid for m in guild.members])}
+
         for m in nia.members:
             if m.rank == "RECRUIT":
+                name = names.get(m.uuid.replace("-", "").lower(), m.name)
+
                 join_date = datetime.fromisoformat(m.joined)
                 join_date_str = utils.misc.get_relative_date_str(join_date, days=True) + " ago"
                 if join_date < seven_days_ago:
-                    old_members[m.name] = join_date_str
+                    old_members[name] = join_date_str
                 else:
-                    new_members[m.name] = join_date_str
-                longest_name_len = max(len(m.name), longest_name_len)
+                    new_members[name] = join_date_str
+                longest_name_len = max(len(name), longest_name_len)
                 longest_date_len = max(len(join_date_str), longest_date_len)
 
         content_with = max(0, 25 - longest_name_len - longest_date_len) + longest_name_len + longest_date_len

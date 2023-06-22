@@ -46,7 +46,7 @@ class SeenCommand(command.Command):
             for m, p in zip(guild.members, stats):
                 if p is None:
                     continue
-                name = names.get(m.uuid, m.name)
+                name = names.get(m.uuid.replace("-", "").lower(), m.name)
                 if p.meta.location.online:
                     lastonline[m.rank][name] = (now, f"online({p.meta.location.server})")
                 else:
