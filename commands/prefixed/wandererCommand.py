@@ -4,6 +4,7 @@ from discord import Permissions, Embed
 
 import api.wynncraft.guild
 import botConfig
+import player
 import utils.discord
 import utils.misc
 from commands import command
@@ -22,7 +23,7 @@ class WandererCommand(command.Command):
         )
 
     async def _execute(self, event: CommandEvent):
-        nia = await api.wynncraft.guild.stats(botConfig.GUILD_NAME)
+        guild = await api.wynncraft.guild.stats(botConfig.GUILD_NAME)
 
         seven_days_ago = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59) - timedelta(days=7)
 
@@ -34,7 +35,7 @@ class WandererCommand(command.Command):
 
         names = {uuid: name for uuid, name in await player.get_players(uuids=[m.uuid for m in guild.members])}
 
-        for m in nia.members:
+        for m in guild.members:
             if m.rank == "RECRUIT":
                 name = names.get(m.uuid.replace("-", "").lower(), m.name)
 
