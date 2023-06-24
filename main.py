@@ -17,6 +17,7 @@ import api.wynncraft.wynnAPI
 import commands.commandListener
 import player
 import serverConfig
+import nerfuria.guild
 import storage.manager
 import storage.playtimeData
 import storage.playtimeData
@@ -108,9 +109,11 @@ def start_scheduling():
     storage.playtimeData.update_playtimes.start()
     update_presence.start()
     player.update_players.start()
+    nerfuria.guild.update_guild.start(client=client)
 
 
 def stop_scheduling():
+    nerfuria.guild.update_guild.stop()
     player.update_players.cancel()
     update_presence.cancel()
     storage.playtimeData.update_playtimes.cancel()
