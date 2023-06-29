@@ -2,6 +2,7 @@ import asyncio
 import traceback
 from queue import Queue
 
+import aiohttp.client_exceptions
 from discord.ext import tasks
 
 import api.minecraft
@@ -110,7 +111,14 @@ async def update_players():
         api.minecraft._usernames_rate_limit.free(_reservation_id)
     except Exception as ex:
         traceback.print_exc()
+        await asyncio.sleep(60)  # Wait here so the loop reconnect doesn't trigger a RateLimitException directly
         raise ex
+
+
+update_players.add_exception_type(
+    aiohttp.client_exceptions.ClientError,
+    api.rateLimit.RateLimitException
+)
 
 
 async def update_nia():

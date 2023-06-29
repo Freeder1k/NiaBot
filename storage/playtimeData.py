@@ -1,15 +1,15 @@
 import asyncio
+import traceback
 from dataclasses import dataclass
 from datetime import date, time, timezone, datetime
 
+import aiohttp.client_exceptions
 from discord.ext import tasks
 
+import api.rateLimit
 import api.wynncraft.guild
 import api.wynncraft.player
-import player
-from api import minecraft
 from storage import manager
-import traceback
 
 
 @dataclass(frozen=True)
@@ -108,3 +108,9 @@ async def update_playtimes():
     except Exception as ex:
         traceback.print_exc()
         raise ex
+
+
+update_playtimes.add_exception_type(
+    aiohttp.client_exceptions.ClientError,
+    api.rateLimit.RateLimitException
+)

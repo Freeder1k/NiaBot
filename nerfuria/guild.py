@@ -2,10 +2,12 @@ import dataclasses
 import json
 import os
 
+import aiohttp.client_exceptions
 from discord import Client, TextChannel, Embed
 from discord.ext import tasks
 
 import api.minecraft
+import api.rateLimit
 import api.wynncraft.guild
 import botConfig
 import player
@@ -78,3 +80,9 @@ async def update_guild(client: Client):
 
     _guild = guild_now
     await _store()
+
+
+update_guild.add_exception_type(
+    aiohttp.client_exceptions.ClientError,
+    api.rateLimit.RateLimitException
+)

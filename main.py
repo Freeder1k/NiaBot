@@ -3,6 +3,7 @@ import threading
 import traceback
 from datetime import datetime, timezone
 
+import aiohttp.client_exceptions
 import discord
 from discord.ext import tasks
 from dotenv import load_dotenv
@@ -10,14 +11,15 @@ from dotenv import load_dotenv
 import api.minecraft
 import api.nasa
 import api.rateLimit
+import api.rateLimit
 import api.sessionManager
 import api.wynncraft
 import api.wynncraft.network
 import api.wynncraft.wynnAPI
 import commands.commandListener
+import nerfuria.guild
 import player
 import serverConfig
-import nerfuria.guild
 import storage.manager
 import storage.playtimeData
 import storage.playtimeData
@@ -102,6 +104,12 @@ async def update_presence():
     except Exception as ex:
         traceback.print_exc()
         raise ex
+
+
+update_presence.add_exception_type(
+    aiohttp.client_exceptions.ClientError,
+    api.rateLimit.RateLimitException
+)
 
 
 def start_scheduling():
