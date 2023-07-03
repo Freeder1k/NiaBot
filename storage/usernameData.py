@@ -16,7 +16,7 @@ async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -
     uuids = [uuid.replace("-", "").lower() for uuid in uuids]
 
     con = manager.get_connection()
-    cur = con.cursor # manager.get_cursor()
+    cur = await con.cursor() # manager.get_cursor()
     res = await cur.execute(f"""
                 SELECT * FROM minecraft_usernames
                 WHERE uuid IN ({', '.join("?" for _ in uuids)})
