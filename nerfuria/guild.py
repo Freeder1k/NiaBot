@@ -37,24 +37,28 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
         utils.logging.elog("Log channel for guild server is not text channel!")
         return
 
-    embed = Embed(
-        title="Member updates:",
-        color=botConfig.DEFAULT_COLOR
-    )
+    perms = channel.permissions_for(channel.guild.me)
+    if not perms.send_messages and perms.embed_links:
+        print(channel)
+        utils.logging.elog("Missing perms for log channel for guild server!")
+        return
 
     joined = {p.uuid: p.name for p in await player.get_players(uuids=list(joined_uuids))}
     left = {p.uuid: p.name for p in await player.get_players(uuids=list(left_uuids))}
 
-    joined_names = [joined.get(uuid, api.minecraft.format_uuid(uuid)) for uuid in joined_uuids]
-    left_names = [left.get(uuid, api.minecraft.format_uuid(uuid)) for uuid in left_uuids]
+    embeds = []
+    for uuid in joined_uuids:
+        embeds.append(Embed(
+            description=f"{joined.get(uuid, '*unknown*')} ({api.minecraft.format_uuid(uuid)}) joined the guild"
+        ))
+    for uuid in left_uuids:
+        embeds.append(Embed(
+            description=f"{left.get(uuid, '*unknown*')} ({api.minecraft.format_uuid(uuid)}) left the guild"
+        ))
 
-    if len(joined_names) > 0:
-        embed.add_field(name="Joins:", value='```\n' + '\n'.join(joined_names) + '```', inline=True)
-    if len(left_names) > 0:
-        embed.add_field(name="Leaves:", value='```\n' + '\n'.join(left_names) + '```', inline=True)
-
-    if len(joined_names) > 0 or len(left_names) > 0:
-        await channel.send(embed=embed)
+    if len(embeds) > 0:
+        for i in range(0, len(embeds), 10):
+            await channel.send(embeds=embeds[i:i + 10])
 
 
 @tasks.loop(minutes=1, reconnect=True)
