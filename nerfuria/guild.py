@@ -67,6 +67,13 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
         for i in range(0, len(embeds), 10):
             await channel.send(embeds=embeds[i:i + 10])
 
+def get_guild() -> api.wynncraft.guild.Stats | None:
+    return _guild
+
+def get_members() -> list[api.wynncraft.guild.Stats.Member]:
+    if _guild is None:
+        return []
+    return _guild.members
 
 @tasks.loop(minutes=1, reconnect=True)
 async def update_guild(client: Client):

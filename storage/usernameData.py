@@ -43,7 +43,8 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
     else:
         raise TypeError("Exactly one argument (either uuid or username) must be provided.")
 
-    cur = manager.get_cursor()
+    con = manager.get_connection()
+    cur = await con.cursor() # manager.get_cursor()
     res = await cur.execute(f"""
                 SELECT * FROM minecraft_usernames
                 WHERE {selector} = ?
