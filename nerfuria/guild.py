@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 import json
 import os
 
@@ -48,13 +49,19 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
 
     embeds = []
     for uuid in joined_uuids:
-        embeds.append(Embed(
-            description=f"{joined.get(uuid, '*unknown*')} ({api.minecraft.format_uuid(uuid)}) joined the guild"
-        ))
+        em = Embed(
+            title=f"**{joined.get(uuid, '*unknown*')} has joined the guild**",
+            color=botConfig.DEFAULT_COLOR,
+        )
+        em.set_footer(text=f"UUID: {api.minecraft.format_uuid(uuid)}")
+        embeds.append(em)
     for uuid in left_uuids:
-        embeds.append(Embed(
-            description=f"{left.get(uuid, '*unknown*')} ({api.minecraft.format_uuid(uuid)}) left the guild"
-        ))
+        em = Embed(
+            title=f"**{left.get(uuid, '*unknown*')} has left the guild**",
+            color=botConfig.DEFAULT_COLOR,
+        )
+        em.set_footer(text=f"UUID: {api.minecraft.format_uuid(uuid)}")
+        embeds.append(em)
 
     if len(embeds) > 0:
         for i in range(0, len(embeds), 10):
