@@ -14,6 +14,7 @@ class _ServerConfig:
     cmd_prefix: str = botConfig.PREFIX
     member_role_id: int = 0
     strat_role_id: int = 0
+    chief_role_id: int = 0
     log_channel_id: int = 0
 
 
@@ -76,6 +77,17 @@ def get_strat_role_id(server_id: int) -> int:
 
 async def set_strat_role_id(server_id: int, role_id: int):
     await _set(server_id, "strat_role_id", role_id)
+
+def get_chief_role_id(server_id: int) -> int:
+    """
+    Get the chief role ID of the specified server
+    :returns: 0 if no chief role is set, otherwise the ID.
+    """
+    return _server_configs.get(server_id, _default_conf).chief_role_id
+
+
+async def set_chief_role_id(server_id: int, role_id: int):
+    await _set(server_id, "chief_role_id", role_id)
 
 
 def get_log_channel_id(server_id: int) -> int:

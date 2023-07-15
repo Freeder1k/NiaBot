@@ -90,7 +90,11 @@ class Command(ABC):
                 return True
 
         if self.permission_lvl <= PermissionLevel.CHIEF:
-            return member.guild_permissions.administrator
+            if member.guild_permissions.administrator:
+                return True
+            chief_role = serverConfig.get_chief_role_id(member.guild.id)
+            if member.get_role(chief_role) is not None:
+                return True
 
         if self.permission_lvl == PermissionLevel.DEV:
             return False
