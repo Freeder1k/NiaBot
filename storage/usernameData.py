@@ -15,8 +15,7 @@ async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -
 
     uuids = [uuid.replace("-", "").lower() for uuid in uuids]
 
-    con = manager.get_connection()
-    cur = await con.cursor() # manager.get_cursor()
+    cur = await manager.get_cursor()
     res = await cur.execute(f"""
                 SELECT * FROM minecraft_usernames
                 WHERE uuid IN ({', '.join("?" for _ in uuids)})
@@ -43,8 +42,7 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
     else:
         raise TypeError("Exactly one argument (either uuid or username) must be provided.")
 
-    con = manager.get_connection()
-    cur = await con.cursor() # manager.get_cursor()
+    cur = await manager.get_cursor()
     res = await cur.execute(f"""
                 SELECT * FROM minecraft_usernames
                 WHERE {selector} = ?
@@ -66,7 +64,7 @@ async def update(uuid: str, username: str) -> MinecraftPlayer | None:
     uuid = uuid.replace("-", "").lower()
 
     con = manager.get_connection()
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
 
     prev_p = await get_player(uuid=uuid)
     if prev_p is None or prev_p.name != username:

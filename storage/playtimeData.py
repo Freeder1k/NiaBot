@@ -22,7 +22,7 @@ class Playtime:
 async def get_playtime(uuid: str, day: date) -> Playtime | None:
     uuid = uuid.replace("-", "").lower()
 
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM playtimes
                 WHERE uuid = ?
@@ -39,7 +39,7 @@ async def get_playtime(uuid: str, day: date) -> Playtime | None:
 async def get_all_playtimes(uuid: str) -> tuple[Playtime]:
     uuid = uuid.replace("-", "").lower()
 
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM playtimes
                 WHERE uuid = ?
@@ -53,7 +53,7 @@ async def set_playtime(uuid: str, day: date, playtime: int):
     uuid = uuid.replace("-", "").lower()
 
     con = manager.get_connection()
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     await cur.execute("""
             REPLACE INTO playtimes VALUES (?, ?, ?)
         """, (uuid, day, playtime))
@@ -62,7 +62,7 @@ async def set_playtime(uuid: str, day: date, playtime: int):
 
 
 async def get_first_date_after(date_before: date) -> date | None:
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     res = await cur.execute("""
                     SELECT min(day) FROM playtimes
                     WHERE day >= ?
@@ -79,7 +79,7 @@ async def get_first_date_after(date_before: date) -> date | None:
 async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date | None:
     uuid = uuid.replace("-", "").lower()
 
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     res = await cur.execute("""
                     SELECT min(day) FROM playtimes
                     WHERE uuid = ?

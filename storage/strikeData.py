@@ -15,7 +15,7 @@ class Strike:
 
 
 async def get_strikes(user_id: int, server_id: int) -> tuple[Strike]:
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM strikes
                 WHERE user_id = ?
@@ -28,7 +28,7 @@ async def get_strikes(user_id: int, server_id: int) -> tuple[Strike]:
 
 
 async def get_unpardoned_strikes_after(userid: int, server_id: int, day: date) -> tuple[Strike]:
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM strikes
                 WHERE user_id = ?
@@ -43,7 +43,7 @@ async def get_unpardoned_strikes_after(userid: int, server_id: int, day: date) -
 
 
 async def get_strike_by_id(strike_id: int) -> Strike | None:
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     res = await cur.execute("""
                 SELECT * FROM strikes
                 WHERE strike_id = ?
@@ -55,9 +55,10 @@ async def get_strike_by_id(strike_id: int) -> Strike | None:
 
     return Strike(**{k: data[0][k] for k in data[0].keys()})
 
+
 async def add_strike(user_id: int, server_id: int, strike_date: date, reason: str):
     con = manager.get_connection()
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     await cur.execute("""
             INSERT INTO strikes (user_id, server_id, strike_date, reason, pardoned)
             VALUES (?, ?, ?, ?, 0)
@@ -68,7 +69,7 @@ async def add_strike(user_id: int, server_id: int, strike_date: date, reason: st
 
 async def pardon_strike(strike_id: int):
     con = manager.get_connection()
-    cur = manager.get_cursor()
+    cur = await manager.get_cursor()
     await cur.execute("""
             UPDATE strikes
             SET pardoned = 1
