@@ -26,7 +26,8 @@ import storage.playtimeData
 import storage.usernameData
 import utils.logging
 from commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, configCommand, \
-    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, playtimeCommand, guildCommand
+    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, playtimeCommand, guildCommand, \
+    logCommand
 
 load_dotenv()
 import os
@@ -73,6 +74,7 @@ async def on_ready():
                 playerCommand.PlayerCommand(),
                 playtimeCommand.PlaytimeCommand(),
                 guildCommand.GuildCommand(),
+                logCommand.LogCommand(),
             )
 
             # await player.update_nia()
