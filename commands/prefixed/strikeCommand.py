@@ -57,7 +57,7 @@ class StrikeCommand(command.Command):
             color=botConfig.DEFAULT_COLOR,
             description=f"Reason: ``{reason}``\n"
                         f"This is your {strike_amount}{_get_num_ending(strike_amount)} strike in 2 months!\n"
-                        f"{'At 3 strikes you will be banned.' if strike_amount < 3 else 'As this is your 3rd strike you will be banned!'}",
+                        f"{'**At 3 strikes you will be banned.**' if strike_amount < 3 else '**As this is your 3rd strike you will be banned!**'}",
             timestamp=datetime.now(timezone.utc)
         )
 
