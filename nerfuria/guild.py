@@ -15,6 +15,7 @@ import player
 import serverConfig
 import utils.logging
 import utils.misc
+from storage import guildMemberLogData
 
 _guild: api.wynncraft.guild.Stats = None
 
@@ -55,13 +56,19 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
         )
         em.set_footer(text=f"UUID: {api.minecraft.format_uuid(uuid)}")
         embeds.append(em)
+        await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_JOIN,
+                                     f"{joined.get(uuid, '*unknown*')} has joined the guild",
+                                     uuid)
     for uuid in left_uuids:
         em = Embed(
-            title=f"**{left.get(uuid, '*unknown*')} has left the guild**",
+            title=f"{left.get(uuid, '*unknown*')} has left the guild",
             color=botConfig.DEFAULT_COLOR,
         )
         em.set_footer(text=f"UUID: {api.minecraft.format_uuid(uuid)}")
         embeds.append(em)
+        await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_LEAVE,
+                                     f"**{joined.get(uuid, '*unknown*')} has left the guild**",
+                                     uuid)
 
     if len(embeds) > 0:
         for i in range(0, len(embeds), 10):

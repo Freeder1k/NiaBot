@@ -16,6 +16,7 @@ import serverConfig
 import storage.usernameData
 import utils.logging
 from dataTypes import MinecraftPlayer
+from storage import guildMemberLogData
 
 _online_players: set[str] = set()
 _unknown_players: Queue[str] = Queue()
@@ -130,6 +131,9 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
         )
         em.set_footer(text=f"UUID: {api.minecraft.format_uuid(player.uuid)}")
         embeds.append(em)
+        await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_NAME_CHANGE,
+                                     f"Name changed: {prev_names_dict.get(player.uuid, '*unknown*')} -> {player.name}",
+                                     player.uuid)
 
     if len(embeds) > 0:
         for i in range(0, len(embeds), 10):
