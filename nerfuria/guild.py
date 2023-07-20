@@ -67,7 +67,7 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
         em.set_footer(text=f"UUID: {api.minecraft.format_uuid(uuid)}")
         embeds.append(em)
         await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_LEAVE,
-                                     f"**{left.get(uuid, '*unknown*')} has left the guild**",
+                                     f"{left.get(uuid, '*unknown*')} has left the guild",
                                      uuid)
 
     if len(embeds) > 0:
