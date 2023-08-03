@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import aiohttp.client_exceptions
+from async_lru import alru_cache
 
 import utils.misc
 from . import wynnAPI
@@ -47,6 +48,7 @@ class Stats:
     ranking: Any
 
 
+@alru_cache(ttl=59)
 async def stats(player: str) -> Stats | None:
     """
     Returns a Stats Object, which details public statistical information about the player.

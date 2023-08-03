@@ -3,6 +3,7 @@ import traceback
 from queue import Queue
 
 import aiohttp.client_exceptions
+from async_lru import alru_cache
 from discord import Client, TextChannel, Embed
 from discord.ext import tasks
 
@@ -30,7 +31,8 @@ async def _get_and_store_from_api(*, uuid: str = None, username: str = None) -> 
     return p
 
 
-# TODO caching
+
+@alru_cache(ttl=60)
 async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
     p = await wrappers.storage.usernameData.get_player(uuid=uuid, username=username)
     if p is not None:
