@@ -185,25 +185,3 @@ update_players.add_exception_type(
     aiohttp.client_exceptions.ClientError,
     wrappers.api.rateLimit.RateLimitException
 )
-
-
-async def update_nia():
-    nia = await wrappers.api.wynncraft.guild.stats("Nerfuria")
-    known_uuids = {p.uuid for p in await wrappers.storage.usernameData.get_players(uuids=[m.uuid for m in nia.members])}
-    unknown_uuids = [m.uuid.replace("-", "").lower() for m in nia.members if
-                     m.uuid.replace("-", "").lower() not in known_uuids]
-    print(list(known_uuids))
-    print(unknown_uuids)
-    to_update = Queue()
-
-    for i in range(0, len(unknown_uuids), 50):
-        to_update.put(unknown_uuids[i:i + 50])
-    print(to_update.qsize())
-    while not to_update.empty():
-        l = to_update.get()
-        print(f"Updating {len(l)} Nia members")
-        for uuid in l:
-            await get_player(uuid=uuid)
-        await asyncio.sleep(65)
-
-    print("done updating")
