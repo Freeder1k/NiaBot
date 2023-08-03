@@ -1,10 +1,9 @@
 from discord import Permissions, Embed
 
-import botConfig
-import serverConfig
 import utils.discord
 from commands import commandListener, command
 from dataTypes import CommandEvent
+from wrappers import serverConfig, botConfig
 
 
 class HelpCommand(command.Command):

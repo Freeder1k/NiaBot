@@ -3,14 +3,13 @@ from datetime import datetime
 
 from discord import Permissions, Embed
 
-import api.minecraft
-import api.wynncraft.player
-import botConfig
-import player
 import utils.discord
 import utils.misc
+import wrappers.api.minecraft
+import wrappers.api.wynncraft.player
 from commands import command
 from dataTypes import CommandEvent
+from wrappers import botConfig, player
 
 _username_re = re.compile(r'[0-9A-Za-z_]+$')
 _uuid_re = re.compile(r'[0-9a-f]+$')
@@ -49,7 +48,8 @@ class PlayerCommand(command.Command):
             await utils.discord.send_error(event.channel, f"Couldn't parse user ``{event.args[1]}``")
             return
 
-        stats = await api.wynncraft.player.stats(api.minecraft.format_uuid(p.uuid) if use_uuid else p.name)
+        stats = await wrappers.api.wynncraft.player.stats(
+            wrappers.api.minecraft.format_uuid(p.uuid) if use_uuid else p.name)
 
         if stats is None:
             await utils.discord.send_error(event.channel, f"Couldn't get stats for ``{p.name}``")
@@ -60,7 +60,7 @@ class PlayerCommand(command.Command):
             description="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
             color=botConfig.DEFAULT_COLOR
         )
-        embed.add_field(name="UUID", value=api.minecraft.format_uuid(p.uuid), inline=False)
+        embed.add_field(name="UUID", value=wrappers.api.minecraft.format_uuid(p.uuid), inline=False)
         embed.add_field(name="Rank", value=stats.meta.tag.value, inline=False)
         embed.add_field(name="First Joined", value=stats.meta.firstJoin, inline=False)
 
@@ -81,6 +81,6 @@ class PlayerCommand(command.Command):
             guild_value = f"{stats.guild.rank} in {stats.guild.name}"
         embed.add_field(name="Guild", value=guild_value, inline=False)
 
-        embed.set_thumbnail(url=api.minecraft.uuid_to_avatar_url(p.uuid))
+        embed.set_thumbnail(url=wrappers.api.minecraft.uuid_to_avatar_url(p.uuid))
 
         await event.channel.send(embed=embed)

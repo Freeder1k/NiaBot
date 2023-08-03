@@ -1,5 +1,5 @@
 from dataTypes import MinecraftPlayer
-from storage import manager
+from . import manager
 
 
 async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -> list[MinecraftPlayer]:

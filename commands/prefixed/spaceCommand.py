@@ -3,12 +3,12 @@ from datetime import datetime
 import aiohttp.client_exceptions
 from discord import Permissions, Embed
 
-import api.nasa
-import botConfig
 import utils.discord
-from api.rateLimit import RateLimitException
+import wrappers.api.nasa
 from commands import command
 from dataTypes import CommandEvent
+from wrappers import botConfig
+from wrappers.api.rateLimit import RateLimitException
 
 
 class SpaceCommand(command.Command):
@@ -25,10 +25,10 @@ class SpaceCommand(command.Command):
     async def _execute(self, event: CommandEvent):
         async with event.channel.typing():
             try:
-                apod = await api.nasa.get_random_apod()
+                apod = await wrappers.api.nasa.get_random_apod()
                 while apod.media_type != "image":
                     print("e")
-                    apod = await api.nasa.get_random_apod()
+                    apod = await wrappers.api.nasa.get_random_apod()
             except aiohttp.client_exceptions.ClientResponseError as ex:
                 await utils.discord.send_error(event.channel,
                                                f"Failed to access Nasa API. Status: {ex.status} ({ex.message})")

@@ -6,34 +6,33 @@ import aiohttp.client_exceptions
 from discord import Client, TextChannel, Embed
 from discord.ext import tasks
 
-import api.minecraft
-import api.rateLimit
-import api.wynncraft.guild
-import api.wynncraft.network
-import botConfig
-import nerfuria.guild
-import serverConfig
-import storage.usernameData
 import utils.logging
+import wrappers.api.minecraft
+import wrappers.api.rateLimit
+import wrappers.api.wynncraft.guild
+import wrappers.api.wynncraft.network
+import wrappers.nerfuria.guild
+import wrappers.storage.usernameData
 from dataTypes import MinecraftPlayer
-from storage import guildMemberLogData
+from . import serverConfig, botConfig
+from .storage import guildMemberLogData
 
 _online_players: set[str] = set()
 _unknown_players: Queue[str] = Queue()
-_reservation_id: int = api.minecraft._usernames_rate_limit.reserve(20)
+_reservation_id: int = wrappers.api.minecraft._usernames_rate_limit.reserve(20)
 _server_list: dict[str, list[str]] = None
 
 
 async def _get_and_store_from_api(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
-    p = await api.minecraft.get_player(uuid=uuid, username=username)
+    p = await wrappers.api.minecraft.get_player(uuid=uuid, username=username)
     if p is not None:
-        await storage.usernameData.update(*p)
+        await wrappers.storage.usernameData.update(*p)
     return p
 
 
 # TODO caching
 async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
-    p = await storage.usernameData.get_player(uuid=uuid, username=username)
+    p = await wrappers.storage.usernameData.get_player(uuid=uuid, username=username)
     if p is not None:
         return p
 
@@ -53,15 +52,15 @@ async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -
 
     uuids = [uuid.replace("-", "").lower() for uuid in uuids]
 
-    stored = await storage.usernameData.get_players(uuids=uuids, usernames=usernames)
+    stored = await wrappers.storage.usernameData.get_players(uuids=uuids, usernames=usernames)
     known_uuids = {p.uuid for p in stored}
     known_names = {p.name for p in stored}
 
     unkown_uuids = set(uuids) - known_uuids
     unknown_names = set(usernames) - known_names
 
-    if len(unkown_uuids) + len(unknown_names) > api.minecraft._mojang_rate_limit.get_remaining():
-        raise api.rateLimit.RateLimitException("API usage would exceed ratelimit!")
+    if len(unkown_uuids) + len(unknown_names) > wrappers.api.minecraft._mojang_rate_limit.get_remaining():
+        raise wrappers.api.rateLimit.RateLimitException("API usage would exceed ratelimit!")
 
     if len(unkown_uuids) > 0:
         stored += [p for p in (await asyncio.gather(*(_get_and_store_from_api(uuid=uuid) for uuid in unkown_uuids))) if
@@ -81,14 +80,14 @@ def get_online_wynncraft_players() -> set[str]:
 async def get_server_list() -> dict[str, list[str]]:
     global _server_list
     if _server_list is None:
-        _server_list = await api.wynncraft.network.server_list()
+        _server_list = await wrappers.api.wynncraft.network.server_list()
 
     return _server_list
 
 
 async def _update_server_list():
     global _server_list
-    _server_list = await api.wynncraft.network.server_list()
+    _server_list = await wrappers.api.wynncraft.network.server_list()
 
 
 async def _update_online_members():
@@ -97,7 +96,7 @@ async def _update_online_members():
 
 
 async def _update_unkown_players(joined_players: set[str]):
-    known_names = {p.name for p in await storage.usernameData.get_players(usernames=list(joined_players))}
+    known_names = {p.name for p in await wrappers.storage.usernameData.get_players(usernames=list(joined_players))}
     [_unknown_players.put(name) for name in joined_players if name not in known_names]
 
 
@@ -117,7 +116,7 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
 
     prev_names_dict = {p.uuid: p.name for p in prev_names if p is not None}
 
-    guild_members = {m.uuid.replace("-", ""): m.name for m in nerfuria.guild.get_members()}
+    guild_members = {m.uuid.replace("-", ""): m.name for m in wrappers.nerfuria.guild.get_members()}
     updated_guild_members = []
     for player in updated_names:
         if player.uuid in guild_members:
@@ -129,7 +128,7 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
             title=f"Name changed: **{prev_names_dict.get(player.uuid, '*unknown*')} -> {player.name}**",
             color=botConfig.DEFAULT_COLOR,
         )
-        em.set_footer(text=f"UUID: {api.minecraft.format_uuid(player.uuid)}")
+        em.set_footer(text=f"UUID: {wrappers.api.minecraft.format_uuid(player.uuid)}")
         embeds.append(em)
         await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_NAME_CHANGE,
                                      f"Name changed: {prev_names_dict.get(player.uuid, '*unknown*')} -> {player.name}",
@@ -161,8 +160,10 @@ async def update_players(client: Client):
         for i in range(0, min((_unknown_players.qsize() + 9) // 10, 20)):
             unkown_players_batch = [_unknown_players.get() for _ in range(0, min(_unknown_players.qsize(), 10))]
 
-            res = await api.minecraft.get_players_from_usernames(unkown_players_batch, reservation_id=_reservation_id)
-            prev_names += await asyncio.gather(*(storage.usernameData.update(uuid, name) for uuid, name in res))
+            res = await wrappers.api.minecraft.get_players_from_usernames(unkown_players_batch,
+                                                                          reservation_id=_reservation_id)
+            prev_names += await asyncio.gather(
+                *(wrappers.storage.usernameData.update(uuid, name) for uuid, name in res))
 
             for name in unkown_players_batch:
                 if not any(name == t_name for _, t_name in res):
@@ -172,7 +173,7 @@ async def update_players(client: Client):
 
         await _notify_guild_member_name_changes(client, prev_names, updated_names)
 
-        api.minecraft._usernames_rate_limit.free(_reservation_id)
+        wrappers.api.minecraft._usernames_rate_limit.free(_reservation_id)
 
     except Exception as ex:
         traceback.print_exc()
@@ -182,13 +183,13 @@ async def update_players(client: Client):
 
 update_players.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    api.rateLimit.RateLimitException
+    wrappers.api.rateLimit.RateLimitException
 )
 
 
 async def update_nia():
-    nia = await api.wynncraft.guild.stats("Nerfuria")
-    known_uuids = {p.uuid for p in await storage.usernameData.get_players(uuids=[m.uuid for m in nia.members])}
+    nia = await wrappers.api.wynncraft.guild.stats("Nerfuria")
+    known_uuids = {p.uuid for p in await wrappers.storage.usernameData.get_players(uuids=[m.uuid for m in nia.members])}
     unknown_uuids = [m.uuid.replace("-", "").lower() for m in nia.members if
                      m.uuid.replace("-", "").lower() not in known_uuids]
     print(list(known_uuids))

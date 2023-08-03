@@ -26,7 +26,7 @@ else:
     config.set('LOGGING', 'LOG_FILE', 'nia-bot.log')
     config.set('LOGGING', 'ENABLE_DEBUG', 'True')
 
-    with open('bot_config.ini', 'w') as f:
+    with open('../bot_config.ini', 'w') as f:
         config.write(f)
 
 PREFIX: Final = config.get('MAIN', 'PREFIX')

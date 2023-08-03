@@ -1,5 +1,4 @@
 import dataclasses
-import datetime
 import json
 import os
 
@@ -7,24 +6,22 @@ import aiohttp.client_exceptions
 from discord import Client, TextChannel, Embed
 from discord.ext import tasks
 
-import api.minecraft
-import api.rateLimit
-import api.wynncraft.guild
-import botConfig
-import player
-import serverConfig
 import utils.logging
 import utils.misc
-from storage import guildMemberLogData
+import wrappers.api.minecraft
+import wrappers.api.rateLimit
+import wrappers.api.wynncraft.guild
+from .. import serverConfig, botConfig, player
+from ..storage import guildMemberLogData
 
-_guild: api.wynncraft.guild.Stats = None
+_guild: wrappers.api.wynncraft.guild.Stats = None
 
 
 async def _load_stored():
     global _guild
     if os.path.exists(f"{botConfig.GUILD_NAME}.json"):
         with open(f"{botConfig.GUILD_NAME}.json", 'r') as f:
-            _guild = utils.misc.dataclass_from_dict(api.wynncraft.guild.Stats, json.load(f))
+            _guild = utils.misc.dataclass_from_dict(wrappers.api.wynncraft.guild.Stats, json.load(f))
 
 
 async def _store():
@@ -54,7 +51,7 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
             title=f"**{joined.get(uuid, '*unknown*')} has joined the guild**",
             color=botConfig.DEFAULT_COLOR,
         )
-        em.set_footer(text=f"UUID: {api.minecraft.format_uuid(uuid)}")
+        em.set_footer(text=f"UUID: {wrappers.api.minecraft.format_uuid(uuid)}")
         embeds.append(em)
         await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_JOIN,
                                      f"{joined.get(uuid, '*unknown*')} has joined the guild",
@@ -64,7 +61,7 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
             title=f"{left.get(uuid, '*unknown*')} has left the guild",
             color=botConfig.DEFAULT_COLOR,
         )
-        em.set_footer(text=f"UUID: {api.minecraft.format_uuid(uuid)}")
+        em.set_footer(text=f"UUID: {wrappers.api.minecraft.format_uuid(uuid)}")
         embeds.append(em)
         await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_LEAVE,
                                      f"{left.get(uuid, '*unknown*')} has left the guild",
@@ -74,13 +71,16 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
         for i in range(0, len(embeds), 10):
             await channel.send(embeds=embeds[i:i + 10])
 
-def get_guild() -> api.wynncraft.guild.Stats | None:
+
+def get_guild() -> wrappers.api.wynncraft.guild.Stats | None:
     return _guild
 
-def get_members() -> list[api.wynncraft.guild.Stats.Member]:
+
+def get_members() -> list[wrappers.api.wynncraft.guild.Stats.Member]:
     if _guild is None:
         return []
     return _guild.members
+
 
 @tasks.loop(minutes=1, reconnect=True)
 async def update_guild(client: Client):
@@ -89,11 +89,11 @@ async def update_guild(client: Client):
         await _load_stored()
 
     if _guild is None:
-        _guild = await api.wynncraft.guild.stats(botConfig.GUILD_NAME)
+        _guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
         await _store()
         return
 
-    guild_now = await api.wynncraft.guild.stats(botConfig.GUILD_NAME)
+    guild_now = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
 
     members_prev = {m.uuid.replace("-", "").lower() for m in _guild.members}
     members_now = {m.uuid.replace("-", "").lower() for m in guild_now.members}
@@ -109,5 +109,5 @@ async def update_guild(client: Client):
 
 update_guild.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    api.rateLimit.RateLimitException
+    wrappers.api.rateLimit.RateLimitException
 )

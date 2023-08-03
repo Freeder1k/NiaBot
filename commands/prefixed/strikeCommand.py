@@ -3,11 +3,11 @@ from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from discord import Permissions, Embed, Forbidden
 
-import botConfig
 import utils.discord
 from commands import command
 from dataTypes import CommandEvent
-from storage import strikeData
+from wrappers import botConfig
+from wrappers.storage import strikeData
 
 
 def _get_num_ending(num: int) -> str:

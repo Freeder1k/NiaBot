@@ -2,13 +2,12 @@ from datetime import timedelta, datetime, timezone
 
 from discord import Permissions, Embed
 
-import api.wynncraft.guild
-import botConfig
-import player
-import storage.playtimeData
 import utils.discord
+import wrappers.api.wynncraft.guild
+import wrappers.storage.playtimeData
 from commands import command
 from dataTypes import CommandEvent
+from wrappers import botConfig, player
 
 
 class ActivityCommand(command.Command):
@@ -24,7 +23,7 @@ class ActivityCommand(command.Command):
 
     async def _execute(self, event: CommandEvent):
         async with event.channel.typing():
-            guild = await api.wynncraft.guild.stats("Nerfuria")
+            guild = await wrappers.api.wynncraft.guild.stats("Nerfuria")
             today = datetime.now(timezone.utc).date()
             last_week = today - timedelta(days=7)
 
@@ -45,11 +44,11 @@ class ActivityCommand(command.Command):
             for m in guild.members:
                 name = names.get(m.uuid.replace("-", "").lower(), m.name)
 
-                prev_date = await storage.playtimeData.get_first_date_after_from_uuid(last_week, m.uuid)
+                prev_date = await wrappers.storage.playtimeData.get_first_date_after_from_uuid(last_week, m.uuid)
                 if prev_date is None:
                     continue
-                prev_pt = await storage.playtimeData.get_playtime(m.uuid, prev_date)
-                today_pt = await storage.playtimeData.get_playtime(m.uuid, today)
+                prev_pt = await wrappers.storage.playtimeData.get_playtime(m.uuid, prev_date)
+                today_pt = await wrappers.storage.playtimeData.get_playtime(m.uuid, today)
 
                 if prev_pt is None:
                     playtime = 0

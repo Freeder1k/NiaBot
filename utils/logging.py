@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import botConfig
+from wrappers import botConfig
 
 
 def log(*args):

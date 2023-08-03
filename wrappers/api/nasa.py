@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 
 import utils.misc
-from api import rateLimit, sessionManager
+from . import sessionManager, rateLimit
 
 _nasa_rate_limit = rateLimit.RateLimit(1000, 60)
 rateLimit.register_ratelimit(_nasa_rate_limit)

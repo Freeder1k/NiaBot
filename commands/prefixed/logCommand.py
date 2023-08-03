@@ -3,14 +3,13 @@ from datetime import timedelta, datetime, timezone
 import discord.utils
 from discord import Permissions, Embed
 
-import api.wynncraft.guild
-import botConfig
 import utils.discord
 import utils.misc
+import wrappers.api.wynncraft.guild
 from commands import command
 from dataTypes import CommandEvent
-from storage import guildMemberLogData
-from utils.misc import split_str
+from wrappers import botConfig
+from wrappers.storage import guildMemberLogData
 
 
 class LogCommand(command.Command):
@@ -27,7 +26,7 @@ class LogCommand(command.Command):
         )
 
     async def _execute(self, event: CommandEvent):
-        guild = await api.wynncraft.guild.stats(botConfig.GUILD_NAME)
+        guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
 
         td = timedelta(days=7)
 

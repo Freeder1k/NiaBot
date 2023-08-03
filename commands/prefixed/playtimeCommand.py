@@ -6,12 +6,11 @@ import discord
 import matplotlib.pyplot as plt
 from discord import Permissions, Embed
 
-import botConfig
-import player
-import storage.playtimeData
 import utils.discord
+import wrappers.storage.playtimeData
 from commands import command
 from dataTypes import CommandEvent
+from wrappers import botConfig, player
 
 _username_re = re.compile(r'[0-9A-Za-z_]+$')
 _uuid_re = re.compile(r'[0-9a-f]+$')
@@ -50,7 +49,7 @@ class PlaytimeCommand(command.Command):
                 await utils.discord.send_error(event.channel, f"Couldn't parse user ``{event.args[1]}``")
                 return
 
-            playtimes = await storage.playtimeData.get_all_playtimes(p.uuid)
+            playtimes = await wrappers.storage.playtimeData.get_all_playtimes(p.uuid)
 
             if len(playtimes) == 0:
                 await utils.discord.send_error(event.channel, f"No data found for ``{p.name}``")

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import date
 
-from storage import manager
+from . import manager
 
 
 @dataclass(frozen=True)

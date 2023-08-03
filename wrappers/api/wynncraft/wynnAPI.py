@@ -1,4 +1,4 @@
-from api import rateLimit, sessionManager
+from .. import sessionManager, rateLimit
 
 _legacy_rate_limit = rateLimit.register_new_ratelimit(1200, 20)
 
@@ -6,7 +6,7 @@ _legacy_session_id = sessionManager.register_session("https://api-legacy.wynncra
 _v2_session_id = sessionManager.register_session("https://api.wynncraft.com")
 
 
-async def get_legacy(action: str, command: str = "") -> dict| None:
+async def get_legacy(action: str, command: str = "") -> dict | None:
     """
     Access the legacy wynncraft API. Ratelimiting is handled by this function.
     """

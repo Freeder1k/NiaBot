@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import IntEnum
 
-from storage import manager
+from . import manager
 
 
 class LogEntryType(IntEnum):

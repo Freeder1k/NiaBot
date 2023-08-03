@@ -3,11 +3,11 @@ from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from discord import Permissions, Embed
 
-import botConfig
-import storage.strikeData
 import utils.discord
+import wrappers.storage.strikeData
 from commands import command
 from dataTypes import CommandEvent
+from wrappers import botConfig
 
 
 class StrikesCommand(command.Command):
@@ -32,7 +32,7 @@ class StrikesCommand(command.Command):
                                                           f"Please specify a user ID or mention them with the command.")
             return
 
-        strikes = await storage.strikeData.get_strikes(user_id, event.guild.id)
+        strikes = await wrappers.storage.strikeData.get_strikes(user_id, event.guild.id)
 
         if len(strikes) == 0:
             await utils.discord.send_info(event.channel, f"<@{user_id}> has no strikes.")

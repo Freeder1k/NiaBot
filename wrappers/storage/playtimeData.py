@@ -6,10 +6,9 @@ from datetime import date, time, timezone, datetime
 import aiohttp.client_exceptions
 from discord.ext import tasks
 
-import api.rateLimit
-import api.wynncraft.guild
-import api.wynncraft.player
-from storage import manager
+import wrappers.api.rateLimit
+import wrappers.api.wynncraft.guild
+from . import manager
 
 
 @dataclass(frozen=True)
@@ -97,11 +96,11 @@ async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date |
 @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc), reconnect=True)
 async def update_playtimes():
     try:
-        nia = await api.wynncraft.guild.stats("Nerfuria")
+        nia = await wrappers.api.wynncraft.guild.stats("Nerfuria")
 
         # players = await player.get_players(uuids=[m.uuid for m in nia.members])
-        pstats: list[api.wynncraft.player.Stats] = await asyncio.gather(
-            *(api.wynncraft.player.stats(m.uuid) for m in nia.members))
+        pstats: list[wrappers.api.wynncraft.player.Stats] = await asyncio.gather(
+            *(wrappers.api.wynncraft.player.stats(m.uuid) for m in nia.members))
 
         today = datetime.now(timezone.utc).date()
         await asyncio.gather(*(set_playtime(stats.uuid, today, stats.meta.playtime) for stats in pstats))
@@ -112,5 +111,5 @@ async def update_playtimes():
 
 update_playtimes.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    api.rateLimit.RateLimitException
+    wrappers.api.rateLimit.RateLimitException
 )

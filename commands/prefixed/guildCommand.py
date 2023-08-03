@@ -2,32 +2,33 @@ import re
 
 from discord import Permissions, Embed
 
-import api.wynncraft.guild
-import botConfig
-import player
 import utils.discord
+import wrappers.api.wynncraft.guild
 from commands import command
 from dataTypes import CommandEvent
+from wrappers import botConfig, player
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}$')
 
 _star = "*"
 
+
 def _get_stars(rank: str) -> str:
     match rank:
         case "OWNER":
-            return _star*5
+            return _star * 5
         case "CHIEF":
-            return _star*4
+            return _star * 4
         case "STRATEGIST":
-            return _star*3
+            return _star * 3
         case "CAPTAIN":
-            return _star*2
+            return _star * 2
         case "RECRUITER":
             return _star
         case "RECRUIT":
             return ""
     raise ValueError(f"Unknown rank {rank}")
+
 
 class GuildCommand(command.Command):
     def __init__(self):
@@ -51,7 +52,7 @@ class GuildCommand(command.Command):
             await utils.discord.send_error(event.channel, f"Invalid guild name ``{guild_str}``")
             return
 
-        guild = await api.wynncraft.guild.stats(guild_str)
+        guild = await wrappers.api.wynncraft.guild.stats(guild_str)
 
         if guild is None:
             await utils.discord.send_error(event.channel, f"Couldn't find guild ``{guild_str}``")

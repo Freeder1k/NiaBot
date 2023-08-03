@@ -3,8 +3,7 @@ import typing
 
 from discord import TextChannel, Embed, Guild, Member, Permissions
 
-import botConfig
-import main
+from wrappers import botConfig
 from dataTypes import CommandEvent
 from utils.misc import split_str
 

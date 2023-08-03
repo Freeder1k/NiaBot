@@ -4,10 +4,9 @@ from typing import Collection
 
 from discord import Permissions, Member, TextChannel, Embed
 
-import botConfig
-import serverConfig
 import utils.discord
 from dataTypes import CommandEvent
+from wrappers import serverConfig, botConfig
 
 
 class PermissionLevel(IntEnum):

@@ -1,14 +1,13 @@
 import re
+import traceback
 from re import Pattern
 
 from discord import Message, TextChannel, Client
 
-import serverConfig
 import utils.discord
 from commands.command import Command
 from dataTypes import CommandEvent
-
-import traceback
+from wrappers import serverConfig
 
 _bot_mention: Pattern
 _commands: list[Command] = []

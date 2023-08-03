@@ -2,13 +2,12 @@ from datetime import timedelta, datetime, timezone
 
 from discord import Permissions, Embed
 
-import api.wynncraft.guild
-import botConfig
-import player
 import utils.discord
 import utils.misc
+import wrappers.api.wynncraft.guild
 from commands import command
 from dataTypes import CommandEvent
+from wrappers import botConfig, player
 
 
 class WandererCommand(command.Command):
@@ -23,7 +22,7 @@ class WandererCommand(command.Command):
         )
 
     async def _execute(self, event: CommandEvent):
-        guild = await api.wynncraft.guild.stats(botConfig.GUILD_NAME)
+        guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
 
         seven_days_ago = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59) - timedelta(days=7)
 

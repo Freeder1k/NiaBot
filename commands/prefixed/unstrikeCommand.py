@@ -1,7 +1,7 @@
 from discord import Permissions
 
-import storage.strikeData
 import utils.discord
+import wrappers.storage.strikeData
 from commands import command
 from dataTypes import CommandEvent
 
@@ -28,7 +28,7 @@ class UnstrikeCommand(command.Command):
 
         strike_id = int(event.args[1])
 
-        strike = await storage.strikeData.get_strike_by_id(strike_id)
+        strike = await wrappers.storage.strikeData.get_strike_by_id(strike_id)
         if strike is None:
             await utils.discord.send_error(event.channel, f"Couldn't find Strike with ID ``{strike_id}``!")
             return
@@ -36,7 +36,7 @@ class UnstrikeCommand(command.Command):
             await utils.discord.send_info(event.channel, f"Strike is already pardoned.")
             return
 
-        await storage.strikeData.pardon_strike(strike_id)
+        await wrappers.storage.strikeData.pardon_strike(strike_id)
 
         await utils.discord.send_success(event.channel,
                                          f"Pardoned strike with ID ``{strike_id}`` for <@{strike.user_id}>")

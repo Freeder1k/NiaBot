@@ -1,4 +1,4 @@
-from api.rateLimit import RateLimit
+from .rateLimit import RateLimit
 
 
 class ReservableRateLimit(RateLimit):

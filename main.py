@@ -8,22 +8,17 @@ import discord
 from discord.ext import tasks
 from dotenv import load_dotenv
 
-import api.minecraft
-import api.nasa
-import api.rateLimit
-import api.rateLimit
-import api.sessionManager
-import api.wynncraft
-import api.wynncraft.network
-import api.wynncraft.wynnAPI
+import wrappers.api.rateLimit
+import wrappers.api.rateLimit
+import wrappers.api.sessionManager
+import wrappers.api.wynncraft.network
 import commands.commandListener
-import nerfuria.guild
-import player
-import serverConfig
-import storage.manager
-import storage.playtimeData
-import storage.playtimeData
-import storage.usernameData
+import wrappers.nerfuria.guild
+from wrappers import serverConfig, player
+import wrappers.storage.manager
+import wrappers.storage.playtimeData
+import wrappers.storage.playtimeData
+import wrappers.storage.usernameData
 import utils.logging
 from commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, configCommand, \
     strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, playtimeCommand, guildCommand, \
@@ -53,8 +48,8 @@ async def on_ready():
         global initialized
         if not initialized:
             await serverConfig.load_server_configs()
-            await storage.manager.init_database()
-            await api.sessionManager.init_sessions()
+            await wrappers.storage.manager.init_database()
+            await wrappers.api.sessionManager.init_sessions()
 
             start_scheduling()
 
@@ -79,8 +74,8 @@ async def on_ready():
 
             # await player.update_nia()
             today = datetime.now(timezone.utc).date()
-            if (await storage.playtimeData.get_first_date_after(today)) is None:
-                await storage.playtimeData.update_playtimes()
+            if (await wrappers.storage.playtimeData.get_first_date_after(today)) is None:
+                await wrappers.storage.playtimeData.update_playtimes()
 
             initialized = True
     except Exception as e:
@@ -99,7 +94,7 @@ async def update_presence():
         await client.change_presence(
             status=discord.Status.online,
             activity=discord.Activity(
-                name=f"{await api.wynncraft.network.player_sum()} players play Wynncraft",
+                name=f"{await wrappers.api.wynncraft.network.player_sum()} players play Wynncraft",
                 type=discord.ActivityType.watching
             )
         )
@@ -110,24 +105,24 @@ async def update_presence():
 
 update_presence.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    api.rateLimit.RateLimitException
+    wrappers.api.rateLimit.RateLimitException
 )
 
 
 def start_scheduling():
-    api.rateLimit.ratelimit_updater.start()
-    storage.playtimeData.update_playtimes.start()
+    wrappers.api.rateLimit.ratelimit_updater.start()
+    wrappers.storage.playtimeData.update_playtimes.start()
     update_presence.start()
-    nerfuria.guild.update_guild.start(client=client)
+    wrappers.nerfuria.guild.update_guild.start(client=client)
     player.update_players.start(client=client)
 
 
 def stop_scheduling():
     player.update_players.cancel()
-    nerfuria.guild.update_guild.stop()
+    wrappers.nerfuria.guild.update_guild.stop()
     update_presence.cancel()
-    storage.playtimeData.update_playtimes.cancel()
-    api.rateLimit.ratelimit_updater.cancel()
+    wrappers.storage.playtimeData.update_playtimes.cancel()
+    wrappers.api.rateLimit.ratelimit_updater.cancel()
 
 
 def main():
@@ -148,8 +143,8 @@ async def stop():
     stopped.set()
     stop_scheduling()
     await client.close()
-    await api.sessionManager.close()
-    await storage.manager.close()
+    await wrappers.api.sessionManager.close()
+    await wrappers.storage.manager.close()
     utils.logging.log("Stopped")
 
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import aiofiles
 
-import botConfig
+from . import botConfig
 import utils.misc
 
 
@@ -46,7 +46,6 @@ async def _set(server_id: int, attr: str, value):
     await _store_server_configs()
 
 
-
 def get_cmd_prefix(server_id: int) -> str:
     return _server_configs.get(server_id, _default_conf).cmd_prefix
 
@@ -77,6 +76,7 @@ def get_strat_role_id(server_id: int) -> int:
 
 async def set_strat_role_id(server_id: int, role_id: int):
     await _set(server_id, "strat_role_id", role_id)
+
 
 def get_chief_role_id(server_id: int) -> int:
     """

@@ -1,6 +1,6 @@
 import aiosqlite
 
-from storage import guildMemberLogData
+from . import guildMemberLogData
 
 _con: aiosqlite.Connection = None
 
@@ -47,10 +47,12 @@ def get_connection() -> aiosqlite.Connection:
         raise RuntimeError("call init_database() first")
     return _con
 
+
 async def get_cursor() -> aiosqlite.Cursor:
     if _con is None:
         raise RuntimeError("call init_database() first")
     return await _con.cursor()
+
 
 async def close():
     if _con is None:
