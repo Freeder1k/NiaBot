@@ -14,13 +14,13 @@ import wrappers.api.sessionManager
 import wrappers.api.wynncraft.network
 import handlers.commands.commandListener
 import wrappers.nerfuria.guild
-from wrappers import serverConfig
+from wrappers import serverConfig, minecraftPlayer
 import wrappers.storage.manager
 import wrappers.storage.playtimeData
 import wrappers.storage.playtimeData
 import wrappers.storage.usernameData
 import utils.logging
-from handlers.commands import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, configCommand, \
+from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, configCommand, \
     strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, guildCommand
 from handlers.commands.prefixed import logCommand, playtimeCommand
 
@@ -114,11 +114,11 @@ def start_scheduling():
     wrappers.storage.playtimeData.update_playtimes.start()
     update_presence.start()
     wrappers.nerfuria.guild.update_guild.start(client=client)
-    player.update_players.start(client=client)
+    minecraftPlayer.update_players.start(client=client)
 
 
 def stop_scheduling():
-    player.update_players.cancel()
+    minecraftPlayer.update_players.cancel()
     wrappers.nerfuria.guild.update_guild.stop()
     update_presence.cancel()
     wrappers.storage.playtimeData.update_playtimes.cancel()

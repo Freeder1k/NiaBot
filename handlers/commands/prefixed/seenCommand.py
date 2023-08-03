@@ -7,9 +7,9 @@ import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.player
-from handlers.commands import command
 from dataTypes import CommandEvent
-from wrappers import botConfig
+from handlers.commands import command
+from wrappers import botConfig, minecraftPlayer
 
 
 class SeenCommand(command.Command):
@@ -39,7 +39,8 @@ class SeenCommand(command.Command):
 
             longest_name_len = 0
             longest_date_len = 0
-            names = {uuid: name for uuid, name in await player.get_players(uuids=[m.uuid for m in guild.members])}
+            names = {uuid: name for uuid, name in
+                     await minecraftPlayer.get_players(uuids=[m.uuid for m in guild.members])}
             stats = await asyncio.gather(*tuple(wrappers.api.wynncraft.player.stats(m.uuid) for m in guild.members))
 
             for m, p in zip(guild.members, stats):

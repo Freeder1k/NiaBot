@@ -4,9 +4,9 @@ from discord import Permissions, Embed
 
 import utils.discord
 import wrappers.api.wynncraft.guild
-from handlers.commands import command
 from dataTypes import CommandEvent
-from wrappers import botConfig
+from handlers.commands import command
+from wrappers import botConfig, minecraftPlayer
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}$')
 
@@ -69,14 +69,14 @@ class GuildCommand(command.Command):
         embed.add_field(name="Created ", value=guild.created, inline=False)
         embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)
 
-        server_list = await player.get_server_list()
+        server_list = await minecraftPlayer.get_server_list()
 
         online_members = []
         max_l_len = 0
 
         for world, plist in server_list.items():
             online_players = {p.uuid: p.name for p in
-                              (await player.get_players(usernames=plist))}
+                              (await minecraftPlayer.get_players(usernames=plist))}
 
             for m in guild.members:
                 uuid = m.uuid.replace("-", "").lower()

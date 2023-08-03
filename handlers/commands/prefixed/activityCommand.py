@@ -5,9 +5,9 @@ from discord import Permissions, Embed
 import utils.discord
 import wrappers.api.wynncraft.guild
 import wrappers.storage.playtimeData
-from handlers.commands import command
 from dataTypes import CommandEvent
-from wrappers import botConfig
+from handlers.commands import command
+from wrappers import botConfig, minecraftPlayer
 
 
 class ActivityCommand(command.Command):
@@ -39,7 +39,8 @@ class ActivityCommand(command.Command):
             longest_name_len = 0
             longest_pt_len = 0
 
-            names = {uuid: name for uuid, name in await player.get_players(uuids=[m.uuid for m in guild.members])}
+            names = {uuid: name for uuid, name in
+                     await minecraftPlayer.get_players(uuids=[m.uuid for m in guild.members])}
 
             for m in guild.members:
                 name = names.get(m.uuid.replace("-", "").lower(), m.name)

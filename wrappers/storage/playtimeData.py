@@ -8,6 +8,7 @@ from discord.ext import tasks
 
 import wrappers.api.rateLimit
 import wrappers.api.wynncraft.guild
+import wrappers.api.wynncraft.player
 from . import manager
 
 

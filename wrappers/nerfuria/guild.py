@@ -42,8 +42,8 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
         utils.logging.elog("Missing perms for log channel for guild server!")
         return
 
-    joined = {p.uuid: p.name for p in await player.get_players(uuids=list(joined_uuids))}
-    left = {p.uuid: p.name for p in await player.get_players(uuids=list(left_uuids))}
+    joined = {p.uuid: p.name for p in await minecraftPlayer.get_players(uuids=list(joined_uuids))}
+    left = {p.uuid: p.name for p in await minecraftPlayer.get_players(uuids=list(left_uuids))}
 
     embeds = []
     for uuid in joined_uuids:

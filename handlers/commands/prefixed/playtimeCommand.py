@@ -10,7 +10,7 @@ import utils.discord
 import wrappers.storage.playtimeData
 from handlers.commands import command
 from dataTypes import CommandEvent
-from wrappers import botConfig
+from wrappers import botConfig, minecraftPlayer
 
 _username_re = re.compile(r'[0-9A-Za-z_]+$')
 _uuid_re = re.compile(r'[0-9a-f]+$')
@@ -38,12 +38,12 @@ class PlaytimeCommand(command.Command):
             p = None
             if len(user_str) <= 16:
                 if _username_re.match(user_str):
-                    p = await player.get_player(username=user_str)
+                    p = await minecraftPlayer.get_player(username=user_str)
             else:
                 user_str = user_str.replace("-", "").lower()
 
                 if len(user_str) == 32 and _uuid_re.match(user_str):
-                    p = await player.get_player(uuid=user_str)
+                    p = await minecraftPlayer.get_player(uuid=user_str)
 
             if p is None:
                 await utils.discord.send_error(event.channel, f"Couldn't parse user ``{event.args[1]}``")
