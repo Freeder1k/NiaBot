@@ -1,6 +1,6 @@
 from discord import Permissions
 
-from commands import command
+from handlers.commands import command
 from dataTypes import CommandEvent
 
 

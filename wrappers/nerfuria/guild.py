@@ -11,7 +11,7 @@ import utils.misc
 import wrappers.api.minecraft
 import wrappers.api.rateLimit
 import wrappers.api.wynncraft.guild
-from .. import serverConfig, botConfig, player
+from .. import serverConfig, botConfig, minecraftPlayer
 from ..storage import guildMemberLogData
 
 _guild: wrappers.api.wynncraft.guild.Stats = None

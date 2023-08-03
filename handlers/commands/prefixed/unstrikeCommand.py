@@ -2,7 +2,7 @@ from discord import Permissions
 
 import utils.discord
 import wrappers.storage.strikeData
-from commands import command
+from handlers.commands import command
 from dataTypes import CommandEvent
 
 

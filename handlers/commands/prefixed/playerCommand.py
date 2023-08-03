@@ -7,9 +7,9 @@ import utils.discord
 import utils.misc
 import wrappers.api.minecraft
 import wrappers.api.wynncraft.player
-from commands import command
+from handlers.commands import command
 from dataTypes import CommandEvent
-from wrappers import botConfig, player
+from wrappers import botConfig
 
 _username_re = re.compile(r'[0-9A-Za-z_]+$')
 _uuid_re = re.compile(r'[0-9a-f]+$')

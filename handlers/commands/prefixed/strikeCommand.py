@@ -4,7 +4,7 @@ from dateutil.relativedelta import relativedelta
 from discord import Permissions, Embed, Forbidden
 
 import utils.discord
-from commands import command
+from handlers.commands import command
 from dataTypes import CommandEvent
 from wrappers import botConfig
 from wrappers.storage import strikeData

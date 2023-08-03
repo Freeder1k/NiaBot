@@ -1,7 +1,7 @@
 from discord import Permissions, Embed
 
 import utils.discord
-from commands import command
+from handlers.commands import command
 from dataTypes import CommandEvent
 from wrappers import serverConfig, botConfig
 

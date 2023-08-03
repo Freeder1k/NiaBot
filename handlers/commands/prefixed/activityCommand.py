@@ -5,9 +5,9 @@ from discord import Permissions, Embed
 import utils.discord
 import wrappers.api.wynncraft.guild
 import wrappers.storage.playtimeData
-from commands import command
+from handlers.commands import command
 from dataTypes import CommandEvent
-from wrappers import botConfig, player
+from wrappers import botConfig
 
 
 class ActivityCommand(command.Command):

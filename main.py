@@ -12,17 +12,17 @@ import wrappers.api.rateLimit
 import wrappers.api.rateLimit
 import wrappers.api.sessionManager
 import wrappers.api.wynncraft.network
-import commands.commandListener
+import handlers.commands.commandListener
 import wrappers.nerfuria.guild
-from wrappers import serverConfig, player
+from wrappers import serverConfig
 import wrappers.storage.manager
 import wrappers.storage.playtimeData
 import wrappers.storage.playtimeData
 import wrappers.storage.usernameData
 import utils.logging
-from commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, configCommand, \
-    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, playtimeCommand, guildCommand, \
-    logCommand
+from handlers.commands import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, configCommand, \
+    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, guildCommand
+from handlers.commands.prefixed import logCommand, playtimeCommand
 
 load_dotenv()
 import os
@@ -53,9 +53,9 @@ async def on_ready():
 
             start_scheduling()
 
-            commands.commandListener.on_ready(client)
+            handlers.commands.commandListener.on_ready(client)
 
-            commands.commandListener.register_commands(
+            handlers.commands.commandListener.register_commands(
                 helpCommand.HelpCommand(),
                 activityCommand.ActivityCommand(),
                 wandererCommand.WandererCommand(),
@@ -85,7 +85,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message: discord.Message):
-    asyncio.create_task(commands.commandListener.on_message(message))
+    asyncio.create_task(handlers.commands.commandListener.on_message(message))
 
 
 @tasks.loop(minutes=1, reconnect=True)

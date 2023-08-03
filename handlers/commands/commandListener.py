@@ -5,7 +5,7 @@ from re import Pattern
 from discord import Message, TextChannel, Client
 
 import utils.discord
-from commands.command import Command
+from handlers.commands.command import Command
 from dataTypes import CommandEvent
 from wrappers import serverConfig
 

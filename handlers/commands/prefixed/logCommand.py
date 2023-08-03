@@ -6,7 +6,7 @@ from discord import Permissions, Embed
 import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.guild
-from commands import command
+from handlers.commands import command
 from dataTypes import CommandEvent
 from wrappers import botConfig
 from wrappers.storage import guildMemberLogData

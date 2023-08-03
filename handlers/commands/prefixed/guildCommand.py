@@ -4,9 +4,9 @@ from discord import Permissions, Embed
 
 import utils.discord
 import wrappers.api.wynncraft.guild
-from commands import command
+from handlers.commands import command
 from dataTypes import CommandEvent
-from wrappers import botConfig, player
+from wrappers import botConfig
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}$')
 
