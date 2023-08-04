@@ -7,7 +7,7 @@ import handlers.rateLimit
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.network
 import wrappers.storage.usernameData
-from dataTypes import MinecraftPlayer
+from niatypes.dataTypes import MinecraftPlayer
 
 
 async def _get_and_store_from_api(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:

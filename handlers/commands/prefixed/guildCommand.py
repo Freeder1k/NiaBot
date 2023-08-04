@@ -5,7 +5,7 @@ from discord import Permissions, Embed
 import utils.discord
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.network
-from dataTypes import CommandEvent
+from niatypes.dataTypes import CommandEvent
 from handlers.commands import command
 from wrappers import botConfig, minecraftPlayer
 

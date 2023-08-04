@@ -6,18 +6,17 @@ import aiohttp.client_exceptions
 from discord import Client, TextChannel, Embed
 from discord.ext import tasks
 
+import handlers.rateLimit
 import utils.logging
 import wrappers.api
 import wrappers.api.minecraft
-import handlers.rateLimit
-import wrappers.api.wynncraft.network
 import wrappers.api.wynncraft.guild
-import wrappers.nerfuria
+import wrappers.api.wynncraft.network
 import wrappers.storage
 import wrappers.storage.usernameData
-from dataTypes import MinecraftPlayer
-from wrappers import botConfig
 from handlers import serverConfig
+from niatypes.dataTypes import MinecraftPlayer
+from wrappers import botConfig
 from wrappers.storage import guildMemberLogData
 
 _online_players: set[str] = set()

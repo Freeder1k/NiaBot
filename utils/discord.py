@@ -4,7 +4,7 @@ import typing
 from discord import TextChannel, Embed, Guild, Member, Permissions
 
 from wrappers import botConfig
-from dataTypes import CommandEvent
+from niatypes.dataTypes import CommandEvent
 from utils.misc import split_str
 
 mention_reg = re.compile(r"\\?<(?:#|@[!&]?)(\d+)>")

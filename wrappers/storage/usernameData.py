@@ -1,4 +1,4 @@
-from dataTypes import MinecraftPlayer
+from niatypes.dataTypes import MinecraftPlayer
 from . import manager
 
 

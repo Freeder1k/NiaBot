@@ -5,7 +5,7 @@ from typing import Collection
 from discord import Permissions, Member, TextChannel, Embed
 
 import utils.discord
-from dataTypes import CommandEvent
+from niatypes.dataTypes import CommandEvent
 from wrappers import botConfig
 from handlers import serverConfig
 

@@ -6,7 +6,7 @@ from discord import Permissions, Embed
 import utils.discord
 import wrappers.api.nasa
 from handlers.commands import command
-from dataTypes import CommandEvent
+from niatypes.dataTypes import CommandEvent
 from wrappers import botConfig
 from handlers.rateLimit import RateLimitException
 

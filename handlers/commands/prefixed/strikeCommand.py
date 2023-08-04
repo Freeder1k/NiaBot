@@ -5,7 +5,7 @@ from discord import Permissions, Embed, Forbidden
 
 import utils.discord
 from handlers.commands import command
-from dataTypes import CommandEvent
+from niatypes.dataTypes import CommandEvent
 from wrappers import botConfig
 from wrappers.storage import strikeData
 

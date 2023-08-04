@@ -2,7 +2,7 @@ from discord import Permissions, Embed
 
 import utils.discord
 from handlers.commands import commandListener, command
-from dataTypes import CommandEvent
+from niatypes.dataTypes import CommandEvent
 from wrappers import botConfig
 from handlers import serverConfig
 

@@ -7,7 +7,7 @@ import utils.discord
 import utils.misc
 import wrappers.api.minecraft
 import wrappers.api.wynncraft.player
-from dataTypes import CommandEvent
+from niatypes.dataTypes import CommandEvent
 from handlers.commands import command
 from wrappers import botConfig, minecraftPlayer
 

@@ -7,7 +7,7 @@ import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.guild
 from handlers.commands import command
-from dataTypes import CommandEvent
+from niatypes.dataTypes import CommandEvent
 from wrappers import botConfig
 from wrappers.storage import guildMemberLogData
 

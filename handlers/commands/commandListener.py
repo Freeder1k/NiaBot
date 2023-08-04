@@ -6,7 +6,7 @@ from discord import Message, TextChannel, Client
 
 import utils.discord
 from handlers.commands.command import Command
-from dataTypes import CommandEvent
+from niatypes.dataTypes import CommandEvent
 from handlers import serverConfig
 
 _bot_mention: Pattern

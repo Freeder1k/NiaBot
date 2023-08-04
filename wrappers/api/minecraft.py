@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from dataTypes import MinecraftPlayer
+from niatypes.dataTypes import MinecraftPlayer
 from . import sessionManager
 from handlers import rateLimit, reservableRateLimit
 
