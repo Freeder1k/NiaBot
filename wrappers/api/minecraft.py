@@ -1,7 +1,8 @@
 from http import HTTPStatus
 
 from dataTypes import MinecraftPlayer
-from . import sessionManager, reservableRateLimit, rateLimit
+from . import sessionManager
+from handlers import rateLimit, reservableRateLimit
 
 # TODO create accessing methods for reservations
 _mojang_rate_limit = rateLimit.RateLimit(60, 1)

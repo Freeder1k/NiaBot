@@ -1,10 +1,10 @@
-from .rateLimit import RateLimit
+from handlers.rateLimit import RateLimit
 
 
 class ReservableRateLimit(RateLimit):
     def __init__(self, max_amount: int, time_min: int):
         """
-        A ratelimit where tasks can reserve/free usages.
+        Subclass of RateLimit which can be (partially) reserved/freed.
 
         :param max_amount: The amount of requests allowed
         :param time_min: The time in minutes for the allowed amount

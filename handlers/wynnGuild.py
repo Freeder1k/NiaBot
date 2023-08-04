@@ -9,10 +9,11 @@ from discord.ext import tasks
 import utils.logging
 import utils.misc
 import wrappers.api.minecraft
-import wrappers.api.rateLimit
+import handlers.rateLimit
 import wrappers.api.wynncraft.guild
-from .. import serverConfig, botConfig, minecraftPlayer
-from ..storage import guildMemberLogData
+from wrappers import botConfig, minecraftPlayer
+from handlers import serverConfig
+from wrappers.storage import guildMemberLogData
 
 _guild: wrappers.api.wynncraft.guild.Stats = None
 
@@ -72,16 +73,6 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
             await channel.send(embeds=embeds[i:i + 10])
 
 
-def get_guild() -> wrappers.api.wynncraft.guild.Stats | None:
-    return _guild
-
-
-def get_members() -> list[wrappers.api.wynncraft.guild.Stats.Member]:
-    if _guild is None:
-        return []
-    return _guild.members
-
-
 @tasks.loop(minutes=1, reconnect=True)
 async def update_guild(client: Client):
     global _guild
@@ -109,5 +100,5 @@ async def update_guild(client: Client):
 
 update_guild.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    wrappers.api.rateLimit.RateLimitException
+    handlers.rateLimit.RateLimitException
 )

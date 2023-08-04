@@ -8,14 +8,14 @@ import discord
 from discord.ext import tasks
 from dotenv import load_dotenv
 
-import handlers.onlinePlayerHandler
-import wrappers.api.rateLimit
-import wrappers.api.rateLimit
+import handlers.onlinePlayers
+import handlers.rateLimit
+import handlers.rateLimit
 import wrappers.api.sessionManager
 import wrappers.api.wynncraft.network
 import handlers.commands.commandListener
-import wrappers.nerfuria.guild
-from wrappers import serverConfig, minecraftPlayer
+import handlers.wynnGuild
+from handlers import serverConfig
 import wrappers.storage.manager
 import wrappers.storage.playtimeData
 import wrappers.storage.playtimeData
@@ -106,24 +106,24 @@ async def update_presence():
 
 update_presence.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    wrappers.api.rateLimit.RateLimitException
+    handlers.rateLimit.RateLimitException
 )
 
 
 def start_scheduling():
-    wrappers.api.rateLimit.ratelimit_updater.start()
+    handlers.rateLimit.ratelimit_updater.start()
     wrappers.storage.playtimeData.update_playtimes.start()
     update_presence.start()
-    wrappers.nerfuria.guild.update_guild.start(client=client)
-    handlers.onlinePlayerHandler.update_players.start(client=client)
+    handlers.wynnGuild.update_guild.start(client=client)
+    handlers.onlinePlayers.update_players.start(client=client)
 
 
 def stop_scheduling():
-    handlers.onlinePlayerHandler.update_players.cancel()
-    wrappers.nerfuria.guild.update_guild.stop()
+    handlers.onlinePlayers.update_players.cancel()
+    handlers.wynnGuild.update_guild.stop()
     update_presence.cancel()
     wrappers.storage.playtimeData.update_playtimes.cancel()
-    wrappers.api.rateLimit.ratelimit_updater.cancel()
+    handlers.rateLimit.ratelimit_updater.cancel()
 
 
 def main():

@@ -3,10 +3,9 @@ import asyncio
 from async_lru import alru_cache
 
 import wrappers.api.minecraft
-import wrappers.api.rateLimit
+import handlers.rateLimit
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.network
-import wrappers.nerfuria.guild
 import wrappers.storage.usernameData
 from dataTypes import MinecraftPlayer
 
@@ -48,7 +47,7 @@ async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -
     unknown_names = set(usernames) - known_names
 
     if len(unkown_uuids) + len(unknown_names) > wrappers.api.minecraft._mojang_rate_limit.get_remaining():
-        raise wrappers.api.rateLimit.RateLimitException("API usage would exceed ratelimit!")
+        raise handlers.rateLimit.RateLimitException("API usage would exceed ratelimit!")
 
     if len(unkown_uuids) > 0:
         stored += [p for p in (await asyncio.gather(*(_get_and_store_from_api(uuid=uuid) for uuid in unkown_uuids))) if

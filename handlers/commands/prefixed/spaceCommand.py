@@ -8,7 +8,7 @@ import wrappers.api.nasa
 from handlers.commands import command
 from dataTypes import CommandEvent
 from wrappers import botConfig
-from wrappers.api.rateLimit import RateLimitException
+from handlers.rateLimit import RateLimitException
 
 
 class SpaceCommand(command.Command):

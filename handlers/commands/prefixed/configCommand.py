@@ -3,7 +3,8 @@ from discord import Permissions, Embed
 import utils.discord
 from handlers.commands import command
 from dataTypes import CommandEvent
-from wrappers import serverConfig, botConfig
+from wrappers import botConfig
+from handlers import serverConfig
 
 
 class ConfigCommand(command.Command):

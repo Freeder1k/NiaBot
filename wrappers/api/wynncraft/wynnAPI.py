@@ -1,6 +1,7 @@
 from async_lru import alru_cache
 
-from .. import sessionManager, rateLimit
+from .. import sessionManager
+from handlers import rateLimit
 
 _legacy_rate_limit = rateLimit.register_new_ratelimit(1200, 20)
 

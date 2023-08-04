@@ -6,7 +6,8 @@ from discord import Permissions, Member, TextChannel, Embed
 
 import utils.discord
 from dataTypes import CommandEvent
-from wrappers import serverConfig, botConfig
+from wrappers import botConfig
+from handlers import serverConfig
 
 
 class PermissionLevel(IntEnum):

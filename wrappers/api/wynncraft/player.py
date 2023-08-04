@@ -6,7 +6,7 @@ from async_lru import alru_cache
 
 import utils.misc
 from . import wynnAPI
-from .. import rateLimit
+from handlers import rateLimit
 
 player_rate_limit = rateLimit.RateLimit(750, 30)
 rateLimit.register_ratelimit(player_rate_limit)

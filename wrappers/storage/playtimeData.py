@@ -6,7 +6,7 @@ from datetime import date, time, timezone, datetime
 import aiohttp.client_exceptions
 from discord.ext import tasks
 
-import wrappers.api.rateLimit
+import handlers.rateLimit
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.player
 from . import manager
@@ -112,5 +112,5 @@ async def update_playtimes():
 
 update_playtimes.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    wrappers.api.rateLimit.RateLimitException
+    handlers.rateLimit.RateLimitException
 )

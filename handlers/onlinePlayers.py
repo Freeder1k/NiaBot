@@ -9,14 +9,15 @@ from discord.ext import tasks
 import utils.logging
 import wrappers.api
 import wrappers.api.minecraft
-import wrappers.api.rateLimit
+import handlers.rateLimit
 import wrappers.api.wynncraft.network
+import wrappers.api.wynncraft.guild
 import wrappers.nerfuria
-import wrappers.nerfuria.guild
 import wrappers.storage
 import wrappers.storage.usernameData
 from dataTypes import MinecraftPlayer
-from wrappers import serverConfig, botConfig
+from wrappers import botConfig
+from handlers import serverConfig
 from wrappers.storage import guildMemberLogData
 
 _online_players: set[str] = set()
@@ -40,7 +41,8 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
 
     prev_names_dict = {p.uuid: p.name for p in prev_names if p is not None}
 
-    guild_members = {m.uuid.replace("-", ""): m.name for m in wrappers.nerfuria.guild.get_members()}
+    guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
+    guild_members = {m.uuid.replace("-", ""): m.name for m in guild.members}
     updated_guild_members = []
     for player in updated_names:
         if player.uuid in guild_members:
@@ -114,5 +116,5 @@ async def update_players(client: Client):
 
 update_players.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    wrappers.api.rateLimit.RateLimitException
+    handlers.rateLimit.RateLimitException
 )

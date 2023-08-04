@@ -7,7 +7,7 @@ from discord import Message, TextChannel, Client
 import utils.discord
 from handlers.commands.command import Command
 from dataTypes import CommandEvent
-from wrappers import serverConfig
+from handlers import serverConfig
 
 _bot_mention: Pattern
 _commands: list[Command] = []

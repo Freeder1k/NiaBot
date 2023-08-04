@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import aiofiles
 
-from . import botConfig
+from wrappers import botConfig
 import utils.misc
 
 
