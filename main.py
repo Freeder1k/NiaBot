@@ -8,6 +8,7 @@ import discord
 from discord.ext import tasks
 from dotenv import load_dotenv
 
+import handlers.onlinePlayerHandler
 import wrappers.api.rateLimit
 import wrappers.api.rateLimit
 import wrappers.api.sessionManager
@@ -94,7 +95,7 @@ async def update_presence():
         await client.change_presence(
             status=discord.Status.online,
             activity=discord.Activity(
-                name=f"{await wrappers.api.wynncraft.network.player_sum()} players play Wynncraft",
+                name=f"{await wrappers.api.wynncraft.network.player_count()} players play Wynncraft",
                 type=discord.ActivityType.watching
             )
         )
@@ -114,11 +115,11 @@ def start_scheduling():
     wrappers.storage.playtimeData.update_playtimes.start()
     update_presence.start()
     wrappers.nerfuria.guild.update_guild.start(client=client)
-    minecraftPlayer.update_players.start(client=client)
+    handlers.onlinePlayerHandler.update_players.start(client=client)
 
 
 def stop_scheduling():
-    minecraftPlayer.update_players.cancel()
+    handlers.onlinePlayerHandler.update_players.cancel()
     wrappers.nerfuria.guild.update_guild.stop()
     update_presence.cancel()
     wrappers.storage.playtimeData.update_playtimes.cancel()

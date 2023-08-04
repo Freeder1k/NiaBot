@@ -4,6 +4,7 @@ from discord import Permissions, Embed
 
 import utils.discord
 import wrappers.api.wynncraft.guild
+import wrappers.api.wynncraft.network
 from dataTypes import CommandEvent
 from handlers.commands import command
 from wrappers import botConfig, minecraftPlayer
@@ -69,7 +70,7 @@ class GuildCommand(command.Command):
         embed.add_field(name="Created ", value=guild.created, inline=False)
         embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)
 
-        server_list = await minecraftPlayer.get_server_list()
+        server_list = await wrappers.api.wynncraft.network.server_list()
 
         online_members = []
         max_l_len = 0

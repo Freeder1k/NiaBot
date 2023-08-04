@@ -8,8 +8,15 @@ async def server_list() -> dict[str, list[str]]:
     return await wynnAPI.get_legacy("onlinePlayers")
 
 
-async def player_sum() -> int:
+async def online_players() -> frozenset[str]:
     """
-    Returns the player sum on the Wynncraft network.
+    Returns a set of the names of all currently online players.
+    """
+    return frozenset().union(*((await server_list()).values()))
+
+
+async def player_count() -> int:
+    """
+    Returns the amount of players online on the Wynncraft network.
     """
     return (await wynnAPI.get_legacy("onlinePlayersSum"))['players_online']
