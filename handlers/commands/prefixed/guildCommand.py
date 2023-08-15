@@ -5,8 +5,9 @@ from discord import Permissions, Embed
 import utils.discord
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.network
-from niatypes.dataTypes import CommandEvent
+import wrappers.wynncraftGuild
 from handlers.commands import command
+from niatypes.dataTypes import CommandEvent, WynncraftGuild
 from wrappers import botConfig, minecraftPlayer
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}$')
@@ -36,8 +37,8 @@ class GuildCommand(command.Command):
         super().__init__(
             name="guild",
             aliases=("g",),
-            usage=f"guild <Guild Name>",
-            description="",
+            usage=f"guild <tag | name>",
+            description="Get a wynncraft guild by its tag or name.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
         )
@@ -50,24 +51,37 @@ class GuildCommand(command.Command):
         guild_str = event.message.content.split(" ", 1)[1]
 
         if not _guild_re.match(guild_str):
-            await utils.discord.send_error(event.channel, f"Invalid guild name ``{guild_str}``")
+            await utils.discord.send_error(event.channel, f"Invalid guild name or tag``{guild_str}``")
             return
 
-        guild = await wrappers.api.wynncraft.guild.stats(guild_str)
-
-        if guild is None:
+        possible_guilds: tuple[WynncraftGuild] = await wrappers.wynncraftGuild.find_guilds(guild_str)
+        if not possible_guilds:
             await utils.discord.send_error(event.channel, f"Couldn't find guild ``{guild_str}``")
+            return
+        if len(possible_guilds) == 1:
+            guild = possible_guilds[0]
+        else:
+            exact_matches = [g for g in possible_guilds if g.tag == guild_str or g.name == guild_str]
+            if len(exact_matches) != 1:
+                await utils.discord.send_info(event.channel,
+                                              f"Found multiple matches for ``{guild_str}``:\n{possible_guilds}")
+                return
+            guild = exact_matches[0]
+
+        guild_stats = await wrappers.wynncraftGuild.get_guild_stats(name=guild.name)
+        if guild_stats is None:
+            await utils.discord.send_error(event.channel, f"Failed to retrieve stats for guild ``{guild_str}``")
             return
 
         embed = Embed(
-            title=f"**Stats for {guild.name}:**",
+            title=f"**Stats for {guild_stats.name}:**",
             description="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
             color=botConfig.DEFAULT_COLOR
         )
-        embed.add_field(name="Tag", value=guild.prefix, inline=False)
-        embed.add_field(name="Member count", value=len(guild.members), inline=False)
-        embed.add_field(name="Level", value=f"{guild.level} ({guild.xp}%)", inline=False)
-        embed.add_field(name="Created ", value=guild.created, inline=False)
+        embed.add_field(name="Tag", value=guild_stats.prefix, inline=False)
+        embed.add_field(name="Member count", value=len(guild_stats.members), inline=False)
+        embed.add_field(name="Level", value=f"{guild_stats.level} ({guild_stats.xp}%)", inline=False)
+        embed.add_field(name="Created ", value=guild_stats.created, inline=False)
         embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)
 
         server_list = await wrappers.api.wynncraft.network.server_list()
@@ -79,7 +93,7 @@ class GuildCommand(command.Command):
             online_players = {p.uuid: p.name for p in
                               (await minecraftPlayer.get_players(usernames=plist))}
 
-            for m in guild.members:
+            for m in guild_stats.members:
                 uuid = m.uuid.replace("-", "").lower()
                 if uuid in online_players:
                     name = _get_stars(m.rank) + online_players[uuid]

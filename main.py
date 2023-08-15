@@ -8,10 +8,11 @@ from dotenv import load_dotenv
 
 import handlers.commands.commandListener
 import handlers.logging
-import handlers.wynncraft.onlinePlayers
-import handlers.rateLimit
-import handlers.rateLimit
 import handlers.nerfuria.wynnGuild
+import handlers.rateLimit
+import handlers.rateLimit
+import handlers.wynncraft.guilds
+import handlers.wynncraft.onlinePlayers
 import wrappers.api.sessionManager
 import wrappers.api.wynncraft.network
 import wrappers.storage.manager
@@ -23,7 +24,6 @@ from handlers.commands.prefixed import helpCommand, activityCommand, wandererCom
     configCommand, \
     strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, guildCommand, shutdownCommand
 from handlers.commands.prefixed import logCommand, playtimeCommand
-import handlers.wynncraft.guilds
 
 load_dotenv()
 import os
