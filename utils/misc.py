@@ -3,7 +3,7 @@ import datetime
 from datetime import datetime, timezone
 from typing import TypeVar, Any, Type
 
-from utils.logging import elog
+from handlers.logging import log_error
 
 
 def parse_name(nickname: str):
@@ -52,7 +52,7 @@ def _from_dict_inner(cls: Any, json: dict) -> Any:
     elif type(json) == dict:
         return {k: _from_dict_inner(cls.__args__[0], v) for k, v in json.items()}
     else:
-        elog(f"Couldn't determine type of {json} in {cls} in dict conversion.")
+        log_error(f"Couldn't determine type of {json} in {cls} in dict conversion.")
         return json
 
 

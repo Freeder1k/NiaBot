@@ -88,6 +88,6 @@ class LogCommand(command.Command):
         content = utils.misc.split_str(text, 1000, "$")
         content = [s.replace("$", " ") for s in content]
         for s in content[:25]:
-            embed.add_field(name="", value=s)
+            embed.add_field(name="", value=s, inline=False)
 
         await event.channel.send(embed=embed)

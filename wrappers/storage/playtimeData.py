@@ -1,11 +1,11 @@
 import asyncio
-import traceback
 from dataclasses import dataclass
 from datetime import date, time, timezone, datetime
 
 import aiohttp.client_exceptions
 from discord.ext import tasks
 
+import handlers.logging
 import handlers.rateLimit
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.player
@@ -106,7 +106,7 @@ async def update_playtimes():
         today = datetime.now(timezone.utc).date()
         await asyncio.gather(*(set_playtime(stats.uuid, today, stats.meta.playtime) for stats in pstats))
     except Exception as ex:
-        traceback.print_exc()
+        await handlers.logging.log_exception(ex)
         raise ex
 
 

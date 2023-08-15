@@ -1,13 +1,12 @@
 import asyncio
-import traceback
 from queue import Queue
 
 import aiohttp.client_exceptions
 from discord import Client, TextChannel, Embed
 from discord.ext import tasks
 
+import handlers.logging
 import handlers.rateLimit
-import utils.logging
 import wrappers.api
 import wrappers.api.minecraft
 import wrappers.api.wynncraft.guild
@@ -29,13 +28,13 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
     channel = client.get_channel(serverConfig.get_log_channel_id(botConfig.GUILD_DISCORD))
     if not isinstance(channel, TextChannel):
         print(channel)
-        utils.logging.elog("Log channel for guild server is not text channel!")
+        handlers.logging.log_error("Log channel for guild server is not text channel!")
         return
 
     perms = channel.permissions_for(channel.guild.me)
     if not perms.send_messages and perms.embed_links:
         print(channel)
-        utils.logging.elog("Missing perms for log channel for guild server!")
+        handlers.logging.log_error("Missing perms for log channel for guild server!")
         return
 
     prev_names_dict = {p.uuid: p.name for p in prev_names if p is not None}
@@ -71,19 +70,19 @@ async def _update_usernames(client: Client):
     prev_names = []
     updated_names = []
 
-    utils.logging.dlog(f"Updating {min(_unknown_players.qsize(), 200)} minecraft usernames.")
+    # utils.logging.log_debug(f"Updating {min(_unknown_players.qsize(), 200)} minecraft usernames.")
 
     for i in range(0, min((_unknown_players.qsize() + 9) // 10, 20)):
-        unkown_players_batch = [_unknown_players.get() for _ in range(0, min(_unknown_players.qsize(), 10))]
+        unknown_players_batch = [_unknown_players.get() for _ in range(0, min(_unknown_players.qsize(), 10))]
 
-        res = await wrappers.api.minecraft.get_players_from_usernames(unkown_players_batch,
+        res = await wrappers.api.minecraft.get_players_from_usernames(unknown_players_batch,
                                                                       reservation_id=_reservation_id)
         prev_names += await asyncio.gather(
             *(wrappers.storage.usernameData.update(uuid, name) for uuid, name in res))
 
-        for name in unkown_players_batch:
+        for name in unknown_players_batch:
             if not any(name == t_name for _, t_name in res):
-                utils.logging.dlog(f"{name} not a minecraft name but online on wynncraft!")
+                handlers.logging.log_debug(f"{name} not a minecraft name but online on wynncraft!")
 
         updated_names += res
 
@@ -108,7 +107,7 @@ async def update_players(client: Client):
         await _update_usernames(client)
 
     except Exception as ex:
-        traceback.print_exc()
+        await handlers.logging.log_exception(ex)
         await asyncio.sleep(60)  # Wait here so the loop reconnect doesn't trigger a RateLimitException directly
         raise ex
 

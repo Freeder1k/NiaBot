@@ -8,20 +8,21 @@ import discord
 from discord.ext import tasks
 from dotenv import load_dotenv
 
+import handlers.commands.commandListener
+import handlers.logging
 import handlers.onlinePlayers
 import handlers.rateLimit
 import handlers.rateLimit
+import handlers.wynnGuild
 import wrappers.api.sessionManager
 import wrappers.api.wynncraft.network
-import handlers.commands.commandListener
-import handlers.wynnGuild
-from handlers import serverConfig
 import wrappers.storage.manager
 import wrappers.storage.playtimeData
 import wrappers.storage.playtimeData
 import wrappers.storage.usernameData
-import utils.logging
-from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, configCommand, \
+from handlers import serverConfig
+from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, \
+    configCommand, \
     strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, guildCommand
 from handlers.commands.prefixed import logCommand, playtimeCommand
 
@@ -42,9 +43,7 @@ initialized = False
 @client.event
 async def on_ready():
     try:
-        utils.logging.log("Ready")
-        utils.logging.log(f"Logged in as {client.user}")
-        utils.logging.log(f"Guilds: {[g.name for g in client.guilds]}")
+        handlers.logging.init_logger(client)
 
         global initialized
         if not initialized:
@@ -79,9 +78,12 @@ async def on_ready():
                 await wrappers.storage.playtimeData.update_playtimes()
 
             initialized = True
+            handlers.logging.log("Ready")
+            handlers.logging.log(f"Logged in as {client.user}")
+            handlers.logging.log(f"Guilds: {[g.name for g in client.guilds]}")
     except Exception as e:
-        print(e)
-        traceback.print_exc()
+        await handlers.logging.log_exception(e)
+        await stop()
 
 
 @client.event
@@ -100,7 +102,7 @@ async def update_presence():
             )
         )
     except Exception as ex:
-        traceback.print_exc()
+        await handlers.logging.log_exception(ex)
         raise ex
 
 
@@ -134,19 +136,21 @@ def main():
             await client.start(os.getenv('BOT_TOKEN'))
 
     try:
+        handlers.logging.log("Booting up...")
         asyncio.run(runner())
     except:
+        traceback.print_exc()
         asyncio.run(stop())
-        return
 
 
 async def stop():
+    handlers.logging.log("Shutting down...")
     stopped.set()
     stop_scheduling()
     await client.close()
     await wrappers.api.sessionManager.close()
     await wrappers.storage.manager.close()
-    utils.logging.log("Stopped")
+    handlers.logging.log("Stopped")
 
 
 if __name__ == "__main__":
