@@ -17,7 +17,7 @@ async def _get_and_store_from_api(name: str):
     await wrappers.storage.guildData.put(g.prefix, g.name)
 
 
-@tasks.loop(minutes=20, reconnect=True)
+@tasks.loop(minutes=21, reconnect=True)
 async def update_guilds():
     try:
         guild_list = set(await wrappers.api.wynncraft.guild.guild_list())
