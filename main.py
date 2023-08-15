@@ -119,11 +119,11 @@ def start_scheduling():
 
 
 def stop_scheduling():
-    handlers.onlinePlayers.update_players.cancel()
-    handlers.wynnGuild.update_guild.cancel()
-    update_presence.cancel()
-    wrappers.storage.playtimeData.update_playtimes.cancel()
-    handlers.rateLimit.ratelimit_updater.cancel()
+    handlers.onlinePlayers.update_players.stop()
+    handlers.wynnGuild.update_guild.stop()
+    update_presence.stop()
+    wrappers.storage.playtimeData.update_playtimes.stop()
+    handlers.rateLimit.ratelimit_updater.stop()
 
 
 def main():
