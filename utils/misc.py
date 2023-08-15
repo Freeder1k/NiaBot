@@ -33,12 +33,14 @@ def dataclass_from_dict(dataclass: Type[T], d: dict) -> T:
     fieldtypes = {f.name: f.type for f in dataclasses.fields(dataclass)}
     fields = {}
     for f in fieldtypes:
-        fields[f] = _from_dict_inner(fieldtypes[f], d[f])
+        fields[f] = _from_dict_inner(fieldtypes[f], d.get(f, None))
     return dataclass(**fields)
 
 
 def _from_dict_inner(cls: Any, json: dict) -> Any:
-    if type(json) == list:
+    if json is None:
+        return None
+    elif type(json) == list:
         return [_from_dict_inner(cls.__args__[0], j) for j in json]
     elif isinstance(cls, type):
         if dataclasses.is_dataclass(cls):
