@@ -15,7 +15,7 @@ async def get_guild(*, tag: str = None, name: str = None) -> WynncraftGuild | No
         selector = "tag"
         match = tag
     else:
-        raise TypeError("Exactly one argument (either uuid or username) must be provided.")
+        raise TypeError("Exactly one argument (either tah or name) must be provided.")
 
     cur = await manager.get_cursor()
     res = await cur.execute(f"""
@@ -48,7 +48,7 @@ async def find_guilds(s: str) -> tuple[WynncraftGuild]:
 
 async def guild_list() -> tuple[str]:
     """
-    Returns a list of all stored guilds.
+    Returns a list of all stored guilds names.
     """
     cur = await manager.get_cursor()
     res = await cur.execute(f"""
@@ -81,7 +81,7 @@ async def remove(*, tag: str = None, name: str = None):
         selector = "tag"
         match = tag
     else:
-        raise TypeError("Exactly one argument (either uuid or username) must be provided.")
+        raise TypeError("Exactly one argument (either tag or name) must be provided.")
 
     con = manager.get_connection()
     cur = await manager.get_cursor()
@@ -90,4 +90,23 @@ async def remove(*, tag: str = None, name: str = None):
                 DELETE FROM guilds
                 WHERE {selector} = ?
                 """, (match,))
+    await con.commit()
+
+
+async def remove_many(*, tags: list[str] = None, names: list[str] = None):
+    """
+    Removes the provided list of tags and guild names from the database.
+    """
+    if tags is None or len(tags) == 0:
+        tags = [""]
+    if names is None or len(names) == 0:
+        names = [""]
+
+    con = manager.get_connection()
+    cur = await manager.get_cursor()
+    await cur.execute(f"""
+                DELETE FROM guilds
+                WHERE tag IN ({', '.join("?" for _ in tags)})
+                OR name in ({', '.join("?" for _ in names)})
+                """, tags + names)
     await con.commit()

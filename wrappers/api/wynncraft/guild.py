@@ -31,9 +31,9 @@ class Stats:
     banner: dict
 
 
-async def guild_list():
+async def guild_list() -> list[str]:
     """
-    Returns a list of all guilds.
+    Returns a list of all guilds names.
     """
     return (await wynnAPI.get_legacy("guildList"))["guilds"]
 

@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 
 import handlers.commands.commandListener
 import handlers.logging
-import handlers.onlinePlayers
+import handlers.wynncraft.onlinePlayers
 import handlers.rateLimit
 import handlers.rateLimit
-import handlers.wynnGuild
+import handlers.nerfuria.wynnGuild
 import wrappers.api.sessionManager
 import wrappers.api.wynncraft.network
 import wrappers.storage.manager
@@ -23,6 +23,7 @@ from handlers.commands.prefixed import helpCommand, activityCommand, wandererCom
     configCommand, \
     strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, guildCommand, shutdownCommand
 from handlers.commands.prefixed import logCommand, playtimeCommand
+import handlers.wynncraft.guilds
 
 load_dotenv()
 import os
@@ -114,13 +115,15 @@ def start_scheduling():
     handlers.rateLimit.ratelimit_updater.start()
     wrappers.storage.playtimeData.update_playtimes.start()
     update_presence.start()
-    handlers.wynnGuild.update_guild.start(client=client)
-    handlers.onlinePlayers.update_players.start(client=client)
+    handlers.nerfuria.wynnGuild.update_guild.start(client=client)
+    handlers.wynncraft.onlinePlayers.update_players.start(client=client)
+    handlers.wynncraft.guilds.update_guilds.start()
 
 
 def stop_scheduling():
-    handlers.onlinePlayers.update_players.stop()
-    handlers.wynnGuild.update_guild.stop()
+    handlers.wynncraft.guilds.update_guilds.stop()
+    handlers.wynncraft.onlinePlayers.update_players.stop()
+    handlers.nerfuria.wynnGuild.update_guild.stop()
     update_presence.stop()
     wrappers.storage.playtimeData.update_playtimes.stop()
     handlers.rateLimit.ratelimit_updater.stop()
