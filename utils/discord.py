@@ -3,11 +3,15 @@ import typing
 
 from discord import TextChannel, Embed, Guild, Member, Permissions
 
-from wrappers import botConfig
 from niatypes.dataTypes import CommandEvent
 from utils.misc import split_str
+from wrappers import botConfig
 
 mention_reg = re.compile(r"\\?<(?:#|@[!&]?)(\d+)>")
+
+
+async def send(channel: TextChannel, message: str):
+    await channel.send(embed=Embed(color=botConfig.DEFAULT_COLOR, description=message))
 
 
 async def send_success(channel: TextChannel, message: str):

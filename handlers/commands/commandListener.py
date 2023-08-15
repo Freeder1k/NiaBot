@@ -5,9 +5,9 @@ from re import Pattern
 from discord import Message, TextChannel, Client
 
 import utils.discord
+from handlers import serverConfig
 from handlers.commands.command import Command
 from niatypes.dataTypes import CommandEvent
-from handlers import serverConfig
 
 _bot_mention: Pattern
 _commands: list[Command] = []
@@ -67,6 +67,8 @@ async def on_message(message: Message):
 
     try:
         await _command_map[args[0]].run(command_event)
+    except (KeyboardInterrupt, SystemExit) as e:
+        raise e
     except Exception as e:
         await utils.discord.send_exception(command_event, e)
         print(message)

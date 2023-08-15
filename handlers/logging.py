@@ -33,21 +33,22 @@ def log_error(*args):
             print("[" + datetime.now().strftime("%H:%M:%S") + "] (ERROR)", *args, file=f)
 
 
-async def log_exception(e: Exception):
+async def log_exception(e: Exception, discord: bool = True):
     tb = traceback.format_exc()
 
-    devs = {uid: _client.get_user(uid) for uid in botConfig.DEV_USER_IDS}
+    if discord:
+        devs = {uid: _client.get_user(uid) for uid in botConfig.DEV_USER_IDS}
 
-    embed = Embed(
-        color=botConfig.ERROR_COLOR,
-        title=f"A wild ``{e.__class__.__name__}`` appeared!",
-        description=f"```\n{tb[-4000:]}```"
-    )
-    for uid, dev in devs.items():
-        try:
-            await dev.send(embed=embed)
-        except Exception as e:
-            log_error(f"Couldn't contact dev with user ID {uid}.\n{e.__class__.__name__}: {e}")
+        embed = Embed(
+            color=botConfig.ERROR_COLOR,
+            title=f"A wild ``{e.__class__.__name__}`` appeared!",
+            description=f"```\n{tb[-4000:]}```"
+        )
+        for uid, dev in devs.items():
+            try:
+                await dev.send(embed=embed)
+            except Exception as e:
+                log_error(f"Couldn't contact dev with user ID {uid}.\n{e.__class__.__name__}: {e}")
 
     print(end="\r")
     print("\033[91m" + "[" + datetime.now().strftime("%H:%M:%S") + "] (EXCEPTION)", tb, end="\033[97m\n")

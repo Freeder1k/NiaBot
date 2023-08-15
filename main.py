@@ -1,6 +1,4 @@
 import asyncio
-import threading
-import traceback
 from datetime import datetime, timezone
 
 import aiohttp.client_exceptions
@@ -23,7 +21,7 @@ import wrappers.storage.usernameData
 from handlers import serverConfig
 from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, \
     configCommand, \
-    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, guildCommand
+    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, guildCommand, shutdownCommand
 from handlers.commands.prefixed import logCommand, playtimeCommand
 
 load_dotenv()
@@ -36,7 +34,6 @@ intents.members = True
 client = discord.Client(intents=intents)
 start_time = datetime.now(timezone.utc)
 
-stopped = threading.Event()
 initialized = False
 
 
@@ -70,6 +67,7 @@ async def on_ready():
                 playtimeCommand.PlaytimeCommand(),
                 guildCommand.GuildCommand(),
                 logCommand.LogCommand(),
+                shutdownCommand.ShutdownCommand()
             )
 
             # await player.update_nia()
@@ -122,7 +120,7 @@ def start_scheduling():
 
 def stop_scheduling():
     handlers.onlinePlayers.update_players.cancel()
-    handlers.wynnGuild.update_guild.stop()
+    handlers.wynnGuild.update_guild.cancel()
     update_presence.cancel()
     wrappers.storage.playtimeData.update_playtimes.cancel()
     handlers.rateLimit.ratelimit_updater.cancel()
@@ -138,14 +136,16 @@ def main():
     try:
         handlers.logging.log("Booting up...")
         asyncio.run(runner())
-    except:
-        traceback.print_exc()
+    except (KeyboardInterrupt, SystemExit) as e:
+        handlers.logging.log(f"{e.__class__.__name__}: {e}")
+    except Exception as e:
+        handlers.logging.log_exception(e, discord=False)
+    finally:
         asyncio.run(stop())
 
 
 async def stop():
     handlers.logging.log("Shutting down...")
-    stopped.set()
     stop_scheduling()
     await client.close()
     await wrappers.api.sessionManager.close()
