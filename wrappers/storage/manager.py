@@ -15,7 +15,7 @@ async def init_database():
     cur = await _con.cursor()
     await cur.executescript(f"""
                     CREATE TABLE IF NOT EXISTS playtimes (
-                        uuid TEXT NOT NULL,
+                        uuid TEXT NOT NULL COLLATE NOCASE,
                         day DATE NOT NULL,
                         playtime INTEGER NOT NULL,
                         PRIMARY KEY (uuid, day)
@@ -29,15 +29,19 @@ async def init_database():
                         pardoned INTEGER NOT NULL
                     );
                     CREATE TABLE IF NOT EXISTS minecraft_usernames (
-                        uuid TEXT PRIMARY KEY NOT NULL,
+                        uuid TEXT PRIMARY KEY NOT NULL COLLATE NOCASE,
                         name TEXT UNIQUE NOT NULL COLLATE NOCASE
                     );
                     CREATE TABLE IF NOT EXISTS guild_member_log(
                         log_id INTEGER PRIMARY KEY,
                         entry_type INTEGER CHECK(entry_type IN {tuple(t.value for t in guildMemberLogData.LogEntryType)}) NOT NULL,
                         content TEXT NOT NULL,
-                        uuid TEXT NOT NULL,
+                        uuid TEXT NOT NULL COLLATE NOCASE,
                         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
+                    );
+                    CREATE TABLE IF NOT EXISTS guilds(
+                        tag TEXT PRIMARY KEY NOT NULL COLLATE BINARY,
+                        name TEXT UNIQUE NOT NULL COLLATE NOCASE
                     );
     """)
 
@@ -49,6 +53,9 @@ def get_connection() -> aiosqlite.Connection:
 
 
 async def get_cursor() -> aiosqlite.Cursor:
+    """
+    Creates and returns a cursor object.
+    """
     if _con is None:
         raise RuntimeError("call init_database() first")
     return await _con.cursor()
