@@ -10,8 +10,8 @@ from niatypes.dataTypes import WynncraftGuild
 
 
 @alru_cache(ttl=60)
-async def get_guild(*, tag: str = None, name: str = None) -> WynncraftGuild | None:
-    return await wrappers.storage.guildData.get_guild(tag=tag, name=name)
+async def get_guild(*, name: str = None, tag: str = None) -> WynncraftGuild | None:
+    return await wrappers.storage.guildData.get_guild(name=name, tag=tag)
 
 
 @alru_cache(ttl=60)
@@ -19,7 +19,7 @@ async def find_guilds(s: str) -> tuple[WynncraftGuild]:
     return await wrappers.storage.guildData.find_guilds(s)
 
 
-async def get_guild_stats(*, tag: str = None, name: str = None) -> wrappers.api.wynncraft.guild.Stats | None:
+async def get_guild_stats(*, name: str = None, tag: str = None) -> wrappers.api.wynncraft.guild.Stats | None:
     if name is None:
         name = (await get_guild(tag=tag)).name
     elif tag is not None:

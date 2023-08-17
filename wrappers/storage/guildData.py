@@ -2,7 +2,7 @@ from niatypes.dataTypes import WynncraftGuild
 from . import manager
 
 
-async def get_guild(*, tag: str = None, name: str = None) -> WynncraftGuild | None:
+async def get_guild(*, name: str = None, tag: str = None) -> WynncraftGuild | None:
     """
     Get a guild by either the tag or name. Exactly one of the arguments must be provided.
 
@@ -26,7 +26,7 @@ async def get_guild(*, tag: str = None, name: str = None) -> WynncraftGuild | No
     if row is None:
         return None
 
-    return WynncraftGuild(row["tag"], row["name"])
+    return WynncraftGuild(row["name"], row["tag"])
 
 
 async def find_guilds(s: str) -> tuple[WynncraftGuild]:
@@ -38,12 +38,12 @@ async def find_guilds(s: str) -> tuple[WynncraftGuild]:
     cur = await manager.get_cursor()
     res = await cur.execute(f"""
                 SELECT * FROM guilds
-                WHERE tag COLLATE NOCASE = ?
-                OR name = ?
+                WHERE name COLLATE NOCASE = ?
+                OR tag COLLATE NOCASE = ?
                 """, (s, s))
     data = await res.fetchall()
 
-    return tuple(WynncraftGuild(row["tag"], row["name"]) for row in data)
+    return tuple(WynncraftGuild(row["name"], row["tag"]) for row in data)
 
 
 async def guild_list() -> tuple[str]:
@@ -58,7 +58,7 @@ async def guild_list() -> tuple[str]:
     return tuple(str(row["name"]) for row in data)
 
 
-async def put(tag: str, name: str):
+async def put(name: str, tag: str):
     """
     Puts a guild into the database. If any entries exist with the same tag or (case-insensitive) name these get replaced.
     """
@@ -66,13 +66,13 @@ async def put(tag: str, name: str):
     cur = await manager.get_cursor()
     await cur.execute("""
                 REPLACE INTO guilds VALUES (?, ?)
-                """, (tag, name))
+                """, (name, tag))
     await con.commit()
 
 
-async def remove(*, tag: str = None, name: str = None):
+async def remove(*, name: str = None, tag: str = None):
     """
-    Remove the specified guild from the database. . Exactly one of the arguments must be provided.
+    Remove the specified guild from the database. Exactly one of the arguments must be provided.
     """
     if (tag is None) and (name is not None):
         selector = "name"
@@ -93,20 +93,20 @@ async def remove(*, tag: str = None, name: str = None):
     await con.commit()
 
 
-async def remove_many(*, tags: list[str] = None, names: list[str] = None):
+async def remove_many(*, names: list[str] = None, tags: list[str] = None):
     """
     Removes the provided list of tags and guild names from the database.
     """
-    if tags is None or len(tags) == 0:
-        tags = [""]
     if names is None or len(names) == 0:
         names = [""]
+    if tags is None or len(tags) == 0:
+        tags = [""]
 
     con = manager.get_connection()
     cur = await manager.get_cursor()
     await cur.execute(f"""
                 DELETE FROM guilds
-                WHERE tag IN ({', '.join("?" for _ in tags)})
-                OR name in ({', '.join("?" for _ in names)})
-                """, tags + names)
+                WHERE name IN ({', '.join("?" for _ in names)})
+                OR tag in ({', '.join("?" for _ in tags)})
+                """, names + tags)
     await con.commit()

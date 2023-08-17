@@ -1,4 +1,5 @@
 import re
+from collections.abc import Iterable
 
 from discord import Permissions, Embed
 
@@ -32,13 +33,17 @@ def _get_stars(rank: str) -> str:
     raise ValueError(f"Unknown rank {rank}")
 
 
+def _format_guilds(guilds: Iterable[WynncraftGuild]) -> str:
+    return '\n'.join([f"- {g.name} [{g.tag}]" for g in guilds])
+
+
 class GuildCommand(command.Command):
     def __init__(self):
         super().__init__(
             name="guild",
             aliases=("g",),
-            usage=f"guild <tag | name>",
-            description="Get a wynncraft guild by its tag or name.",
+            usage=f"guild <name|tag>",
+            description="Get a wynncraft guild by its name or tag.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
         )
@@ -62,11 +67,16 @@ class GuildCommand(command.Command):
             guild = possible_guilds[0]
         else:
             exact_matches = [g for g in possible_guilds if g.tag == guild_str or g.name == guild_str]
-            if len(exact_matches) != 1:
+            if not exact_matches:
                 await utils.discord.send_info(event.channel,
-                                              f"Found multiple matches for ``{guild_str}``:\n{possible_guilds}")
+                                              f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(possible_guilds)}")
                 return
-            guild = exact_matches[0]
+            elif len(exact_matches) == 1:
+                guild = exact_matches[0]
+            else:
+                await utils.discord.send_info(event.channel,
+                                              f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(exact_matches)}")
+                return
 
         guild_stats = await wrappers.wynncraftGuild.get_guild_stats(name=guild.name)
         if guild_stats is None:

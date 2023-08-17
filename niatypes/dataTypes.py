@@ -10,9 +10,11 @@ class MinecraftPlayer(NamedTuple):
     uuid: str
     name: str
 
+
 class WynncraftGuild(NamedTuple):
-    tag: str
     name: str
+    tag: str
+
 
 @dataclass(frozen=True)
 class CommandEvent:
