@@ -37,7 +37,7 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
         handlers.logging.log_error("Missing perms for log channel for guild server!")
         return
 
-    prev_names_dict = {p.uuid: p.name for p in prev_names if p is not None}
+    prev_names_dict = {p.uuid: p.name for p in prev_names}
 
     guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
     guild_members = {m.uuid.replace("-", ""): m.name for m in guild.members}
@@ -63,32 +63,33 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
             await channel.send(embeds=embeds[i:i + 10])
 
 
+async def _fetch_and_update_username(username: str):
+    p = await wrappers.api.minecraft.get_player(username=username)
+    prev_p = None
+
+    if p is None:
+        handlers.logging.log_debug(f"{username} not a minecraft name but online on wynncraft!")
+    else:
+        prev_p = wrappers.storage.usernameData.update(p.uuid, p.name)
+
+    return p, prev_p
+
+
 async def _update_usernames(client: Client):
     if _unknown_players.empty():
         return
 
-    prev_names = []
-    updated_names = []
+    calls = wrappers.api.minecraft._usernames_rate_limit.calculate_remaining_calls()
+    if calls > 20:
+        handlers.logging.log_debug(f"Updating {calls} minecraft usernames.")
+    # TODO use usernames endpoint if a lot of usernames
 
-    # utils.logging.log_debug(f"Updating {min(_unknown_players.qsize(), 200)} minecraft usernames.")
+    res = await asyncio.gather(*(_fetch_and_update_username(_unknown_players.get()) for _ in range(0, calls)))
 
-    for i in range(0, min((_unknown_players.qsize() + 9) // 10, 20)):
-        unknown_players_batch = [_unknown_players.get() for _ in range(0, min(_unknown_players.qsize(), 10))]
-
-        res = await wrappers.api.minecraft.get_players_from_usernames(unknown_players_batch,
-                                                                      reservation_id=_reservation_id)
-        prev_names += await asyncio.gather(
-            *(wrappers.storage.usernameData.update(uuid, name) for uuid, name in res))
-
-        for name in unknown_players_batch:
-            if not any(name == t_name for _, t_name in res):
-                handlers.logging.log_debug(f"{name} not a minecraft name but online on wynncraft!")
-
-        updated_names += res
+    updated_names = [r[0] for r in res if r[0] is not None]
+    prev_names = [r[1] for r in res if r[1] is not None]
 
     await _notify_guild_member_name_changes(client, prev_names, updated_names)
-
-    wrappers.api.minecraft._usernames_rate_limit.free(_reservation_id)
 
 
 @tasks.loop(minutes=1, reconnect=True)
@@ -108,7 +109,7 @@ async def update_players(client: Client):
 
     except Exception as ex:
         await handlers.logging.log_exception(ex)
-        await asyncio.sleep(60)  # Wait here so the loop reconnect doesn't trigger a RateLimitException directly
+        await asyncio.sleep(60)  # Wait here so the loop reconnect doesn't trigger a RateLimitException instantly
         raise ex
 
 

@@ -6,7 +6,6 @@ from . import sessionManager
 from handlers import rateLimit
 
 _nasa_rate_limit = rateLimit.RateLimit(1000, 60)
-rateLimit.register_ratelimit(_nasa_rate_limit)
 
 _nasa_api_session_id = sessionManager.register_session("https://api.nasa.gov")
 

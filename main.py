@@ -112,7 +112,6 @@ update_presence.add_exception_type(
 
 
 def start_scheduling():
-    handlers.rateLimit.ratelimit_updater.start()
     wrappers.storage.playtimeData.update_playtimes.start()
     update_presence.start()
     handlers.nerfuria.wynnGuild.update_guild.start(client=client)
@@ -126,7 +125,6 @@ def stop_scheduling():
     handlers.nerfuria.wynnGuild.update_guild.stop()
     update_presence.stop()
     wrappers.storage.playtimeData.update_playtimes.stop()
-    handlers.rateLimit.ratelimit_updater.stop()
 
 
 def main():

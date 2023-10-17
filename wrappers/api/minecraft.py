@@ -1,14 +1,11 @@
 from http import HTTPStatus
 
+from handlers import rateLimit, reservableRateLimit
 from niatypes.dataTypes import MinecraftPlayer
 from . import sessionManager
-from handlers import rateLimit, reservableRateLimit
 
-# TODO create accessing methods for reservations
-_mojang_rate_limit = rateLimit.RateLimit(60, 1)
-rateLimit.register_ratelimit(_mojang_rate_limit)
-_usernames_rate_limit = reservableRateLimit.ReservableRateLimit(20, 0)
-rateLimit.register_ratelimit(_usernames_rate_limit)
+_mojang_rate_limit = rateLimit.RateLimit(600, 10)
+_usernames_rate_limit = reservableRateLimit.ReservableRateLimit(20, 1)
 
 _mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")
 
@@ -48,7 +45,7 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
             return MinecraftPlayer(json["id"], json["name"])
 
 
-async def get_players_from_usernames(usernames: list[str], reservation_id: int = -1) -> list[MinecraftPlayer] | None:
+async def get_players_from_usernames(usernames: list[str]) -> list[MinecraftPlayer] | None:
     """
     Get the minecraft uuids of up to 10 users via the usernames.
 
@@ -60,13 +57,8 @@ async def get_players_from_usernames(usernames: list[str], reservation_id: int =
     if len(usernames) > 10:
         raise TypeError("usernames list can't contain more than 10 items!")
 
-    if reservation_id == -1:
-        rlimit = _usernames_rate_limit
-    else:
-        rlimit = _usernames_rate_limit.get_reservation(reservation_id)
-
     session = sessionManager.get_session(_mojang_api_session_id)
-    with rlimit:
+    with _usernames_rate_limit:
         async with session.post(f"/profiles/minecraft", json=usernames) as resp:
             if resp.status == HTTPStatus.NOT_FOUND:
                 return None

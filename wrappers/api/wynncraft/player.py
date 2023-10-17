@@ -9,7 +9,6 @@ from . import wynnAPI
 from handlers import rateLimit
 
 player_rate_limit = rateLimit.RateLimit(750, 30)
-rateLimit.register_ratelimit(player_rate_limit)
 
 
 @dataclass(frozen=True)
