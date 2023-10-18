@@ -44,3 +44,6 @@ async def init_sessions():
 async def close():
     for session in _sessions.values():
         await session.close()
+
+    global _initialized
+    _initialized = False
