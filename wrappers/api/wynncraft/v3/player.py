@@ -1,7 +1,7 @@
 import aiohttp.client_exceptions
 from async_lru import alru_cache
 
-from niatypes.wynncraft.v3.player import Stats, CharacterShort, AbilityMap
+from niatypes.wynncraft.v3.player import PlayerStats, CharacterShort, AbilityMap
 from wrappers.api.wynncraft.v3 import session
 
 
@@ -14,7 +14,7 @@ class HiddenProfileException(Exception):
 
 
 @alru_cache(ttl=120)
-async def stats(player: str, full_result: bool = False) -> Stats:
+async def stats(player: str, full_result: bool = False) -> PlayerStats:
     """
     Request public statistical information about the specified player.
     :param player: Either the username or the uuid in dashed form (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
@@ -32,7 +32,7 @@ async def stats(player: str, full_result: bool = False) -> Stats:
     if len(data) == 0 or data['username'] is None:
         raise UnknownPlayerException(f'Player {player} not found.')
 
-    return Stats.from_json(data)
+    return PlayerStats.from_json(data)
 
 
 @alru_cache(ttl=120)
