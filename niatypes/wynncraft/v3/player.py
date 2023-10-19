@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from niatypes.jsonable import Jsonable
+from niatypes.jsonableDataclass import JsonableDataclass
 
 
 @dataclass(frozen=True)
-class CharacterStats(Jsonable):
+class CharacterStats(JsonableDataclass):
     type: str
     nickname: str
     level: int
@@ -22,7 +22,7 @@ class CharacterStats(Jsonable):
     discoveries: int
 
     @dataclass(frozen=True)
-    class _Pvp(Jsonable):
+    class _Pvp(JsonableDataclass):
         kills: int
         deaths: int
 
@@ -31,21 +31,21 @@ class CharacterStats(Jsonable):
     skillPoints: dict[str, int]
 
     @dataclass(frozen=True)
-    class _Profession(Jsonable):
+    class _Profession(JsonableDataclass):
         level: int
         xpPercent: int
 
     professions: dict[str, _Profession]
 
     @dataclass(frozen=True)
-    class _Dungeons(Jsonable):
+    class _Dungeons(JsonableDataclass):
         total: int
         list: dict[str, int]  # dungeon name: completions
 
     dungeons: _Dungeons
 
     @dataclass(frozen=True)
-    class _Raids(Jsonable):
+    class _Raids(JsonableDataclass):
         total: int
         list: dict[str, int]  # raid name: completions
 
@@ -54,7 +54,7 @@ class CharacterStats(Jsonable):
 
 
 @dataclass(frozen=True)
-class PlayerStats(Jsonable):
+class PlayerStats(JsonableDataclass):
     username: str
     online: bool
     server: str
@@ -63,7 +63,7 @@ class PlayerStats(Jsonable):
     rankBadge: str  # URL to the badge SVG in the Wynncraft CDN (only path)
 
     @dataclass(frozen=True)
-    class _LegacyRankColour(Jsonable):
+    class _LegacyRankColour(JsonableDataclass):
         main: str
         sub: str
 
@@ -75,7 +75,7 @@ class PlayerStats(Jsonable):
     playtime: int
 
     @dataclass(frozen=True)
-    class _Guild(Jsonable):
+    class _Guild(JsonableDataclass):
         name: str
         prefix: str
         rank: str
@@ -84,21 +84,21 @@ class PlayerStats(Jsonable):
     guild: _Guild
 
     @dataclass(frozen=True)
-    class _GlobalData(Jsonable):
+    class _GlobalData(JsonableDataclass):
         wars: int
         totalLevels: int
         killedMobs: int
         chestsFound: int
 
         @dataclass(frozen=True)
-        class _Dungeons(Jsonable):
+        class _Dungeons(JsonableDataclass):
             total: int
             list: dict[str, int]  # dungeon name: completions
 
         dungeons: _Dungeons
 
         @dataclass(frozen=True)
-        class _Raids(Jsonable):
+        class _Raids(JsonableDataclass):
             total: int
             list: dict[str, int]  # raid name: completions
 
@@ -106,7 +106,7 @@ class PlayerStats(Jsonable):
         completedQuests: int
 
         @dataclass(frozen=True)
-        class _Pvp(Jsonable):
+        class _Pvp(JsonableDataclass):
             kills: int
             deaths: int
 
@@ -115,7 +115,7 @@ class PlayerStats(Jsonable):
     globalData: _GlobalData
 
     @dataclass(frozen=True)
-    class _ForumLink(Jsonable):
+    class _ForumLink(JsonableDataclass):
         forumUsername: str
         forumId: int
         gameUsername: str
@@ -127,7 +127,7 @@ class PlayerStats(Jsonable):
 
 
 @dataclass(frozen=True)
-class CharacterShort(Jsonable):
+class CharacterShort(JsonableDataclass):
     type: str
     nickname: str
     level: int
@@ -138,22 +138,22 @@ class CharacterShort(Jsonable):
 
 
 @dataclass(frozen=True)
-class AbilityMap(Jsonable):
+class AbilityMap(JsonableDataclass):
     pages: int
 
     @dataclass(frozen=True)
-    class _AbilityMapPiece(Jsonable):
+    class _AbilityMapPiece(JsonableDataclass):
         type: str
 
         @dataclass(frozen=True)
-        class _Coordinates(Jsonable):
+        class _Coordinates(JsonableDataclass):
             x: int
             y: int
 
         coordinates: _Coordinates
 
         @dataclass(frozen=True)
-        class _Meta(Jsonable):
+        class _Meta(JsonableDataclass):
             icon: str  # Minecraft legacy item id e.g. 275:67
             page: int
             id: str  # Internal id of the ability, abilities in AT response are refered by the same id

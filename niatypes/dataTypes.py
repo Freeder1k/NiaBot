@@ -4,6 +4,7 @@ from typing import NamedTuple
 import discord
 
 from niatypes.enums import NiaRank
+from niatypes.simpleJsonable import SimpleJsonable
 
 
 class MinecraftPlayer(NamedTuple):
@@ -14,6 +15,12 @@ class MinecraftPlayer(NamedTuple):
 class WynncraftGuild(NamedTuple):
     name: str
     tag: str
+
+
+@dataclass(frozen=True)
+class Point2D(SimpleJsonable):
+    x: int
+    z: int
 
 
 @dataclass(frozen=True)

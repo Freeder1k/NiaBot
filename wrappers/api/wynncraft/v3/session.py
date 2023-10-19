@@ -1,12 +1,13 @@
 from handlers import reservableRateLimit
 from handlers.rateLimit import RateLimit
+from niatypes.jsonable import JsonType
 from wrappers.api import sessionManager
 
 _rate_limit = reservableRateLimit.ReservableRateLimit(300, 1)
 _v3_session_id = sessionManager.register_session("https://api.wynncraft.com")
 
 
-async def get(url: str, **params: str) -> dict:
+async def get(url: str, **params: str) -> JsonType:
     """
     Send a GET request to the wynncraft API V3. This has a ratelimit of 300 requests per minute.
     :param url: The url of the request. Must start with '/'.
