@@ -19,7 +19,7 @@ class Jsonable(ABC):
         pass
 
     @staticmethod
-    def json_to_cls(cls: Type[T] | types.GenericAlias[T], json_obj: JsonType) -> T:
+    def json_to_cls(cls: Type[T], json_obj: JsonType) -> T:
         if isinstance(json_obj, JsonBaseType):
             if json_obj is None or (issubclass(cls, JsonBaseType) and isinstance(json_obj, cls)):
                 return json_obj
