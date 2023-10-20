@@ -13,7 +13,7 @@ class HiddenProfileException(Exception):
     pass
 
 
-@alru_cache(ttl=120)
+@alru_cache(maxsize=None, ttl=120)
 async def stats(player: str, full_result: bool = False) -> PlayerStats:
     """
     Request public statistical information about the specified player.
@@ -35,7 +35,7 @@ async def stats(player: str, full_result: bool = False) -> PlayerStats:
     return PlayerStats.from_json(data)
 
 
-@alru_cache(ttl=120)
+@alru_cache(maxsize=None, ttl=120)
 async def characters(player: str) -> dict[str, CharacterShort]:
     """
     Request a list of short info on the specified players characters.
@@ -54,7 +54,7 @@ async def characters(player: str) -> dict[str, CharacterShort]:
     return {uuid: CharacterShort.from_json(data) for uuid, data in data.items()}
 
 
-@alru_cache(ttl=600)
+@alru_cache(maxsize=None, ttl=600)
 async def abilities(player: str, character_uuid: str) -> AbilityMap:
     """
     Request the ability map of the specified character.
@@ -76,7 +76,15 @@ async def abilities(player: str, character_uuid: str) -> AbilityMap:
 
     return AbilityMap.from_json(data)
 
+
 @alru_cache(ttl=30)
-async def player_list() -> dict:
+async def _online_players() -> dict:
     return await session.get(f"/player")
 
+
+async def player_list() -> dict[str, str]:
+    return (await _online_players())['players']
+
+
+async def player_count() -> int:
+    return (await _online_players())['total']

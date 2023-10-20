@@ -9,7 +9,7 @@ class UnknownGuildException(Exception):
     pass
 
 
-@alru_cache(ttl=600)
+@alru_cache(maxsize=None, ttl=600)
 async def stats(*, guild_name: str = None, guild_prefix: str = None) -> GuildStats:
     """
     Request public statistical information about the specified guild. Exactly one of the arguments must be specified.

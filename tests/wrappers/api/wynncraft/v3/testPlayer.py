@@ -53,6 +53,11 @@ class TestPlayer(unittest.IsolatedAsyncioTestCase):
         print(player_list)
         self.assertIsNotNone(player_list)
 
+    async def test_player_count(self):
+        player_count = await player.player_count()
+        print(player_count)
+        self.assertIsInstance(player_count, int)
+
 
 if __name__ == '__main__':
     unittest.main()
