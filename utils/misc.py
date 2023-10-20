@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import TypeVar, Any, Type
 
 from handlers.logging import log_error
+from niatypes.enums import AnsiFormat
 
 
 def parse_name(nickname: str):
@@ -132,3 +133,7 @@ def get_dashed_uuid(uuid: str) -> str:
         raise ValueError("uuid parameter must be a string of length 32")
 
     return f"{uuid[0:8]}-{uuid[8:12]}-{uuid[12:16]}-{uuid[16:20]}-{uuid[20:32]}"
+
+
+def ansi_format(*formatting: AnsiFormat):
+    return f"\u001b[{';'.join((str(f.value) for f in formatting))}m"

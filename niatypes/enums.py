@@ -40,3 +40,28 @@ class NiaRank(Enum):
     LUMINA =          (WynnGuildRank.NONE, NiaGroup.LUMEN)
     LUX =             (WynnGuildRank.NONE, NiaGroup.LUMEN)
     LUX_NOVIAN =      (WynnGuildRank.NONE, NiaGroup.LUMEN)
+
+
+class AnsiFormat(Enum):
+    RESET = 0
+
+    BOLD = 1
+    UNDERLINE = 4
+
+    FG_GRAY = 30
+    FG_RED = 31
+    FG_GREEN = 32
+    FG_YELLOW = 33
+    FG_BLUE = 34
+    FG_PINK = 35
+    FG_CYAN = 36
+    FG_WHITE = 37
+
+    BG_FIREFLY_DARK_BLUE = 40
+    BG_ORANGE = 41
+    BG_MARBLE_BLUE = 42
+    BG_GREYISH_TURQUOISE = 43
+    BG_GRAY = 44
+    BG_INDIGO = 45
+    BG_LIGHT_GRAY = 46
+    BG_WHITE = 47
