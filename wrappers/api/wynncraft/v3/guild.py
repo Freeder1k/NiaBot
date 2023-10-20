@@ -10,25 +10,25 @@ class UnknownGuildException(Exception):
 
 
 @alru_cache(maxsize=None, ttl=600)
-async def stats(*, guild_name: str = None, guild_prefix: str = None) -> GuildStats:
+async def stats(*, guild_name: str = None, guild_tag: str = None) -> GuildStats:
     """
     Request public statistical information about the specified guild. Exactly one of the arguments must be specified.
     :param guild_name: The name of the guild.
-    :param guild_prefix: The prefix of the guild.
+    :param guild_tag: The tag of the guild.
     :returns: A Stats object.
     :raises UnknownGuildException: if the guild wasn't found.
     """
-    if (guild_name is None) and (guild_prefix is not None):
-        url = f"/guild/prefix/{guild_prefix}"
-    elif (guild_name is not None) and (guild_prefix is None):
+    if (guild_name is None) and (guild_tag is not None):
+        url = f"/guild/prefix/{guild_tag}"
+    elif (guild_name is not None) and (guild_tag is None):
         url = f"/guild/{guild_name}"
     else:
-        raise TypeError("Exactly one argument (either name or prefix) must be provided.")
+        raise TypeError("Exactly one argument (either name or tag) must be provided.")
 
     data = await session.get(url, identifier='uuid')
 
     if len(data) == 0 or data['name'] is None:
-        raise UnknownGuildException(f'Guild with guild_name={guild_name}, prefix={guild_prefix} not found.')
+        raise UnknownGuildException(f'Guild with guild_name={guild_name}, tag={guild_tag} not found.')
 
     return GuildStats.from_json(data)
 

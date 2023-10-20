@@ -17,7 +17,7 @@ class TestGuild(unittest.IsolatedAsyncioTestCase):
         print(stats1)
         self.assertIsNotNone(stats1)
 
-        stats2 = await guild.stats(guild_prefix='Nia')
+        stats2 = await guild.stats(guild_tag='Nia')
         print(stats2)
         self.assertIsNotNone(stats2)
 
@@ -25,7 +25,7 @@ class TestGuild(unittest.IsolatedAsyncioTestCase):
             await guild.stats(guild_name='a')
 
         with self.assertRaises(guild.UnknownGuildException):
-            await guild.stats(guild_prefix='a')
+            await guild.stats(guild_tag='a')
 
     async def test_guild_list(self):
         glist = await guild.list_guilds()

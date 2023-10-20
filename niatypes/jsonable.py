@@ -1,12 +1,12 @@
 import types
 from abc import ABC, abstractmethod
-from typing import Union, Type
+from typing import Union, Type, TypeVar
 
 from handlers.logging import log_error
 
 JsonBaseType = Union[int, float, str, bool, None]
-
 JsonType = Union[dict[str, 'JsonType'], list['JsonType'], JsonBaseType]
+T = TypeVar("T")
 
 
 class Jsonable(ABC):
@@ -19,7 +19,7 @@ class Jsonable(ABC):
         pass
 
     @staticmethod
-    def json_to_cls(cls: Type | types.GenericAlias, json_obj: JsonType):
+    def json_to_cls(cls: Type[T] | types.GenericAlias[T], json_obj: JsonType) -> T:
         if isinstance(json_obj, JsonBaseType):
             if json_obj is None or (issubclass(cls, JsonBaseType) and isinstance(json_obj, cls)):
                 return json_obj

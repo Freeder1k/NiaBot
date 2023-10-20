@@ -11,7 +11,6 @@ import handlers.logging
 import handlers.nerfuria.wynnGuild
 import handlers.rateLimit
 import handlers.rateLimit
-import handlers.wynncraft.guilds
 import handlers.wynncraft.onlinePlayers
 import wrappers.api.sessionManager
 import wrappers.api.wynncraft.network
@@ -116,11 +115,9 @@ def start_scheduling():
     update_presence.start()
     handlers.nerfuria.wynnGuild.update_guild.start(client=client)
     handlers.wynncraft.onlinePlayers.update_players.start(client=client)
-    handlers.wynncraft.guilds.update_guilds.start()
 
 
 def stop_scheduling():
-    handlers.wynncraft.guilds.update_guilds.stop()
     handlers.wynncraft.onlinePlayers.update_players.stop()
     handlers.nerfuria.wynnGuild.update_guild.stop()
     update_presence.stop()
