@@ -39,10 +39,6 @@ async def init_database():
                         uuid TEXT NOT NULL COLLATE NOCASE,
                         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
                     );
-                    CREATE TABLE IF NOT EXISTS guilds(
-                        name TEXT PRIMARY KEY NOT NULL COLLATE BINARY,
-                        tag TEXT NOT NULL COLLATE BINARY
-                    );
     """)
 
 
