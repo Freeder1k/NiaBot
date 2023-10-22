@@ -1,40 +1,86 @@
 import re
 from collections.abc import Iterable
 
+from async_lru import alru_cache
 from discord import Permissions, Embed
 
 import utils.discord
-import wrappers.api.wynncraft.guild
-import wrappers.api.wynncraft.network
+import wrappers.api.wynncraft.v3.player
 import wrappers.wynncraftGuild
 from handlers.commands import command
 from niatypes.dataTypes import CommandEvent, WynncraftGuild
-from wrappers import botConfig, minecraftPlayer
+from utils import tableBuilder
+from wrappers import botConfig
+from wrappers import minecraftPlayer
+import wrappers.api.wynncraft.network
+import utils.misc
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}$')
 
-_star = "*"
-
-
-def _get_stars(rank: str) -> str:
-    match rank:
-        case "OWNER":
-            return _star * 5
-        case "CHIEF":
-            return _star * 4
-        case "STRATEGIST":
-            return _star * 3
-        case "CAPTAIN":
-            return _star * 2
-        case "RECRUITER":
-            return _star
-        case "RECRUIT":
-            return ""
-    raise ValueError(f"Unknown rank {rank}")
+_star = "★"
 
 
 def _format_guilds(guilds: Iterable[WynncraftGuild]) -> str:
     return '\n'.join([f"- {g.name} [{g.tag}]" for g in guilds])
+
+
+@alru_cache(ttl=60)
+async def _create_guild_embed(guild: WynncraftGuild):
+    guild_stats = await wrappers.wynncraftGuild.get_guild_stats(name=guild.name)
+    if guild_stats is None:
+        return None
+
+    embed = Embed(
+        description=f"# [{guild_stats.prefix}] {guild_stats.name}\n"
+                    f"Created: {guild_stats.created}\n"
+                    f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
+        color=botConfig.DEFAULT_COLOR
+    )
+    # TODO create own implementation
+    embed.set_thumbnail(url=f'https://wynn-guild-banner.toki317.dev/banners/{guild_stats.name.replace(" ", "%20")}')
+
+    embed.add_field(name="Guild level", value=f"{guild_stats.level} ({guild_stats.xpPercent}%)", inline=True)
+    embed.add_field(name="Members", value=guild_stats.members.total, inline=True)
+    embed.add_field(name="", value="", inline=True)
+    embed.add_field(name="Territories", value=guild_stats.territories, inline=True)
+    embed.add_field(name="Total wars", value=guild_stats.wars, inline=True)
+    embed.add_field(name="Season rating", value=guild_stats.seasonRanks[max(guild_stats.seasonRanks.keys())].rating,
+                    inline=True)
+
+    embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)
+
+    # TODO api v3 broken here, update when fixed
+    # plist = await wrappers.api.wynncraft.v3.player.player_list()
+    plist = await wrappers.api.wynncraft.network.server_list()
+    plist = {name: world for world in plist.keys() for name in plist[world]}
+
+    player_list = {await minecraftPlayer.get_player(username=name): world for name, world in
+                   plist.items()}
+
+    names_map = {utils.misc.get_dashed_uuid(p.uuid): p.name for p in player_list.keys()}
+
+    uuid_list = {utils.misc.get_dashed_uuid(p.uuid): world for p, world in player_list.items() if p is not None}
+
+    online_members = [(f"{5 * _star}{names_map[uuid]}", uuid_list[uuid])
+                      for uuid in guild_stats.members.owner.keys() if uuid in uuid_list] \
+                     + [(f"{4 * _star}{names_map[uuid]}", uuid_list[uuid])
+                        for uuid in guild_stats.members.chief.keys() if uuid in uuid_list] \
+                     + [(f"{3 * _star}{names_map[uuid]}", uuid_list[uuid])
+                        for uuid in guild_stats.members.strategist.keys() if uuid in uuid_list] \
+                     + [(f"{2 * _star}{names_map[uuid]}", uuid_list[uuid])
+                        for uuid in guild_stats.members.captain.keys() if uuid in uuid_list] \
+                     + [(f"{1 * _star}{names_map[uuid]}", uuid_list[uuid])
+                        for uuid in guild_stats.members.recruiter.keys() if uuid in uuid_list] \
+                     + [(f"{0 * _star}{names_map[uuid]}", uuid_list[uuid])
+                        for uuid in guild_stats.members.recruit.keys() if uuid in uuid_list]
+
+    table_builder = tableBuilder.TableBuilder.from_str('l   r')
+    [table_builder.add_row(*t) for t in online_members]
+
+    # TODO split
+    embed.add_field(name=f"Online members ({len(online_members)})", value=f">>> ```\n{table_builder.build()}```")
+
+    return embed
 
 
 class GuildCommand(command.Command):
@@ -78,41 +124,9 @@ class GuildCommand(command.Command):
                                               f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(exact_matches)}")
                 return
 
-        guild_stats = await wrappers.wynncraftGuild.get_guild_stats(name=guild.name)
-        if guild_stats is None:
+        embed = await _create_guild_embed(guild)
+        if embed is None:
             await utils.discord.send_error(event.channel, f"Failed to retrieve stats for guild ``{guild_str}``")
             return
-
-        embed = Embed(
-            title=f"**Stats for {guild_stats.name}:**",
-            description="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
-            color=botConfig.DEFAULT_COLOR
-        )
-        embed.add_field(name="Tag", value=guild_stats.prefix, inline=False)
-        embed.add_field(name="Member count", value=len(guild_stats.members), inline=False)
-        embed.add_field(name="Level", value=f"{guild_stats.level} ({guild_stats.xp}%)", inline=False)
-        embed.add_field(name="Created ", value=guild_stats.created, inline=False)
-        embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)
-
-        server_list = await wrappers.api.wynncraft.network.server_list()
-
-        online_members = []
-        max_l_len = 0
-
-        for world, plist in server_list.items():
-            online_players = {p.uuid: p.name for p in
-                              (await minecraftPlayer.get_players(usernames=plist))}
-
-            for m in guild_stats.members:
-                uuid = m.uuid.replace("-", "").lower()
-                if uuid in online_players:
-                    name = _get_stars(m.rank) + online_players[uuid]
-                    online_members.append((name, world))
-                    max_l_len = max(max_l_len, len(name))
-
-        online_members = [x for x in sorted(online_members, key=lambda item: item[0])]
-
-        utils.discord.add_table_fields(embed, max_l_len, 4, False,
-                                       (("Online members:", online_members),))
 
         await event.channel.send(embed=embed)
