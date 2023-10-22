@@ -1,13 +1,83 @@
-from datetime import timedelta, datetime, timezone
+import asyncio
+from datetime import timedelta, datetime, timezone, date
+from typing import Iterable
 
+from async_lru import alru_cache
 from discord import Permissions, Embed
 
-import utils.discord
 import wrappers.api.wynncraft.guild
+import wrappers.api.wynncraft.v3.guild
 import wrappers.storage.playtimeData
-from niatypes.dataTypes import CommandEvent
 from handlers.commands import command
+from niatypes.dataTypes import CommandEvent
+from niatypes.wynncraft.v3.guild import GuildStats
+from utils.tableBuilder import TableBuilder
 from wrappers import botConfig, minecraftPlayer
+
+
+async def _get_playtime(uuid: str, d1: date, d2: date):
+    p: minecraftPlayer = await minecraftPlayer.get_player(uuid=uuid)
+    if p is None:
+        return uuid, 0
+
+    d1 = await wrappers.storage.playtimeData.get_first_date_after_from_uuid(d1, uuid)
+    d2 = await wrappers.storage.playtimeData.get_first_date_after_from_uuid(d2, uuid)
+    if d1 is None or d2 is None:
+        return p.name, 0
+
+    pt1 = await wrappers.storage.playtimeData.get_playtime(uuid, d1)
+    pt2 = await wrappers.storage.playtimeData.get_playtime(uuid, d2)
+
+    if pt1 is None or pt2 is None:
+        return p.name, 0
+    else:
+        return p.name, pt2.playtime - pt1.playtime
+
+
+async def _get_playtimes(uuids: Iterable[str], d1: date, d2: date):
+    uuids = [uuid.replace("-", "") for uuid in uuids]
+
+    playtimes = await asyncio.gather(*(_get_playtime(uuid, d1, d2) for uuid in uuids))
+    return sorted(playtimes, key=lambda t: t[1], reverse=True)
+
+
+@alru_cache(ttl=600)
+async def _create_activity_embed():
+    guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(guild_name=botConfig.GUILD_NAME)
+    today = datetime.now(timezone.utc).date()
+    last_week = today - timedelta(days=7)
+
+    playtimes = {
+        "OWNER": await _get_playtimes(guild.members.owner.keys(), last_week, today),
+        "CHIEF": await _get_playtimes(guild.members.chief.keys(), last_week, today),
+        "STRATEGIST": await _get_playtimes(guild.members.strategist.keys(), last_week, today),
+        "CAPTAIN": await _get_playtimes(guild.members.captain.keys(), last_week, today),
+        "RECRUITER": await _get_playtimes(guild.members.recruiter.keys(), last_week, today),
+        "RECRUIT": await _get_playtimes(guild.members.recruit.keys(), last_week, today)
+    }
+
+    embed = Embed(
+        color=botConfig.DEFAULT_COLOR,
+        title="**Weekly Playtimes in Nia**",
+        description='⎯' * 32,
+        timestamp=datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
+    )
+    embed.set_footer(text="Last update")
+
+    tb = TableBuilder.from_str('l r')
+    ranks = []
+    for k, v in playtimes.items():
+        if len(v) == 0:
+            continue
+        ranks.append(k)
+        tb.add_row('$', '$')
+        [tb.add_row(t[0], f"{t[1]} min") for t in v]
+
+    tables = tb.build().split(f"${' ' * (tb.get_width() - 2)}$\n")[1:]
+    for i, table in enumerate(tables):
+        embed.add_field(name=ranks[i], value=f">>> ```\n{table}```", inline=False)
+
+    return embed
 
 
 class ActivityCommand(command.Command):
@@ -23,63 +93,5 @@ class ActivityCommand(command.Command):
 
     async def _execute(self, event: CommandEvent):
         async with event.channel.typing():
-            guild = await wrappers.api.wynncraft.guild.stats("Nerfuria")
-            today = datetime.now(timezone.utc).date()
-            last_week = today - timedelta(days=7)
-
-            playtimes = {
-                "OWNER": {},
-                "CHIEF": {},
-                "STRATEGIST": {},
-                "CAPTAIN": {},
-                "RECRUITER": {},
-                "RECRUIT": {}
-            }
-
-            longest_name_len = 0
-            longest_pt_len = 0
-
-            names = {uuid: name for uuid, name in
-                     await minecraftPlayer.get_players(uuids=[m.uuid for m in guild.members])}
-
-            for m in guild.members:
-                name = names.get(m.uuid.replace("-", "").lower(), m.name)
-
-                prev_date = await wrappers.storage.playtimeData.get_first_date_after_from_uuid(last_week, m.uuid)
-                if prev_date is None:
-                    continue
-                prev_pt = await wrappers.storage.playtimeData.get_playtime(m.uuid, prev_date)
-                today_pt = await wrappers.storage.playtimeData.get_playtime(m.uuid, today)
-
-                if prev_pt is None:
-                    playtime = 0
-                else:
-                    playtime = today_pt.playtime - prev_pt.playtime
-                playtimes[m.rank][name] = playtime
-
-                longest_name_len = max(len(name), longest_name_len)
-                longest_pt_len = max(len(str(playtime)), longest_pt_len)
-
-            for k, v in playtimes.items():
-                playtimes[k] = \
-                    {name: playtime for name, playtime in sorted(v.items(), key=lambda item: item[1], reverse=True)}
-
-            embed = Embed(
-                color=botConfig.DEFAULT_COLOR,
-                title="**Weekly Playtimes in Nia**",
-                description='⎯' * 32,
-                timestamp=datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
-            )
-
-            utils.discord.add_table_fields(
-                base_embed=embed,
-                max_l_len=longest_name_len,
-                max_r_len=longest_pt_len + 4,
-                splitter=False,
-                fields=[(fname, [(name, f"{playtime} min") for name, playtime in val.items()]) for fname, val in
-                        playtimes.items()]
-            )
-
-            embed.set_footer(text="Last update")
-
-        await event.channel.send(embed=embed)
+            embed = await _create_activity_embed()
+            await event.channel.send(embed=embed)
