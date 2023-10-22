@@ -89,6 +89,18 @@ class TableBuilder:
     def build(self) -> str:
         return '\n'.join([row.build(self) for row in self.rows])
 
+    def get_width(self) -> int:
+        width = 0
+        cur_col = 0
+        for col in self.columns:
+            match col:
+                case '|' | ' ':
+                    width += 1
+                case 'r' | 'c' | 'l':
+                    width += self.row_widths[cur_col]
+                    cur_col += 1
+        return width
+
     @classmethod
     def from_str(cls, colum_formats: str):
         return cls(*(TableColumnFormat(c) for c in colum_formats))
