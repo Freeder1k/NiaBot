@@ -17,6 +17,7 @@ from handlers import serverConfig
 from niatypes.dataTypes import MinecraftPlayer
 from wrappers import botConfig
 from wrappers.storage import guildMemberLogData
+import wrappers.api.wynncraft.v3.player
 
 _online_players: set[str] = set()
 _unknown_players: Queue[str] = Queue()
@@ -68,18 +69,19 @@ async def _fetch_and_update_username(username: str):
     prev_p = None
 
     if p is None:
-        handlers.logging.log_debug(f"{username} not a minecraft name but online on wynncraft!")
+        handlers.logging.log_debug(f"{username} is not a minecraft name but online on wynncraft!")
     else:
-        prev_p = wrappers.storage.usernameData.update(p.uuid, p.name)
+        prev_p = await wrappers.storage.usernameData.update(p.uuid, p.name)
 
     return p, prev_p
 
 
 async def _update_usernames(client: Client):
-    if _unknown_players.empty():
+    if _unknown_players.qsize() == 0:
         return
 
-    calls = wrappers.api.minecraft._usernames_rate_limit.calculate_remaining_calls()
+    max_calls = wrappers.api.minecraft._mojang_rate_limit.calculate_remaining_calls()
+    calls = min(max_calls, _unknown_players.qsize())
     if calls > 20:
         handlers.logging.log_debug(f"Updating {calls} minecraft usernames.")
     # TODO use usernames endpoint if a lot of usernames
@@ -97,6 +99,8 @@ async def update_players(client: Client):
     try:
         global _online_players
         prev_online_players = _online_players
+        # TODO API v3 broken, still use old api here
+        #_online_players = (await wrappers.api.wynncraft.v3.player.player_list()).keys()
         _online_players = await wrappers.api.wynncraft.network.online_players()
         joined_players = _online_players - prev_online_players
 
