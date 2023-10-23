@@ -41,7 +41,7 @@ class RateLimit:
             self._curr_call_amount -= 1
             curr_time = time.time()
 
-            while len(self._calls) > 0 and self._calls[-1] - curr_time >= self._period * 60:
+            while len(self._calls) > 0 and self._calls[0] - curr_time >= self._period * 60:
                 self._calls.popleft()
 
             self._calls.append(curr_time)
@@ -58,6 +58,9 @@ class RateLimit:
         self._calls.extend([curr_time] * amount_not_used)
 
     def calculate_usage(self) -> int:
+        curr_time = time.time()
+        while len(self._calls) > 0 and self._calls[0] - curr_time >= self._period * 60:
+            self._calls.popleft()
         return len(self._calls) + self._curr_call_amount
 
     def calculate_remaining_calls(self) -> int:
