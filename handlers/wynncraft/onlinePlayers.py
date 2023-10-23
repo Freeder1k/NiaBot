@@ -82,7 +82,7 @@ async def _update_usernames(client: Client):
 
     max_calls = wrappers.api.minecraft._mojang_rate_limit.calculate_remaining_calls()
     calls = min(max_calls, _unknown_players.qsize())
-    if calls > -1:
+    if calls > 10:
         handlers.logging.log_debug(f"Updating {calls} minecraft usernames.")
     # TODO use usernames endpoint if a lot of usernames
 
