@@ -31,7 +31,7 @@ class RateLimit:
          Also catches NonSuccessExceptions and checks for TOO_MANY_REQUESTS code and sets the rate limit to full if so.
         """
         with self._lock:
-            if self.calculate_usage() >= self._max_calls:
+            if self.calculate_remaining_calls() <= 0:
                 raise RateLimitException(f"Rate limit of {self._max_calls} requests per {self._period}min reached!")
 
             self._curr_call_amount += 1
@@ -39,11 +39,8 @@ class RateLimit:
     def __exit__(self, exc_type, exc_val, exc_tb):
         with self._lock:
             self._curr_call_amount -= 1
+
             curr_time = time.time()
-
-            while len(self._calls) > 0 and self._calls[0] - curr_time >= self._period * 60:
-                self._calls.popleft()
-
             self._calls.append(curr_time)
 
             if exc_type is ClientResponseError and exc_val.status == HTTPStatus.TOO_MANY_REQUESTS:
@@ -52,15 +49,17 @@ class RateLimit:
                 raise RateLimitException(
                     f"Rate limited by server! (Request amount: {usage}/{self._max_calls} per {self._period}min)")
 
-    def _set_full(self):
-        amount_not_used = self._max_calls - self.calculate_usage()
+    def _clear_expired_calls(self):
         curr_time = time.time()
-        self._calls.extend([curr_time] * amount_not_used)
+        while len(self._calls) > 0 and curr_time - self._calls[0] >= self._period * 60:
+            self._calls.popleft()
+
+    def _set_full(self):
+        curr_time = time.time()
+        self._calls.extend([curr_time] * self.calculate_remaining_calls())
 
     def calculate_usage(self) -> int:
-        curr_time = time.time()
-        while len(self._calls) > 0 and self._calls[0] - curr_time >= self._period * 60:
-            self._calls.popleft()
+        self._clear_expired_calls()
         return len(self._calls) + self._curr_call_amount
 
     def calculate_remaining_calls(self) -> int:
