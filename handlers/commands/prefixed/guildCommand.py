@@ -95,38 +95,39 @@ class GuildCommand(command.Command):
         )
 
     async def _execute(self, event: CommandEvent):
-        if len(event.args) < 2:
-            await utils.discord.send_error(event.channel, "Please specify a guild!")
-            return
-
-        guild_str = event.message.content.split(" ", 1)[1]
-
-        if not _guild_re.match(guild_str):
-            await utils.discord.send_error(event.channel, f"Invalid guild name or tag``{guild_str}``")
-            return
-
-        possible_guilds: tuple[WynncraftGuild] = await wrappers.wynncraftGuild.find_guilds(guild_str)
-        if not possible_guilds:
-            await utils.discord.send_error(event.channel, f"Couldn't find guild ``{guild_str}``")
-            return
-        if len(possible_guilds) == 1:
-            guild = possible_guilds[0]
-        else:
-            exact_matches = [g for g in possible_guilds if g.tag == guild_str or g.name == guild_str]
-            if not exact_matches:
-                await utils.discord.send_info(event.channel,
-                                              f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(possible_guilds)}")
+        async with event.channel.typing():
+            if len(event.args) < 2:
+                await utils.discord.send_error(event.channel, "Please specify a guild!")
                 return
-            elif len(exact_matches) == 1:
-                guild = exact_matches[0]
+
+            guild_str = event.message.content.split(" ", 1)[1]
+
+            if not _guild_re.match(guild_str):
+                await utils.discord.send_error(event.channel, f"Invalid guild name or tag``{guild_str}``")
+                return
+
+            possible_guilds: tuple[WynncraftGuild] = await wrappers.wynncraftGuild.find_guilds(guild_str)
+            if not possible_guilds:
+                await utils.discord.send_error(event.channel, f"Couldn't find guild ``{guild_str}``")
+                return
+            if len(possible_guilds) == 1:
+                guild = possible_guilds[0]
             else:
-                await utils.discord.send_info(event.channel,
-                                              f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(exact_matches)}")
+                exact_matches = [g for g in possible_guilds if g.tag == guild_str or g.name == guild_str]
+                if not exact_matches:
+                    await utils.discord.send_info(event.channel,
+                                                  f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(possible_guilds)}")
+                    return
+                elif len(exact_matches) == 1:
+                    guild = exact_matches[0]
+                else:
+                    await utils.discord.send_info(event.channel,
+                                                  f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(exact_matches)}")
+                    return
+
+            embed = await _create_guild_embed(guild)
+            if embed is None:
+                await utils.discord.send_error(event.channel, f"Failed to retrieve stats for guild ``{guild_str}``")
                 return
 
-        embed = await _create_guild_embed(guild)
-        if embed is None:
-            await utils.discord.send_error(event.channel, f"Failed to retrieve stats for guild ``{guild_str}``")
-            return
-
-        await event.channel.send(embed=embed)
+            await event.channel.send(embed=embed)
