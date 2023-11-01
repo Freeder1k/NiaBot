@@ -39,6 +39,51 @@ async def init_database():
                         uuid TEXT NOT NULL COLLATE NOCASE,
                         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
                     );
+                    CREATE TABLE IF NOT EXISTS player_tracking (
+                        record_time DATE NOT NULL,
+                        uuid TEXT NOT NULL COLLATE NOCASE,
+                        username TEXT NOT NULL COLLATE NOCASE,
+                        rank TEXT,
+                        support_rank TEXT,
+                        first_join DATE,
+                        last_join DATE,
+                        playtime INTEGER,
+                        guild_name TEXT,
+                        guild_rank TEXT,
+                        wars INTEGER,
+                        total_levels INTEGER,
+                        killed_mobs INTEGER,
+                        chests_found INTEGER,
+                        dungeons_total INTEGER,
+                        dungeons_ds	INTEGER,
+                        dungeons_ip INTEGER,
+                        dungeons_ls INTEGER,
+                        dungeons_uc INTEGER,
+                        dungeons_ss INTEGER,
+                        dungeons_ib INTEGER,
+                        dungeons_gg INTEGER,
+                        dungeons_ur INTEGER,
+                        dungeons_cds INTEGER,
+                        dungeons_cip INTEGER,
+                        dungeons_cls INTEGER,
+                        dungeons_css INTEGER,
+                        dungeons_cuc INTEGER,
+                        dungeons_cgg INTEGER,
+                        dungeons_cur INTEGER,
+                        dungeons_cib INTEGER,
+                        dungeons_ff INTEGER,
+                        dungeons_eo INTEGER,
+                        dungeons_ts INTEGER,
+                        raids_total INTEGER,
+                        raids_notg INTEGER,
+                        raids_nol INTEGER,
+                        raids_tcc INTEGER,
+                        raids_tna INTEGER,
+                        completed_quests INTEGER,
+                        pvp_kills INTEGER,
+                        pvp_deaths INTEGER,
+                        PRIMARY KEY (uuid, record_time)
+                    );
     """)
 
 
@@ -58,6 +103,8 @@ async def get_cursor() -> aiosqlite.Cursor:
 
 
 async def close():
+    global _con
     if _con is None:
         raise RuntimeError("call init_database() first")
     await _con.close()
+    _con = None
