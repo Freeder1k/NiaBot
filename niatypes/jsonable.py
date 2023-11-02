@@ -42,5 +42,10 @@ class Jsonable(ABC):
             elif issubclass(cls, Jsonable):
                 return cls.from_json(json_obj)
 
+        try:
+            return cls(json_obj)
+        except:
+            pass
+
         log_error(f"Couldn't convert {json_obj} to {cls} in json conversion.")
         return json_obj

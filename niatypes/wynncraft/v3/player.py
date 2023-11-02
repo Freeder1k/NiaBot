@@ -64,6 +64,14 @@ class PlayerStats(JsonableDataclass):
 
     @dataclass(frozen=True)
     class _LegacyRankColour(JsonableDataclass):
+        def __init__(self, main = None, sub = None, color = None):
+            if color is None:
+                object.__setattr__(self, "main", main)
+                object.__setattr__(self, "sub", sub)
+            else:
+                object.__setattr__(self, "main", color)
+                object.__setattr__(self, "sub", color)
+
         main: str
         sub: str
 
