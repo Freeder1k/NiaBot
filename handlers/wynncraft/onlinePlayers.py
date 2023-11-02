@@ -13,6 +13,7 @@ import wrappers.api.minecraft
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.network
 import wrappers.api.wynncraft.v3.player
+import wrappers.api.wynncraft.v3.session
 import wrappers.storage
 import wrappers.storage.playerTrackerData
 import wrappers.storage.usernameData
@@ -118,7 +119,7 @@ async def _track_stats():
     if _players_to_track.qsize() == 0:
         return
 
-    max_calls = 100
+    max_calls = min(200, wrappers.api.wynncraft.v3.session.calculate_remaining_requests())
     calls = min(max_calls, _players_to_track.qsize())
     if calls >= 50:
         handlers.logging.log_debug(f"Recording {calls} player's stats.")
@@ -144,10 +145,9 @@ async def update_players(client: Client):
 
         await _update_usernames(client)
 
-        if len(prev_online_players) > 0:
-            for name in (joined_players | left_players):
-                _players_to_track.put(name)
-            await _track_stats()
+        for name in left_players:
+            _players_to_track.put(name)
+        await _track_stats()
 
     except Exception as ex:
         await handlers.logging.log_exception(ex)
