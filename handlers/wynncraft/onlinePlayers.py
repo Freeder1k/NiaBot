@@ -7,20 +7,23 @@ from discord.ext import tasks
 
 import handlers.logging
 import handlers.rateLimit
+import utils.misc
 import wrappers.api
 import wrappers.api.minecraft
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.network
+import wrappers.api.wynncraft.v3.player
 import wrappers.storage
+import wrappers.storage.playerTrackerData
 import wrappers.storage.usernameData
 from handlers import serverConfig
 from niatypes.dataTypes import MinecraftPlayer
 from wrappers import botConfig
 from wrappers.storage import guildMemberLogData
-import wrappers.api.wynncraft.v3.player
 
 _online_players: set[str] = set()
 _unknown_players: Queue[str] = Queue()
+_players_to_track: Queue[str] = Queue()
 _reservation_id: int = wrappers.api.minecraft._usernames_rate_limit.reserve(20)
 
 
@@ -82,7 +85,7 @@ async def _update_usernames(client: Client):
 
     max_calls = wrappers.api.minecraft._mojang_rate_limit.calculate_remaining_calls()
     calls = min(max_calls, _unknown_players.qsize())
-    if calls > 10:
+    if calls >= 10:
         handlers.logging.log_debug(f"Updating {calls} minecraft usernames.")
     # TODO use usernames endpoint if a lot of usernames
 
@@ -94,15 +97,45 @@ async def _update_usernames(client: Client):
     await _notify_guild_member_name_changes(client, prev_names, updated_names)
 
 
+async def _record_stats(username: str):
+    try:
+        stats = await wrappers.api.wynncraft.v3.player.stats(player=username)
+        await wrappers.storage.playerTrackerData.add_record(stats)
+    except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
+        p = await wrappers.storage.usernameData.get_player(username=username)
+        if p is None:
+            handlers.logging.log_debug(f"Couldn't get stats of player {username}")
+            return
+        try:
+            uuid = utils.misc.get_dashed_uuid(p.uuid)
+            stats = await wrappers.api.wynncraft.v3.player.stats(player=uuid)
+            await wrappers.storage.playerTrackerData.add_record(stats)
+        except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
+            handlers.logging.log_debug(f"Couldn't get stats of player {username}")
+
+
+async def _track_stats():
+    if _players_to_track.qsize() == 0:
+        return
+
+    max_calls = 100
+    calls = min(max_calls, _players_to_track.qsize())
+    if calls >= 50:
+        handlers.logging.log_debug(f"Recording {calls} player's stats.")
+
+    await asyncio.gather(*(_record_stats(_players_to_track.get()) for _ in range(0, calls)))
+
+
 @tasks.loop(seconds=61, reconnect=True)
 async def update_players(client: Client):
     try:
-        global _online_players
+        global _online_players, _players_to_track
         prev_online_players = _online_players
         # TODO API v3 broken, still use old api here
-        #_online_players = (await wrappers.api.wynncraft.v3.player.player_list()).keys()
+        # _online_players = (await wrappers.api.wynncraft.v3.player.player_list()).keys()
         _online_players = await wrappers.api.wynncraft.network.online_players()
         joined_players = _online_players - prev_online_players
+        left_players = prev_online_players - _online_players
 
         known_names = {p.name for p in await wrappers.storage.usernameData.get_players(usernames=list(joined_players))}
         for name in joined_players:
@@ -110,6 +143,11 @@ async def update_players(client: Client):
                 _unknown_players.put(name)
 
         await _update_usernames(client)
+
+        if len(prev_online_players) > 0:
+            for name in (joined_players | left_players):
+                _players_to_track.put(name)
+            await _track_stats()
 
     except Exception as ex:
         await handlers.logging.log_exception(ex)
