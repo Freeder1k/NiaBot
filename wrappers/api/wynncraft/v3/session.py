@@ -27,3 +27,6 @@ def reserve(amount: int) -> RateLimit:
     :returns: A ratelimit for the reservation.
     """
     return _rate_limit.reserve(amount)
+
+def calculate_remaining_requests():
+    return _rate_limit.calculate_remaining_calls()
