@@ -14,7 +14,7 @@ class StrikesCommand(command.Command):
     def __init__(self):
         super().__init__(
             name="strikes",
-            aliases=("liststrikes"),
+            aliases=(),
             usage=f"strikes <user>",
             description="Get the strikes for a user.",
             req_perms=Permissions().none(),
