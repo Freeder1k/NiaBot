@@ -6,7 +6,7 @@ from discord import Permissions, Embed
 
 import utils.discord
 import wrappers.api.wynncraft.v3.player
-import wrappers.wynncraftGuild
+import wrappers.wynncraft.guild
 from handlers.commands import command
 from niatypes.dataTypes import CommandEvent, WynncraftGuild
 from utils import tableBuilder
@@ -26,7 +26,7 @@ def _format_guilds(guilds: Iterable[WynncraftGuild]) -> str:
 
 @alru_cache(ttl=60)
 async def _create_guild_embed(guild: WynncraftGuild):
-    guild_stats = await wrappers.wynncraftGuild.get_guild_stats(name=guild.name)
+    guild_stats = await wrappers.wynncraft.wynncraftGuild.get_guild_stats(name=guild.name)
     if guild_stats is None:
         return None
 
@@ -106,7 +106,7 @@ class GuildCommand(command.Command):
                 await utils.discord.send_error(event.channel, f"Invalid guild name or tag``{guild_str}``")
                 return
 
-            possible_guilds: tuple[WynncraftGuild] = await wrappers.wynncraftGuild.find_guilds(guild_str)
+            possible_guilds: tuple[WynncraftGuild] = await wrappers.wynncraft.wynncraftGuild.find_guilds(guild_str)
             if not possible_guilds:
                 await utils.discord.send_error(event.channel, f"Couldn't find guild ``{guild_str}``")
                 return

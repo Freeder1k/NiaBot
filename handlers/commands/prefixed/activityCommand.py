@@ -1,60 +1,41 @@
-import asyncio
-from datetime import timedelta, datetime, timezone, date
-from typing import Iterable
+from datetime import timedelta, datetime, timezone
 
 from async_lru import alru_cache
 from discord import Permissions, Embed
 
+import utils.discord
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.v3.guild
 import wrappers.storage.playtimeData
+import wrappers.wynncraft.guild
 from handlers.commands import command
 from niatypes.dataTypes import CommandEvent
-from niatypes.wynncraft.v3.guild import GuildStats
-from utils.tableBuilder import TableBuilder
-from wrappers import botConfig, minecraftPlayer
+from wrappers import botConfig
+from wrappers.wynncraft.types import GuildStats
 
 
-async def _get_playtime(uuid: str, d1: date, d2: date):
-    p: minecraftPlayer = await minecraftPlayer.get_player(uuid=uuid)
-    if p is None:
-        return uuid, 0
+async def _get_playtime(uuid: str, _):
+    uuid = uuid.replace(" - ", "")
+    today = datetime.now(timezone.utc).date()
+    last_week = today - timedelta(days=7)
 
-    d1 = await wrappers.storage.playtimeData.get_first_date_after_from_uuid(d1, uuid)
-    d2 = await wrappers.storage.playtimeData.get_first_date_after_from_uuid(d2, uuid)
+    d1 = await wrappers.storage.playtimeData.get_first_date_after_from_uuid(today, uuid)
+    d2 = await wrappers.storage.playtimeData.get_first_date_after_from_uuid(last_week, uuid)
     if d1 is None or d2 is None:
-        return p.name, 0
+        return '0 min'
 
     pt1 = await wrappers.storage.playtimeData.get_playtime(uuid, d1)
     pt2 = await wrappers.storage.playtimeData.get_playtime(uuid, d2)
 
     if pt1 is None or pt2 is None:
-        return p.name, 0
+        return '0 min'
     else:
-        return p.name, pt2.playtime - pt1.playtime
-
-
-async def _get_playtimes(uuids: Iterable[str], d1: date, d2: date):
-    uuids = [uuid.replace("-", "") for uuid in uuids]
-
-    playtimes = await asyncio.gather(*(_get_playtime(uuid, d1, d2) for uuid in uuids))
-    return sorted(playtimes, key=lambda t: t[1], reverse=True)
+        return f'{pt1.playtime - pt2.playtime} min'
 
 
 @alru_cache(ttl=600)
 async def _create_activity_embed():
-    guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(guild_name=botConfig.GUILD_NAME)
-    today = datetime.now(timezone.utc).date()
-    last_week = today - timedelta(days=7)
-
-    playtimes = {
-        "OWNER": await _get_playtimes(guild.members.owner.keys(), last_week, today),
-        "CHIEF": await _get_playtimes(guild.members.chief.keys(), last_week, today),
-        "STRATEGIST": await _get_playtimes(guild.members.strategist.keys(), last_week, today),
-        "CAPTAIN": await _get_playtimes(guild.members.captain.keys(), last_week, today),
-        "RECRUITER": await _get_playtimes(guild.members.recruiter.keys(), last_week, today),
-        "RECRUIT": await _get_playtimes(guild.members.recruit.keys(), last_week, today)
-    }
+    guild: GuildStats = await wrappers.wynncraft.guild.get_guild_stats(name=botConfig.GUILD_NAME)
 
     embed = Embed(
         color=botConfig.DEFAULT_COLOR,
@@ -64,18 +45,13 @@ async def _create_activity_embed():
     )
     embed.set_footer(text="Last update")
 
-    tb = TableBuilder.from_str('l r')
-    ranks = []
-    for k, v in playtimes.items():
-        if len(v) == 0:
-            continue
-        ranks.append(k)
-        tb.add_row('$', '$')
-        [tb.add_row(t[0], f"{t[1]} min") for t in v]
-
-    tables = tb.build().split(f"${' ' * (tb.get_width() - 2)}$\n")[1:]
-    for i, table in enumerate(tables):
-        embed.add_field(name=ranks[i], value=f">>> ```\n{table}```", inline=False)
+    await utils.discord.add_guild_member_tables(
+        base_embed=embed,
+        guild=guild,
+        data_function=_get_playtime,
+        sort_function=lambda t: int(t[:-4]),
+        sort_reverse=True
+    )
 
     return embed
 

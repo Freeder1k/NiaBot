@@ -31,13 +31,6 @@ class Stats:
     banner: dict
 
 
-async def guild_list() -> list[str]:
-    """
-    Returns a list of all guilds names.
-    """
-    return (await wynnAPI.get_legacy("guildList"))["guilds"]
-
-
 async def stats(guild: str) -> Stats | None:
     """
     Guild information, such as: level, members, territories, xp, and more.

@@ -26,8 +26,6 @@ class LogCommand(command.Command):
         )
 
     async def _execute(self, event: CommandEvent):
-        guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
-
         td = timedelta(days=7)
 
         if len(event.args) < 2:
