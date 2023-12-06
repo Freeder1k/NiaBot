@@ -8,11 +8,10 @@ import utils.misc
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.player
 import wrappers.api.wynncraft.v3.guild
-import wrappers.wynncraft.guild
 from handlers.commands import command
 from niatypes.dataTypes import CommandEvent
 from wrappers import botConfig, minecraftPlayer
-from wrappers.wynncraft.types import GuildStats
+from wrappers.api.wynncraft.v3.types import GuildStats
 
 
 class SeenCommand(command.Command):
@@ -29,7 +28,7 @@ class SeenCommand(command.Command):
     async def _execute(self, event: CommandEvent):
         async with event.channel.typing():
             # guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
-            guild: GuildStats = await wrappers.wynncraft.guild.get_guild_stats(name=botConfig.GUILD_NAME)
+            guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
 
             now = datetime.now(timezone.utc)
 
@@ -49,7 +48,7 @@ class SeenCommand(command.Command):
             # TODO use player tracking
             stats = await asyncio.gather(*tuple(wrappers.api.wynncraft.player.stats(uuid) for uuid in names.keys()))
 
-            for m, p in zip(guild.members, stats):
+            for m, p in zip(guild.members.all.values(), stats):
                 if p is None:
                     continue
                 name = names.get(m.uuid.replace("-", "").lower(), m.name)

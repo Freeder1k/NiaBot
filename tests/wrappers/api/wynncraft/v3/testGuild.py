@@ -1,8 +1,9 @@
 import unittest
 
 import wrappers.api.sessionManager
+import wrappers.api.wynncraft.v3.guild
 import wrappers.wynncraft.guild
-from wrappers.wynncraft.types import GuildStats
+from wrappers.api.wynncraft.v3.types import GuildStats
 from wrappers.api.wynncraft.v3 import guild
 
 
@@ -22,10 +23,10 @@ class TestGuild(unittest.IsolatedAsyncioTestCase):
         print(stats2)
         self.assertIsNotNone(stats2)
 
-        with self.assertRaises(wrappers.wynncraft.guild.UnknownGuildException):
+        with self.assertRaises(wrappers.api.wynncraft.v3.guild.UnknownGuildException):
             await guild.stats(guild_name='a')
 
-        with self.assertRaises(wrappers.wynncraft.guild.UnknownGuildException):
+        with self.assertRaises(wrappers.api.wynncraft.v3.guild.UnknownGuildException):
             await guild.stats(guild_tag='a')
 
     async def test_guild_list(self):

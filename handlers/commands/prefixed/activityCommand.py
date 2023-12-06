@@ -7,11 +7,10 @@ import utils.discord
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.v3.guild
 import wrappers.storage.playtimeData
-import wrappers.wynncraft.guild
 from handlers.commands import command
 from niatypes.dataTypes import CommandEvent
 from wrappers import botConfig
-from wrappers.wynncraft.types import GuildStats
+from wrappers.api.wynncraft.v3.types import GuildStats
 
 
 async def _get_playtime(uuid: str, _):
@@ -35,7 +34,7 @@ async def _get_playtime(uuid: str, _):
 
 @alru_cache(ttl=600)
 async def _create_activity_embed():
-    guild: GuildStats = await wrappers.wynncraft.guild.get_guild_stats(name=botConfig.GUILD_NAME)
+    guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
 
     embed = Embed(
         color=botConfig.DEFAULT_COLOR,
