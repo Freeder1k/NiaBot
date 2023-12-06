@@ -20,6 +20,7 @@ import wrappers.storage.usernameData
 from handlers import serverConfig
 from niatypes.dataTypes import MinecraftPlayer
 from wrappers import botConfig
+from wrappers.api.wynncraft.v3.types import PlayerStats
 from wrappers.storage import guildMemberLogData
 
 _online_players: set[str] = set()
@@ -101,7 +102,9 @@ async def _update_usernames(client: Client):
 async def _record_stats(username: str):
     stats = None
     try:
-        stats = await wrappers.api.wynncraft.v3.player.stats(player=username)
+        stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(player=username)
+        if stats.uuid is None:
+            return  # TODO do something about multiple matching names
         await wrappers.storage.playerTrackerData.add_record(stats)
     except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
         p = await wrappers.storage.usernameData.get_player(username=username)
