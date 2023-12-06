@@ -1,8 +1,8 @@
 import aiohttp.client_exceptions
 from async_lru import alru_cache
 
-from niatypes.wynncraft.v3.player import PlayerStats, CharacterShort, AbilityMap
 from wrappers.api.wynncraft.v3 import session
+from wrappers.api.wynncraft.v3.types import PlayerStats, CharacterShort, AbilityMap
 
 
 class UnknownPlayerException(Exception):
@@ -22,15 +22,13 @@ async def stats(player: str, full_result: bool = False) -> PlayerStats:
     :returns: A Stats object.
     :raises UnknownPlayerException: if the player wasn't found.
     """
-    if full_result:
-        params = {"fullResult": str(full_result)}
-    else:
-        params = {}
-
-    data = await session.get(f"/player/{player}", **params)
-
-    if len(data) == 0 or data['username'] is None:
-        raise UnknownPlayerException(f'Player {player} not found.')
+    try:
+        data = await session.get(f"/player/{player}", fullResult=str(full_result))
+    except aiohttp.client_exceptions.ClientResponseError as ex:
+        if ex.status == 404:
+            raise UnknownPlayerException(f'Player {player} not found.')
+        else:
+            raise ex
 
     return PlayerStats.from_json(data)
 
@@ -46,7 +44,7 @@ async def characters(player: str) -> dict[str, CharacterShort]:
     try:
         data = await session.get(f"/player/{player}/characters")
     except aiohttp.client_exceptions.ClientResponseError as ex:
-        if ex.status == 400:
+        if ex.status == 404:
             raise UnknownPlayerException(f'Player {player} not found.')
         else:
             raise ex
@@ -67,7 +65,9 @@ async def abilities(player: str, character_uuid: str) -> AbilityMap:
     try:
         data = await session.get(f"/player/{player}/characters/{character_uuid}/abilities")
     except aiohttp.client_exceptions.ClientResponseError as ex:
-        if ex.status == 400:
+        if ex.status == 400:  # TODO api still returns 400 for unknown players here
+            raise UnknownPlayerException(f'Player {player} or character with uuid {character_uuid} not found.')
+        if ex.status == 404:
             raise UnknownPlayerException(f'Player {player} or character with uuid {character_uuid} not found.')
         elif ex.status == 403:
             raise HiddenProfileException(f'{player} has hidden their profile.')

@@ -3,7 +3,7 @@ from datetime import datetime
 from async_lru import alru_cache
 
 from niatypes.wynncraft.trackedPlayerStats import TrackedPlayerStats
-from niatypes.wynncraft.v3.player import PlayerStats
+from ..api.wynncraft.v3.types import PlayerStats
 from . import manager
 
 
