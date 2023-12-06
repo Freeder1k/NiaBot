@@ -35,7 +35,7 @@ class GuildStats(JsonableDataclass):
         recruit: dict[str, _Member]
 
         @property
-        def all(self):
+        def all(self) -> dict[str, _Member]:
             return self.owner | self.chief | self.strategist | self.captain | self.recruiter | self.recruit
 
     members: _MemberList
