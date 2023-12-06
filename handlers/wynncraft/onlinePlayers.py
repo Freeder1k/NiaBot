@@ -57,7 +57,7 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
             title=f"Name changed: **{prev_names_dict.get(player.uuid, '*unknown*')} -> {player.name}**",
             color=botConfig.DEFAULT_COLOR,
         )
-        em.set_footer(text=f"UUID: {wrappers.api.minecraft.format_uuid(player.uuid)}")
+        em.set_footer(text=f"UUID: {utils.misc.format_uuid(player.uuid)}")
         embeds.append(em)
         await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_NAME_CHANGE,
                                      f"Name changed: {prev_names_dict.get(player.uuid, '*unknown*')} -> {player.name}",

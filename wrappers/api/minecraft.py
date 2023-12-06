@@ -10,13 +10,6 @@ _usernames_rate_limit = reservableRateLimit.ReservableRateLimit(20, 1)
 _mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")
 
 
-def format_uuid(uuid: str) -> str:
-    """
-    Add the "-" to a uuid.
-    """
-    return "-".join((uuid[:8], uuid[8:12], uuid[12:16], uuid[16:20], uuid[20:32]))
-
-
 async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
     """
     Get a player via either their uuid or their username. Exactly one argument must be provided.

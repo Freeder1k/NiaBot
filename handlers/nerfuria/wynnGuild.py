@@ -52,7 +52,7 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
             title=f"**{joined.get(uuid, '*unknown*')} has joined the guild**",
             color=botConfig.DEFAULT_COLOR,
         )
-        em.set_footer(text=f"UUID: {wrappers.api.minecraft.format_uuid(uuid)}")
+        em.set_footer(text=f"UUID: {utils.misc.format_uuid(uuid)}")
         embeds.append(em)
         await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_JOIN,
                                      f"{joined.get(uuid, '*unknown*')} has joined the guild",
@@ -62,7 +62,7 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
             title=f"**{left.get(uuid, '*unknown*')} has left the guild**",
             color=botConfig.DEFAULT_COLOR,
         )
-        em.set_footer(text=f"UUID: {wrappers.api.minecraft.format_uuid(uuid)}")
+        em.set_footer(text=f"UUID: {utils.misc.format_uuid(uuid)}")
         embeds.append(em)
         await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_LEAVE,
                                      f"{left.get(uuid, '*unknown*')} has left the guild",

@@ -137,3 +137,10 @@ def get_dashed_uuid(uuid: str) -> str:
 
 def ansi_format(*formatting: AnsiFormat):
     return f"\u001b[{';'.join((str(f.value) for f in formatting))}m"
+
+
+def format_uuid(uuid: str) -> str:
+    """
+    Add the "-" to a uuid.
+    """
+    return "-".join((uuid[:8], uuid[8:12], uuid[12:16], uuid[16:20], uuid[20:32]))

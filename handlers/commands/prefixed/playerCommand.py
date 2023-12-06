@@ -10,7 +10,7 @@ import wrappers.api.wynncraft.player
 from niatypes.dataTypes import CommandEvent
 from handlers.commands import command
 from wrappers import botConfig, minecraftPlayer
-
+import wrappers.api.wynncraft.v3.player
 _username_re = re.compile(r'[0-9A-Za-z_]+$')
 _uuid_re = re.compile(r'[0-9a-f]+$')
 
@@ -49,7 +49,7 @@ class PlayerCommand(command.Command):
             return
 
         stats = await wrappers.api.wynncraft.player.stats(
-            wrappers.api.minecraft.format_uuid(p.uuid) if use_uuid else p.name)
+            utils.misc.format_uuid(p.uuid) if use_uuid else p.name)
 
         if stats is None:
             await utils.discord.send_error(event.channel, f"Couldn't get stats for ``{p.name}``")
@@ -60,7 +60,7 @@ class PlayerCommand(command.Command):
             description="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
             color=botConfig.DEFAULT_COLOR
         )
-        embed.add_field(name="UUID", value=wrappers.api.minecraft.format_uuid(p.uuid), inline=False)
+        embed.add_field(name="UUID", value=utils.misc.format_uuid(p.uuid), inline=False)
         embed.add_field(name="Rank", value=stats.meta.tag.value, inline=False)
         embed.add_field(name="First Joined", value=stats.meta.firstJoin, inline=False)
 
