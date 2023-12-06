@@ -65,9 +65,7 @@ async def abilities(player: str, character_uuid: str) -> AbilityMap:
     try:
         data = await session.get(f"/player/{player}/characters/{character_uuid}/abilities")
     except aiohttp.client_exceptions.ClientResponseError as ex:
-        if ex.status == 400:  # TODO api still returns 400 for unknown players here
-            raise UnknownPlayerException(f'Player {player} or character with uuid {character_uuid} not found.')
-        if ex.status == 404:
+        if ex.status == 400 or ex.status == 404:
             raise UnknownPlayerException(f'Player {player} or character with uuid {character_uuid} not found.')
         elif ex.status == 403:
             raise HiddenProfileException(f'{player} has hidden their profile.')
