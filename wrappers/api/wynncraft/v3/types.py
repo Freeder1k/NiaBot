@@ -187,13 +187,7 @@ class PlayerStats(JsonableDataclass):
 
     globalData: _GlobalData
 
-    @dataclass(frozen=True)
-    class _ForumLink(JsonableDataclass):
-        forumUsername: str
-        forumId: int
-        gameUsername: str
-
-    forumLink: _ForumLink
+    forumLink: int
     ranking: dict[str, int]  # ranking type: rank
     publicProfile: bool
     characters: dict[str, CharacterStats]
