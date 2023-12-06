@@ -5,6 +5,7 @@ from discord import Permissions, Embed
 import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.guild
+import wrappers.api.wynncraft.v3.guild
 from handlers.commands import command
 from niatypes.dataTypes import CommandEvent
 from wrappers import botConfig, minecraftPlayer
@@ -22,7 +23,7 @@ class WandererCommand(command.Command):
         )
 
     async def _execute(self, event: CommandEvent):
-        guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
+        guild = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
 
         seven_days_ago = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59) - timedelta(days=7)
 
@@ -32,20 +33,20 @@ class WandererCommand(command.Command):
         longest_name_len = 0
         longest_date_len = 0
 
-        names = {uuid: name for uuid, name in await minecraftPlayer.get_players(uuids=[m.uuid for m in guild.members])}
+        names = {uuid: name for uuid, name in
+                 await minecraftPlayer.get_players(uuids=[uuid for uuid in guild.members.recruit.keys()])}
 
-        for m in guild.members:
-            if m.rank == "RECRUIT":
-                name = names.get(m.uuid.replace("-", "").lower(), m.name)
+        for uuid, m in guild.members.recruit.items():
+            name = names.get(uuid.replace("-", "").lower(), m.username)
 
-                join_date = datetime.fromisoformat(m.joined)
-                join_date_str = utils.misc.get_relative_date_str(join_date, days=True) + " ago"
-                if join_date < seven_days_ago:
-                    old_members[name] = join_date_str
-                else:
-                    new_members[name] = join_date_str
-                longest_name_len = max(len(name), longest_name_len)
-                longest_date_len = max(len(join_date_str), longest_date_len)
+            join_date = datetime.fromisoformat(m.joined)
+            join_date_str = utils.misc.get_relative_date_str(join_date, days=True) + " ago"
+            if join_date < seven_days_ago:
+                old_members[name] = join_date_str
+            else:
+                new_members[name] = join_date_str
+            longest_name_len = max(len(name), longest_name_len)
+            longest_date_len = max(len(join_date_str), longest_date_len)
 
         content_with = max(0, 25 - longest_name_len - longest_date_len) + longest_name_len + longest_date_len
         table_head_space = int((((content_with * 7.7) + 14 - 39 - 49) // 6)) * 2
