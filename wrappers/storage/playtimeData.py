@@ -9,6 +9,10 @@ import handlers.logging
 import handlers.rateLimit
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.player
+import wrappers.api.wynncraft.v3.guild
+import wrappers.api.wynncraft.v3.player
+import wrappers.api.wynncraft.v3.types
+import wrappers.botConfig
 from . import manager
 
 
@@ -94,17 +98,20 @@ async def get_first_date_after_from_uuid(date_before: date, uuid: str) -> date |
     return data[0]['min(day)']
 
 
+async def _update_playtime(uuid: str):
+    try:
+        stats = await wrappers.api.wynncraft.v3.player.stats(uuid)
+        await set_playtime(stats.uuid, datetime.now(timezone.utc).date(), int(stats.playtime * 60))
+    except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
+        handlers.logging.log_error(f'Failed to fetch stats for guild member with uuid {uuid}')
+
+
 @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc), reconnect=True)
 async def update_playtimes():
     try:
-        nia = await wrappers.api.wynncraft.guild.stats("Nerfuria")
+        guild = await wrappers.api.wynncraft.v3.guild.stats(name=wrappers.botConfig.GUILD_NAME)
 
-        # players = await player.get_players(uuids=[m.uuid for m in nia.members])
-        pstats: list[wrappers.api.wynncraft.player.Stats] = await asyncio.gather(
-            *(wrappers.api.wynncraft.player.stats(m.uuid) for m in nia.members))
-
-        today = datetime.now(timezone.utc).date()
-        await asyncio.gather(*(set_playtime(stats.uuid, today, stats.meta.playtime) for stats in pstats))
+        await asyncio.gather(*(_update_playtime(uuid) for uuid in guild.members.all.keys()))
     except Exception as ex:
         await handlers.logging.log_exception(ex)
         raise ex
