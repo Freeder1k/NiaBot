@@ -6,7 +6,6 @@ from discord import Permissions, Embed
 import utils.discord
 import utils.misc
 import wrappers.api.minecraft
-import wrappers.api.wynncraft.player
 from niatypes.dataTypes import CommandEvent
 from handlers.commands import command
 from wrappers import botConfig, minecraftPlayer

@@ -8,7 +8,6 @@ from discord.ext import tasks
 import handlers.logging
 import handlers.rateLimit
 import wrappers.api.wynncraft.guild
-import wrappers.api.wynncraft.player
 import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 import wrappers.api.wynncraft.v3.types
