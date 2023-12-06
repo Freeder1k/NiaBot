@@ -78,12 +78,18 @@ async def abilities(player: str, character_uuid: str) -> AbilityMap:
 
 
 @alru_cache(ttl=30)
-async def _online_players() -> dict:
-    return await session.get(f"/player")
+async def _online_players(identifier: str = 'username') -> dict:
+    return await session.get(f"/player", identifier=identifier)
 
 
-async def player_list() -> dict[str, str]:
-    return (await _online_players())['players']
+async def player_list(identifier: str = 'username') -> dict[str, str]:
+    """
+    Return a dict of players mapped to the world they are on.
+    :param identifier: Must be either 'username' or 'uuid'. Indicates what the players should be identified by.
+    """
+    if identifier != 'username' and identifier != 'uuid':
+        raise TypeError("identifier must be either 'username' or 'uuid'!")
+    return (await _online_players(identifier=identifier))['players']
 
 
 async def player_count() -> int:
