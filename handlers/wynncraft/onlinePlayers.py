@@ -114,8 +114,8 @@ async def _record_stats(username: str):
             await wrappers.storage.playerTrackerData.add_record(stats)
         except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
             handlers.logging.log_debug(f"Couldn't get stats of player {username}")
-    except Exception as e: # TODO DEBUG REMOVE LATER
-        print(username, stats)
+    except Exception as e:
+        handlers.logging.log_error(username, stats)
         raise e
 
 
