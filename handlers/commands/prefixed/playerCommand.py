@@ -11,8 +11,10 @@ from niatypes.dataTypes import CommandEvent
 from handlers.commands import command
 from wrappers import botConfig, minecraftPlayer
 import wrappers.api.wynncraft.v3.player
-_username_re = re.compile(r'[0-9A-Za-z_]+$')
-_uuid_re = re.compile(r'[0-9a-f]+$')
+from wrappers.api.wynncraft.v3.types import PlayerStats
+
+_username_re = re.compile(r'[0-9A-Za-z_]+')
+_uuid_re = re.compile(r'[0-9a-f]+')
 
 
 class PlayerCommand(command.Command):
@@ -33,26 +35,27 @@ class PlayerCommand(command.Command):
 
         user_str = event.args[1]
 
-        p = None
         use_uuid = False
-        if len(user_str) <= 16 and _username_re.match(user_str):
+        if len(user_str) <= 16 and _username_re.fullmatch(user_str):
             p = await minecraftPlayer.get_player(username=user_str)
         else:
             user_str = user_str.replace("-", "").lower()
 
-            if len(user_str) == 32 and _uuid_re.match(user_str):
+            if len(user_str) == 32 and _uuid_re.fullmatch(user_str):
                 p = await minecraftPlayer.get_player(uuid=user_str)
                 use_uuid = True
+            else:
+                await utils.discord.send_error(event.channel, f"Couldn't parse player ``{event.args[1]}``.")
+                return
 
         if p is None:
-            await utils.discord.send_error(event.channel, f"Couldn't parse user ``{event.args[1]}``")
+            await utils.discord.send_error(event.channel, f"Couldn't find player ``{event.args[1]}``.")
             return
 
-        stats = await wrappers.api.wynncraft.player.stats(
-            utils.misc.format_uuid(p.uuid) if use_uuid else p.name)
+        stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(utils.misc.format_uuid(p.uuid) if use_uuid else p.name)
 
         if stats is None:
-            await utils.discord.send_error(event.channel, f"Couldn't get stats for ``{p.name}``")
+            await utils.discord.send_error(event.channel, f"Couldn't get stats for ``{p.name}``.")
             return
 
         embed = Embed(
@@ -61,19 +64,19 @@ class PlayerCommand(command.Command):
             color=botConfig.DEFAULT_COLOR
         )
         embed.add_field(name="UUID", value=utils.misc.format_uuid(p.uuid), inline=False)
-        embed.add_field(name="Rank", value=stats.meta.tag.value, inline=False)
-        embed.add_field(name="First Joined", value=stats.meta.firstJoin, inline=False)
+        embed.add_field(name="Rank", value=stats.supportRank, inline=False)
+        embed.add_field(name="First Joined", value=stats.firstJoin, inline=False)
 
-        if stats.meta.location.online:
-            seen_value = f"online on {stats.meta.location.server}"
+        if stats.online:
+            seen_value = f"online on {stats.server}"
         else:
-            last_join = datetime.fromisoformat(stats.meta.lastJoin)
+            last_join = datetime.fromisoformat(stats.lastJoin)
             last_join_str = utils.misc.get_relative_date_str(last_join, days=True, hours=True, minutes=True,
                                                              seconds=True)
             seen_value = f"offline for {last_join_str}"
         embed.add_field(name="Seen", value=seen_value, inline=False)
 
-        embed.add_field(name="Playtime", value=f"{round(stats.meta.playtime / 60, 2)} hours", inline=False)
+        embed.add_field(name="Playtime", value=f"{round(stats.playtime, 2)} hours", inline=False)
 
         if stats.guild.name is None:
             guild_value = "None"
