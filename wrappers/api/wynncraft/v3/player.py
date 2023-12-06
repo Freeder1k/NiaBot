@@ -60,7 +60,7 @@ async def abilities(player: str, character_uuid: str) -> AbilityMap:
     :param character_uuid: The character uuid.
     :returns: An AbilityMap object.
     :raises UnknownPlayerException: if the player or character wasn't found.
-    :raises HiddenProfileException: if the player has choses to hide their profile.
+    :raises HiddenProfileException: if the player has chosen to hide their profile.
     """
     try:
         data = await session.get(f"/player/{player}/characters/{character_uuid}/abilities")
