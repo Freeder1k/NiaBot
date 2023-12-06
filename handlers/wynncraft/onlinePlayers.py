@@ -99,6 +99,7 @@ async def _update_usernames(client: Client):
 
 
 async def _record_stats(username: str):
+    stats = None
     try:
         stats = await wrappers.api.wynncraft.v3.player.stats(player=username)
         await wrappers.storage.playerTrackerData.add_record(stats)
@@ -113,6 +114,9 @@ async def _record_stats(username: str):
             await wrappers.storage.playerTrackerData.add_record(stats)
         except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
             handlers.logging.log_debug(f"Couldn't get stats of player {username}")
+    except Exception as e: # TODO DEBUG REMOVE LATER
+        print(username, stats)
+        raise e
 
 
 async def _track_stats():

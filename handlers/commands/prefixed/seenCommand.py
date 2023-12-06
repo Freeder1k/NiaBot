@@ -1,17 +1,75 @@
-import asyncio
 from datetime import datetime, timezone
 
+from async_lru import alru_cache
 from discord import Permissions, Embed
 
 import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.guild
-import wrappers.api.wynncraft.player
 import wrappers.api.wynncraft.v3.guild
+import wrappers.api.wynncraft.v3.player
 from handlers.commands import command
 from niatypes.dataTypes import CommandEvent
+from utils.misc import format_uuid
 from wrappers import botConfig, minecraftPlayer
 from wrappers.api.wynncraft.v3.types import GuildStats
+
+
+async def _get_last_seen(uuid: str, _):
+    # TODO use player tracking system
+    p = await minecraftPlayer.get_player(uuid=uuid)
+    if p is None:
+        return 'ERROR(P)'
+    try:
+        stats = await wrappers.api.wynncraft.v3.player.stats(format_uuid(p.uuid))
+    except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
+        print(p, uuid)
+        return 'ERROR(S)'
+
+    if stats.online:
+        return f"online({stats.server})"
+    else:
+        return datetime.fromisoformat(stats.lastJoin)
+
+
+def _last_seen_sort_key(val):
+    if isinstance(val, str):
+        if val.startswith('ERROR'):
+            return -1.0
+        return datetime.now().timestamp()
+    if isinstance(val, datetime):
+        return val.timestamp()
+    return -2.0
+
+
+def _get_seen_display_value(val):
+    if isinstance(val, datetime):
+        return f"{utils.misc.get_relative_date_str(val, days=True, hours=True, minutes=True, seconds=True)} ago"
+    else:
+        return val
+
+
+@alru_cache(ttl=600)
+async def _create_seen_embed():
+    guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
+
+    embed = Embed(
+        color=botConfig.DEFAULT_COLOR,
+        title="**Last Sightings of Nia Members**",
+        description='⎯' * 32,
+        timestamp=datetime.now(timezone.utc)
+    )
+
+    await utils.discord.add_guild_member_tables(
+        base_embed=embed,
+        guild=guild,
+        data_function=_get_last_seen,
+        display_function=_get_seen_display_value,
+        sort_function=_last_seen_sort_key,
+        sort_reverse=True
+    )
+
+    return embed
 
 
 class SeenCommand(command.Command):
@@ -27,60 +85,5 @@ class SeenCommand(command.Command):
 
     async def _execute(self, event: CommandEvent):
         async with event.channel.typing():
-            # guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
-            guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
-
-            now = datetime.now(timezone.utc)
-
-            lastonline = {
-                "OWNER": {},
-                "CHIEF": {},
-                "STRATEGIST": {},
-                "CAPTAIN": {},
-                "RECRUITER": {},
-                "RECRUIT": {}
-            }
-
-            longest_name_len = 0
-            longest_date_len = 0
-            names = {uuid: name for uuid, name in
-                     await minecraftPlayer.get_players(uuids=[uuid for uuid in guild.members.all.keys()])}
-            # TODO use player tracking
-            stats = await asyncio.gather(*tuple(wrappers.api.wynncraft.player.stats(uuid) for uuid in names.keys()))
-
-            for m, p in zip(guild.members.all.values(), stats):
-                if p is None:
-                    continue
-                name = names.get(m.uuid.replace("-", "").lower(), m.name)
-                if p.meta.location.online:
-                    lastonline[m.rank][name] = (now, f"online({p.meta.location.server})")
-                else:
-                    last_join = datetime.fromisoformat(p.meta.lastJoin)
-                    last_join_str = utils.misc.get_relative_date_str(last_join, days=True, hours=True, minutes=True,
-                                                                     seconds=True) + " ago"
-                    lastonline[m.rank][name] = (last_join, last_join_str)
-
-                    longest_name_len = max(len(name), longest_name_len)
-                    longest_date_len = max(len(last_join_str), longest_date_len)
-
-            for k, v in lastonline.items():
-                lastonline[k] = \
-                    {name: last_join[1] for name, last_join in
-                     sorted(v.items(), key=lambda item: item[1][0])}
-
-            embed = Embed(
-                color=botConfig.DEFAULT_COLOR,
-                title="**Last Sightings of Nia Members**",
-                description='⎯' * 35,
-            )
-
-            utils.discord.add_table_fields(
-                base_embed=embed,
-                max_l_len=longest_name_len,
-                max_r_len=longest_date_len,
-                splitter=False,
-                fields=[(fname, [(name, lo_date) for name, lo_date in val.items()]) for fname, val in
-                        lastonline.items()]
-            )
-
-        await event.channel.send(embed=embed)
+            embed = await _create_seen_embed()
+            await event.channel.send(embed=embed)

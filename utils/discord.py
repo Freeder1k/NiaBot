@@ -152,27 +152,31 @@ _T = typing.TypeVar('_T')
 
 
 async def add_guild_member_tables(
+        # TODO seperate display function
         base_embed: Embed,
         guild: GuildStats,
         data_function: typing.Callable[
             [str, GuildStats._MemberList._Member], typing.Coroutine[typing.Any, typing.Any, _T]],
+        display_function: typing.Callable[
+            [_T], typing.Coroutine[typing.Any, typing.Any, typing.Any]] = str,
         sort_function: typing.Callable[[_T], typing.Any] = None,
         sort_reverse: bool = False):
-    names = {p.uuid: p.name for p in await wrappers.minecraftPlayer.get_players(uuids=guild.members.all.keys())}
+    uuids = [uuid.replace('-', '') for uuid in guild.members.all.keys()]
+    names = {p.uuid: p.name for p in await wrappers.minecraftPlayer.get_players(uuids=uuids)}
 
     async with asyncio.TaskGroup() as tg:
         data = {
-            "OWNER": [(uuid, tg.create_task(data_function(uuid, m)))
+            "OWNER": [(uuid.replace('-', ''), tg.create_task(data_function(uuid, m)))
                       for uuid, m in guild.members.owner.items()],
-            "CHIEF": [(uuid, tg.create_task(data_function(uuid, m)))
+            "CHIEF": [(uuid.replace('-', ''), tg.create_task(data_function(uuid, m)))
                       for uuid, m in guild.members.chief.items()],
-            "STRATEGIST": [(uuid, tg.create_task(data_function(uuid, m)))
+            "STRATEGIST": [(uuid.replace('-', ''), tg.create_task(data_function(uuid, m)))
                            for uuid, m in guild.members.strategist.items()],
-            "CAPTAIN": [(uuid, tg.create_task(data_function(uuid, m)))
+            "CAPTAIN": [(uuid.replace('-', ''), tg.create_task(data_function(uuid, m)))
                         for uuid, m in guild.members.captain.items()],
-            "RECRUITER": [(uuid, tg.create_task(data_function(uuid, m)))
+            "RECRUITER": [(uuid.replace('-', ''), tg.create_task(data_function(uuid, m)))
                           for uuid, m in guild.members.recruiter.items()],
-            "RECRUIT": [(uuid, tg.create_task(data_function(uuid, m)))
+            "RECRUIT": [(uuid.replace('-', ''), tg.create_task(data_function(uuid, m)))
                         for uuid, m in guild.members.recruit.items()],
         }
 
@@ -187,8 +191,12 @@ async def add_guild_member_tables(
         if sort_function is not None:
             v = sorted(v, key=lambda t: sort_function(t[1].result()), reverse=sort_reverse)
 
-        [tb.add_row(names.get(t[0], t[0]), str(t[1].result())) for t in v]
+        [tb.add_row(names.get(t[0], t[0]), display_function(t[1].result())) for t in v]
 
     tables = tb.build().split(f"${' ' * (tb.get_width() - 2)}$\n")[1:]
     for i, table in enumerate(tables):
-        base_embed.add_field(name=ranks[i], value=f">>> ```\n{table}```", inline=False)
+        splits = split_str(table, 1000, '\n')
+        first = True
+        for split in splits:
+            base_embed.add_field(name=ranks[i] if first else "", value=f">>> ```\n{split}```", inline=False)
+            first = False
