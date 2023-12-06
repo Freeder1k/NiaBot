@@ -3,7 +3,7 @@ from handlers.rateLimit import RateLimit
 from niatypes.jsonable import JsonType
 from wrappers.api import sessionManager
 
-_rate_limit = reservableRateLimit.ReservableRateLimit(300, 1)
+_rate_limit = reservableRateLimit.ReservableRateLimit(180, 1)
 _v3_session_id = sessionManager.register_session("https://api.wynncraft.com")
 
 
