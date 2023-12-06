@@ -5,15 +5,15 @@ from async_lru import alru_cache
 from discord import Permissions, Embed
 
 import utils.discord
+import utils.misc
+import wrappers.api.wynncraft.network
 import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
+import wrappers.storage.usernameData
 from handlers.commands import command
 from niatypes.dataTypes import CommandEvent, WynncraftGuild
 from utils import tableBuilder
 from wrappers import botConfig
-from wrappers import minecraftPlayer
-import wrappers.api.wynncraft.network
-import utils.misc
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}$')
 
@@ -49,30 +49,22 @@ async def _create_guild_embed(guild: WynncraftGuild):
 
     embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)
 
-    # TODO api v3 broken here, update when fixed
-    # plist = await wrappers.api.wynncraft.v3.player.player_list()
-    plist = await wrappers.api.wynncraft.network.server_list()
-    plist = {name: world for world in plist.keys() for name in plist[world]}
+    player_worlds = await wrappers.api.wynncraft.v3.player.player_list(identifier='uuid')
+    online_players = {utils.misc.get_dashed_uuid(p.uuid): p for p in
+                      await wrappers.storage.usernameData.get_players(uuids=list(player_worlds.keys()))}
 
-    player_list = {await minecraftPlayer.get_player(username=name): world for name, world in
-                   plist.items()}
-
-    names_map = {utils.misc.get_dashed_uuid(p.uuid): p.name for p in player_list.keys()}
-
-    uuid_list = {utils.misc.get_dashed_uuid(p.uuid): world for p, world in player_list.items() if p is not None}
-
-    online_members = [(f"{5 * _star}{names_map[uuid]}", uuid_list[uuid])
-                      for uuid in guild_stats.members.owner.keys() if uuid in uuid_list] \
-                     + [(f"{4 * _star}{names_map[uuid]}", uuid_list[uuid])
-                        for uuid in guild_stats.members.chief.keys() if uuid in uuid_list] \
-                     + [(f"{3 * _star}{names_map[uuid]}", uuid_list[uuid])
-                        for uuid in guild_stats.members.strategist.keys() if uuid in uuid_list] \
-                     + [(f"{2 * _star}{names_map[uuid]}", uuid_list[uuid])
-                        for uuid in guild_stats.members.captain.keys() if uuid in uuid_list] \
-                     + [(f"{1 * _star}{names_map[uuid]}", uuid_list[uuid])
-                        for uuid in guild_stats.members.recruiter.keys() if uuid in uuid_list] \
-                     + [(f"{0 * _star}{names_map[uuid]}", uuid_list[uuid])
-                        for uuid in guild_stats.members.recruit.keys() if uuid in uuid_list]
+    online_members = [(f"{5 * _star}{online_players[uuid].name}", player_worlds[uuid])
+                      for uuid in guild_stats.members.owner.keys() if uuid in online_players] \
+                     + [(f"{4 * _star}{online_players[uuid].name}", player_worlds[uuid])
+                        for uuid in guild_stats.members.chief.keys() if uuid in online_players] \
+                     + [(f"{3 * _star}{online_players[uuid].name}", player_worlds[uuid])
+                        for uuid in guild_stats.members.strategist.keys() if uuid in online_players] \
+                     + [(f"{2 * _star}{online_players[uuid].name}", player_worlds[uuid])
+                        for uuid in guild_stats.members.captain.keys() if uuid in online_players] \
+                     + [(f"{1 * _star}{online_players[uuid].name}", player_worlds[uuid])
+                        for uuid in guild_stats.members.recruiter.keys() if uuid in online_players] \
+                     + [(f"{0 * _star}{online_players[uuid].name}", player_worlds[uuid])
+                        for uuid in guild_stats.members.recruit.keys() if uuid in online_players]
 
     table_builder = tableBuilder.TableBuilder.from_str('l   r')
     [table_builder.add_row(*t) for t in online_members]
