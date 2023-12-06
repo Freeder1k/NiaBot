@@ -14,10 +14,11 @@ async def get(url: str, **params: str) -> JsonType:
     :param params: Additional request parameters.
     :return: the response in json format.
     """
-    session = sessionManager.get_session(_v3_session_id)
-    async with session.get(f"/v3{url}", params=params) as resp:
-        resp.raise_for_status()
-        return await resp.json()
+    with _rate_limit:
+        session = sessionManager.get_session(_v3_session_id)
+        async with session.get(f"/v3{url}", params=params) as resp:
+            resp.raise_for_status()
+            return await resp.json()
 
 
 def reserve(amount: int) -> RateLimit:
