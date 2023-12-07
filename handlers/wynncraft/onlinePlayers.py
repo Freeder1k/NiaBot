@@ -12,6 +12,7 @@ import wrappers.api
 import wrappers.api.minecraft
 import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.network
+import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 import wrappers.api.wynncraft.v3.session
 import wrappers.storage
@@ -45,8 +46,8 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
 
     prev_names_dict = {p.uuid: p.name for p in prev_names}
 
-    guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
-    guild_members = {m.uuid.replace("-", ""): m.name for m in guild.members}
+    guild = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
+    guild_members = {uuid.replace("-", "") for uuid in guild.members.all.keys()}
     updated_guild_members = []
     for player in updated_names:
         if player.uuid in guild_members:
