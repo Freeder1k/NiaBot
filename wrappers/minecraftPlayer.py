@@ -4,7 +4,6 @@ from async_lru import alru_cache
 
 import handlers.rateLimit
 import wrappers.api.minecraft
-import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.network
 import wrappers.storage.usernameData
 from niatypes.dataTypes import MinecraftPlayer

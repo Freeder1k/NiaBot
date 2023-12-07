@@ -18,6 +18,7 @@ import wrappers.storage.manager
 import wrappers.storage.playtimeData
 import wrappers.storage.playtimeData
 import wrappers.storage.usernameData
+import wrappers.api.wynncraft.v3.player
 from handlers import serverConfig
 from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, \
     configCommand, \
@@ -95,7 +96,7 @@ async def update_presence():
         await client.change_presence(
             status=discord.Status.online,
             activity=discord.Activity(
-                name=f"{await wrappers.api.wynncraft.network.player_count()} players play Wynncraft",
+                name=f"{await wrappers.api.wynncraft.v3.player.player_count()} players play Wynncraft",
                 type=discord.ActivityType.watching
             )
         )

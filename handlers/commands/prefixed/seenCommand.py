@@ -5,7 +5,6 @@ from discord import Permissions, Embed
 
 import utils.discord
 import utils.misc
-import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 from handlers.commands import command

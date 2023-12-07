@@ -4,7 +4,6 @@ from async_lru import alru_cache
 from discord import Permissions, Embed
 
 import utils.discord
-import wrappers.api.wynncraft.guild
 import wrappers.api.wynncraft.v3.guild
 import wrappers.storage.playtimeData
 from handlers.commands import command
