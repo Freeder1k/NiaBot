@@ -12,7 +12,7 @@ class UnknownPlayerException(Exception):
 class HiddenProfileException(Exception):
     pass
 
-
+# TODO ONLY SUPPORT UUID (but either type)
 @alru_cache(maxsize=None, ttl=120)
 async def stats(player: str, full_result: bool = False) -> PlayerStats:
     """

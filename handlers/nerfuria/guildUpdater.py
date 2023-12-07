@@ -9,28 +9,35 @@ from discord.ext import tasks
 import handlers.logging
 import handlers.rateLimit
 import utils.misc
-import wrappers.api.minecraft
-import wrappers.api.wynncraft.guild
 from handlers import serverConfig
 from wrappers import botConfig, minecraftPlayer
+from wrappers.api.wynncraft.v3 import guild, types
 from wrappers.storage import guildMemberLogData
 
-_guild: wrappers.api.wynncraft.guild.Stats = None
+_guild: types.GuildStats = None
 
-
-async def _load_stored():
-    global _guild
+try:
     if os.path.exists(f"{botConfig.GUILD_NAME}.json"):
-        with open(f"{botConfig.GUILD_NAME}.json", 'r') as f:
-            _guild = utils.misc.dataclass_from_dict(wrappers.api.wynncraft.guild.Stats, json.load(f))
+        with open(f"{botConfig.GUILD_NAME}.json", 'r') as _f:
+            _guild = types.GuildStats.from_json(json.load(_f))
+except Exception as e:
+    handlers.logging.log_error(
+        f"Failed to load stored guild stats. Delete the file if this happens after an update. {e}")
 
 
-async def _store():
+async def _store_guild():
     with open(f"{botConfig.GUILD_NAME}.json", "w") as f:
         json.dump(dataclasses.asdict(_guild), f, indent=4)
 
 
-async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uuids: set[str]):
+# TODO refactor duplicate log code with onlineplayers.py
+async def _check_member_updates(client: Client, guild_now: types.GuildStats):
+    members_prev = {uuid.replace("-", "").lower() for uuid in _guild.members.all.keys()}
+    members_now = {uuid.replace("-", "").lower() for uuid in guild_now.members.all.keys()}
+
+    joined_uuids = members_now - members_prev
+    left_uuids = members_prev - members_now
+
     channel = client.get_channel(serverConfig.get_log_channel_id(botConfig.GUILD_DISCORD))
     if not isinstance(channel, TextChannel):
         print(channel)
@@ -77,26 +84,14 @@ async def _notify_member_updates(client: Client, joined_uuids: set[str], left_uu
 async def update_guild(client: Client):
     try:
         global _guild
-        if _guild is None:
-            await _load_stored()
 
-        if _guild is None:
-            _guild = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
-            await _store()
-            return
+        guild_now = await guild.stats(name=botConfig.GUILD_NAME)
 
-        guild_now = await wrappers.api.wynncraft.guild.stats(botConfig.GUILD_NAME)
-
-        members_prev = {m.uuid.replace("-", "").lower() for m in _guild.members}
-        members_now = {m.uuid.replace("-", "").lower() for m in guild_now.members}
-
-        joined = members_now - members_prev
-        left = members_prev - members_now
-
-        await _notify_member_updates(client, joined, left)
+        if _guild is not None:
+            await _check_member_updates(client, guild_now)
 
         _guild = guild_now
-        await _store()
+        await _store_guild()
     except Exception as e:
         await handlers.logging.log_exception(e)
         raise e

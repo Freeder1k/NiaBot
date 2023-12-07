@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 import handlers.commands.commandListener
 import handlers.logging
-import handlers.nerfuria.wynnGuild
+import handlers.nerfuria.guildUpdater
 import handlers.rateLimit
 import handlers.rateLimit
 import handlers.wynncraft.onlinePlayers
@@ -113,13 +113,13 @@ update_presence.add_exception_type(
 def start_scheduling():
     wrappers.storage.playtimeData.update_playtimes.start()
     update_presence.start()
-    handlers.nerfuria.wynnGuild.update_guild.start(client=client)
+    handlers.nerfuria.guildUpdater.update_guild.start(client=client)
     handlers.wynncraft.onlinePlayers.update_players.start(client=client)
 
 
 def stop_scheduling():
     handlers.wynncraft.onlinePlayers.update_players.stop()
-    handlers.nerfuria.wynnGuild.update_guild.stop()
+    handlers.nerfuria.guildUpdater.update_guild.stop()
     update_presence.stop()
     wrappers.storage.playtimeData.update_playtimes.stop()
 
