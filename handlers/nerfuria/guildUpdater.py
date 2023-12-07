@@ -80,7 +80,7 @@ async def _check_member_updates(client: Client, guild_now: types.GuildStats):
             await channel.send(embeds=embeds[i:i + 10])
 
 
-@tasks.loop(minutes=1, reconnect=True)
+@tasks.loop(minutes=10, reconnect=True)
 async def update_guild(client: Client):
     try:
         global _guild
