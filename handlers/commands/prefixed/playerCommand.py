@@ -21,12 +21,13 @@ _uuid_re = re.compile(r'[0-9a-f]+')
 @alru_cache(ttl=60)
 async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
     try:
-        stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(utils.misc.format_uuid(p.uuid), full_result=True)
+        stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(utils.misc.format_uuid(p.uuid),
+                                                                          full_result=True)
     except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
         return None
 
-    rank = stats.rank if stats.rank != "Player"\
-        else stats.supportRank.capitalize() if stats.supportRank is not None\
+    rank = stats.rank if stats.rank != "Player" \
+        else stats.supportRank.capitalize() if stats.supportRank is not None \
         else "Player"
 
     if stats.online:
@@ -38,7 +39,7 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
     if stats.guild is None:
         guild = "None"
     else:
-        guild = f"{stats.guild.rank} in **[{stats.guild.name}](https://wynncraft.com/stats/guild/{stats.guild.name})**"
+        guild = f"{stats.guild.rank} in **[{stats.guild.name}](https://wynncraft.com/stats/guild/{stats.guild.name.replace(' ', '%20')})**"
 
     description = f"## [{rank}] {p.name}\n" \
                   f"``{stats.uuid}``\n" \
