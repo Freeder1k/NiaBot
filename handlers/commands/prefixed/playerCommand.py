@@ -84,6 +84,7 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
         .add_field(name="", value=dungeons, inline=False) \
         .add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n**Characters**", inline=False)
 
+    char_count = 0
     for char_id, char in stats.characters.items():
         if char.nickname is None:
             char_name = char.type.capitalize()
@@ -96,6 +97,10 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
                   f"Total: {char.totalLevel}",
             inline=True
         )
+        char_count += 1
+
+    for i in range(char_count % 3):
+        embed.add_field(name="", value="", inline=True)
 
     return embed
 
