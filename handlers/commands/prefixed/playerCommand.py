@@ -92,7 +92,7 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
             value=f"**[{char_name}](https://wynncraft.com/stats/player/{stats.uuid}?class={char_id})**\n" \
                   f"Combat: {char.level}\n" \
                   f"Total: {char.totalLevel}",
-            inline=False
+            inline=True
         )
 
     return embed
