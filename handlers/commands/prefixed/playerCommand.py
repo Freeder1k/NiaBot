@@ -20,9 +20,9 @@ _uuid_re = re.compile(r'[0-9a-f]+')
 
 @alru_cache(ttl=60)
 async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
-    stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(utils.misc.format_uuid(p.uuid), full_result=True)
-
-    if stats is None:
+    try:
+        stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(utils.misc.format_uuid(p.uuid), full_result=True)
+    except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
         return None
 
     rank = stats.rank if stats.rank != "Player"\
