@@ -69,7 +69,7 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
     for dungeon_name, amount in stats.globalData.dungeons.list.items():
         dungeons_tb.add_row(dungeon_name.replace("Corrupted", "Cor."), str(amount))
 
-    dungeons = f"**Total Raid Completions**\n" \
+    dungeons = f"**Total Dungeon Completions**\n" \
                f">>> ```\n" \
                f"{dungeons_tb.build()}\n" \
                f"```"
