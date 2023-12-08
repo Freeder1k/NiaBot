@@ -117,7 +117,7 @@ class PlayerCommand(command.Command):
         )
 
     async def _execute(self, event: CommandEvent):
-        with event.channel.typing():
+        async with event.channel.typing():
             if len(event.args) < 2:
                 await utils.discord.send_error(event.channel, "Please specify a username or uuid!")
                 return
