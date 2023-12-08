@@ -117,29 +117,30 @@ class PlayerCommand(command.Command):
         )
 
     async def _execute(self, event: CommandEvent):
-        if len(event.args) < 2:
-            await utils.discord.send_error(event.channel, "Please specify a username or uuid!")
-            return
-
-        user_str = event.args[1]
-
-        if len(user_str) <= 16 and _username_re.fullmatch(user_str):
-            p = await minecraftPlayer.get_player(username=user_str)
-        else:
-            user_str = user_str.replace("-", "").lower()
-
-            if len(user_str) == 32 and _uuid_re.fullmatch(user_str):
-                p = await minecraftPlayer.get_player(uuid=user_str)
-            else:
-                await utils.discord.send_error(event.channel, f"Couldn't parse player ``{event.args[1]}``.")
+        with event.channel.typing():
+            if len(event.args) < 2:
+                await utils.discord.send_error(event.channel, "Please specify a username or uuid!")
                 return
 
-        if p is None:
-            await utils.discord.send_error(event.channel, f"Couldn't find player ``{event.args[1]}``.")
-            return
+            user_str = event.args[1]
 
-        embed = await _create_player_embed(p)
-        if embed is None:
-            await utils.discord.send_error(event.channel, f"Couldn't get stats for ``{p.name}``.")
-        else:
-            await event.channel.send(embed=embed)
+            if len(user_str) <= 16 and _username_re.fullmatch(user_str):
+                p = await minecraftPlayer.get_player(username=user_str)
+            else:
+                user_str = user_str.replace("-", "").lower()
+
+                if len(user_str) == 32 and _uuid_re.fullmatch(user_str):
+                    p = await minecraftPlayer.get_player(uuid=user_str)
+                else:
+                    await utils.discord.send_error(event.channel, f"Couldn't parse player ``{event.args[1]}``.")
+                    return
+
+            if p is None:
+                await utils.discord.send_error(event.channel, f"Couldn't find player ``{event.args[1]}``.")
+                return
+
+            embed = await _create_player_embed(p)
+            if embed is None:
+                await utils.discord.send_error(event.channel, f"Couldn't get stats for ``{p.name}``.")
+            else:
+                await event.channel.send(embed=embed)
