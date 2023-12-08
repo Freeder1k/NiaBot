@@ -25,7 +25,9 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
     if stats is None:
         return None
 
-    rank = stats.rank if stats.rank is not None else stats.supportRank if stats.supportRank is not None else "Player"
+    rank = stats.rank if stats.rank != "Player"\
+        else stats.supportRank.capitalize() if stats.supportRank is not None\
+        else "Player"
 
     if stats.online:
         seen = f"Online on {stats.server}"
@@ -84,9 +86,9 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
 
     for char_id, char in stats.characters.items():
         if char.nickname is None:
-            char_name = char.type
+            char_name = char.type.capitalize()
         else:
-            char_name = f"{char.nickname} ({char.type})"
+            char_name = f"{char.nickname} ({char.type.capitalize()})"
         embed.add_field(
             name="",
             value=f"**[{char_name}](https://wynncraft.com/stats/player/{stats.uuid}?class={char_id})**\n" \
