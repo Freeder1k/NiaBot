@@ -115,7 +115,7 @@ async def add_record(stats: PlayerStats, record_time: datetime = None):
                           stats.guild.name if stats.guild is not None else None,
                           stats.guild.rank if stats.guild is not None else None,
                           stats.globalData.wars,
-                          stats.globalData.totalLevels,
+                          stats.globalData.totalLevel,
                           stats.globalData.killedMobs,
                           stats.globalData.chestsFound,
                           stats.globalData.dungeons.total if has_dungeons else 0,

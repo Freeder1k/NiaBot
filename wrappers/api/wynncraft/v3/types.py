@@ -159,7 +159,7 @@ class PlayerStats(JsonableDataclass):
     @dataclass(frozen=True)
     class _GlobalData(JsonableDataclass):
         wars: int
-        totalLevels: int
+        totalLevel: int
         killedMobs: int
         chestsFound: int
 
