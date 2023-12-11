@@ -3,6 +3,7 @@ from datetime import datetime
 
 from async_lru import alru_cache
 from discord import Permissions, Embed
+from discord.utils import escape_markdown
 
 import utils.discord
 import utils.misc
@@ -39,9 +40,9 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
     if stats.guild is None:
         guild = "None"
     else:
-        guild = f"{stats.guild.rank} in **[{stats.guild.name}](https://wynncraft.com/stats/guild/{stats.guild.name.replace(' ', '%20')})**"
+        guild = f"{stats.guild.rank.capitalize()} in **[{stats.guild.name}](https://wynncraft.com/stats/guild/{stats.guild.name.replace(' ', '%20')})**"
 
-    description = f"## [{rank}] {p.name}\n" \
+    description = f"## [{rank}] {escape_markdown(p.name)}\n" \
                   f"``{stats.uuid}``\n" \
                   f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n" \
                   f"**Seen:** {seen}\n" \
@@ -90,7 +91,7 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
         if char.nickname is None:
             char_name = char.type.capitalize()
         else:
-            char_name = f"{char.nickname} ({char.type.capitalize()})"
+            char_name = f"{escape_markdown(char.nickname)} ({char.type.capitalize()})"
         embed.add_field(
             name="",
             value=f"**[{char_name}](https://wynncraft.com/stats/player/{stats.uuid}?class={char_id})**\n" \
