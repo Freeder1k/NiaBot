@@ -15,17 +15,13 @@ from niatypes.dataTypes import CommandEvent, MinecraftPlayer
 from wrappers import botConfig, minecraftPlayer
 from wrappers.api.wynncraft.v3.types import PlayerStats
 
-_username_re = re.compile(r'[0-9A-Za-z_]+')
-_uuid_re = re.compile(r'[0-9a-f]+')
+_USERNAME_RE = re.compile(r'[0-9A-Za-z_]+')
+_UUID_RE = re.compile(r'[0-9a-f]+')
 
 
 @alru_cache(ttl=60)
 async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
-    try:
-        stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(utils.misc.format_uuid(p.uuid),
-                                                                          full_result=True)
-    except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
-        return None
+    stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(utils.misc.format_uuid(p.uuid), full_result=True)
 
     rank = stats.rank if stats.rank != "Player" \
         else stats.supportRank.capitalize() if stats.supportRank is not None \
@@ -115,7 +111,7 @@ class PlayerCommand(command.Command):
             usage=f"player <username|uuid>",
             description="See the wynncraft stats of the provided player.",
             req_perms=Permissions().none(),
-            permission_lvl=command.PermissionLevel.STRAT
+            permission_lvl=command.PermissionLevel.ANYONE
         )
 
     async def _execute(self, event: CommandEvent):
@@ -126,12 +122,12 @@ class PlayerCommand(command.Command):
 
             user_str = event.args[1]
 
-            if len(user_str) <= 16 and _username_re.fullmatch(user_str):
+            if len(user_str) <= 16 and _USERNAME_RE.fullmatch(user_str):
                 p = await minecraftPlayer.get_player(username=user_str)
             else:
                 user_str = user_str.replace("-", "").lower()
 
-                if len(user_str) == 32 and _uuid_re.fullmatch(user_str):
+                if len(user_str) == 32 and _UUID_RE.fullmatch(user_str):
                     p = await minecraftPlayer.get_player(uuid=user_str)
                 else:
                     await utils.discord.send_error(event.channel, f"Couldn't parse player ``{event.args[1]}``.")
@@ -141,8 +137,8 @@ class PlayerCommand(command.Command):
                 await utils.discord.send_error(event.channel, f"Couldn't find player ``{event.args[1]}``.")
                 return
 
-            embed = await _create_player_embed(p)
-            if embed is None:
-                await utils.discord.send_error(event.channel, f"Couldn't get stats for ``{p.name}``.")
-            else:
+            try:
+                embed = await _create_player_embed(p)
                 await event.channel.send(embed=embed)
+            except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
+                await utils.discord.send_error(event.channel, f"{escape_markdown(p.name)} is not a wynncraft player!")
