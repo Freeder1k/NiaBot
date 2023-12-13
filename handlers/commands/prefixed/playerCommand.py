@@ -82,23 +82,24 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
         .add_field(name="", value=dungeons, inline=False) \
         .add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n**Characters**", inline=False)
 
-    char_count = 0
-    for char_id, char in stats.characters.items():
-        if char.nickname is None:
-            char_name = char.type.capitalize()
-        else:
-            char_name = f"{escape_markdown(char.nickname)} ({char.type.capitalize()})"
-        embed.add_field(
-            name="",
-            value=f"**[{char_name}](https://wynncraft.com/stats/player/{stats.uuid}?class={char_id})**\n" \
-                  f"Combat: {char.level}\n" \
-                  f"Total: {char.totalLevel}",
-            inline=True
-        )
-        char_count += 1
+    if stats.characters is not None:
+        char_count = 0
+        for char_id, char in stats.characters.items():
+            if char.nickname is None:
+                char_name = char.type.capitalize()
+            else:
+                char_name = f"{escape_markdown(char.nickname)} ({char.type.capitalize()})"
+            embed.add_field(
+                name="",
+                value=f"**[{char_name}](https://wynncraft.com/stats/player/{stats.uuid}?class={char_id})**\n" \
+                      f"Combat: {char.level}\n" \
+                      f"Total: {char.totalLevel}",
+                inline=True
+            )
+            char_count += 1
 
-    for i in range(char_count % 3):
-        embed.add_field(name="", value="", inline=True)
+        for i in range(char_count % 3):
+            embed.add_field(name="", value="", inline=True)
 
     return embed
 
