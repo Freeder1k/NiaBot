@@ -139,9 +139,7 @@ async def update_players(client: Client):
     try:
         global _online_players, _players_to_track
         prev_online_players = _online_players
-        # TODO API v3 broken, still use old api here
-        #_online_players = (await wrappers.api.wynncraft.v3.player.player_list()).keys()
-        _online_players = await wrappers.api.wynncraft.network.online_players()
+        _online_players = (await wrappers.api.wynncraft.v3.player.player_list()).keys()
         joined_players = _online_players - prev_online_players
         left_players = prev_online_players - _online_players
 
