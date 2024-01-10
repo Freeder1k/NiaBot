@@ -4,7 +4,7 @@ from handlers import rateLimit, reservableRateLimit
 from niatypes.dataTypes import MinecraftPlayer
 from . import sessionManager
 
-_mojang_rate_limit = rateLimit.RateLimit(60, 1)
+_mojang_rate_limit = rateLimit.RateLimit(50, 1)
 _usernames_rate_limit = reservableRateLimit.ReservableRateLimit(20, 1)
 
 _mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")

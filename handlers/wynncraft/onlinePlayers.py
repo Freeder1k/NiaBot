@@ -134,7 +134,7 @@ async def _track_stats():
     await asyncio.gather(*(_record_stats(_players_to_track.get()) for _ in range(0, calls)))
 
 
-@tasks.loop(seconds=61, reconnect=True)
+@tasks.loop(seconds=65, reconnect=True)
 async def update_players(client: Client):
     try:
         global _online_players, _players_to_track
