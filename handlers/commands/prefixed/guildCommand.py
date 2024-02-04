@@ -6,7 +6,6 @@ from discord import Permissions, Embed
 
 import utils.discord
 import utils.misc
-import wrappers.api.wynncraft.network
 import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 import wrappers.storage.usernameData

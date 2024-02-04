@@ -13,7 +13,6 @@ import handlers.rateLimit
 import handlers.rateLimit
 import handlers.wynncraft.onlinePlayers
 import wrappers.api.sessionManager
-import wrappers.api.wynncraft.network
 import wrappers.storage.manager
 import wrappers.storage.playtimeData
 import wrappers.storage.playtimeData

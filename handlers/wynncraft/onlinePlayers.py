@@ -10,7 +10,6 @@ import handlers.rateLimit
 import utils.misc
 import wrappers.api
 import wrappers.api.minecraft
-import wrappers.api.wynncraft.network
 import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 import wrappers.api.wynncraft.v3.session
