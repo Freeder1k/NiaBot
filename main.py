@@ -41,7 +41,7 @@ initialized = False
 @client.event
 async def on_ready():
     try:
-        handlers.logging.init_logger(client)
+        await handlers.logging.init_discord_handler(client)
 
         global initialized
         if not initialized:
@@ -77,11 +77,11 @@ async def on_ready():
                 await wrappers.storage.playtimeData.update_playtimes()
 
             initialized = True
-            handlers.logging.log("Ready")
-            handlers.logging.log(f"Logged in as {client.user}")
-            handlers.logging.log(f"Guilds: {[g.name for g in client.guilds]}")
+            handlers.logging.info("Ready")
+            handlers.logging.info(f"Logged in as {client.user}")
+            handlers.logging.info(f"Guilds: {[g.name for g in client.guilds]}")
     except Exception as e:
-        await handlers.logging.log_exception(e)
+        await handlers.logging.error(exc_info=e)
         await stop()
 
 
@@ -101,7 +101,7 @@ async def update_presence():
             )
         )
     except Exception as ex:
-        await handlers.logging.log_exception(ex)
+        await handlers.logging.error(exc_info=ex)
         raise ex
 
 
@@ -133,23 +133,23 @@ def main():
             await client.start(os.getenv('BOT_TOKEN'))
 
     try:
-        handlers.logging.log("Booting up...")
+        handlers.logging.info("Booting up...")
         asyncio.run(runner())
     except (KeyboardInterrupt, SystemExit) as e:
-        handlers.logging.log(f"{e.__class__.__name__}: {e}")
+        handlers.logging.info(f"{e.__class__.__name__}: {e}")
     except Exception as e:
-        handlers.logging.log_exception(e, discord=False)
+        handlers.logging.error(exc_info=e)
     finally:
         asyncio.run(stop())
 
 
 async def stop():
-    handlers.logging.log("Shutting down...")
+    handlers.logging.info("Shutting down...")
     stop_scheduling()
     await client.close()
     await wrappers.api.sessionManager.close()
     await wrappers.storage.manager.close()
-    handlers.logging.log("Stopped")
+    handlers.logging.info("Stopped")
 
 
 if __name__ == "__main__":

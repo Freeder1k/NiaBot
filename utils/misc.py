@@ -3,7 +3,6 @@ import datetime
 from datetime import datetime, timezone
 from typing import TypeVar, Any, Type
 
-from handlers.logging import log_error
 from niatypes.enums import AnsiFormat
 
 
@@ -53,7 +52,8 @@ def _from_dict_inner(cls: Any, json: dict) -> Any:
     elif type(json) == dict:
         return {k: _from_dict_inner(cls.__args__[0], v) for k, v in json.items()}
     else:
-        log_error(f"Couldn't determine type of {json} in {cls} in dict conversion.")
+        # error(f"Couldn't determine type of {json} in {cls} in dict conversion.")
+        # TODO log error somehow?
         return json
 
 

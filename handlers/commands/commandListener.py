@@ -1,3 +1,4 @@
+import handlers.logging
 import re
 import traceback
 from re import Pattern
@@ -70,6 +71,4 @@ async def on_message(message: Message):
     except (KeyboardInterrupt, SystemExit) as e:
         raise e
     except Exception as e:
-        await utils.discord.send_exception(command_event, e)
-        print(message)
-        traceback.print_exc()
+        handlers.logging.error(exc_info=e, extra={"command_event": command_event})

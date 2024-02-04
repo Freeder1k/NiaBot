@@ -50,7 +50,7 @@ class ConfigCommand(command.Command):
                     await utils.discord.send_info(event.channel, f"The current chief role is: "
                                                                  f"<@&{serverConfig.get_chief_role_id(server_id)}>")
                 case "logchannel":
-                    await utils.discord.send_info(event.channel, f"The current log channel is: "
+                    await utils.discord.send_info(event.channel, f"The current info channel is: "
                                                                  f"<#{serverConfig.get_log_channel_id(server_id)}>")
                 case _:
                     await utils.discord.send_error(event.channel, f"Invalid option: {event.args[1]}.\n"
@@ -103,7 +103,7 @@ class ConfigCommand(command.Command):
                     return
 
                 await serverConfig.set_log_channel_id(server_id, channel_id)
-                await utils.discord.send_success(event.channel, f"Set the log channel to <#{channel_id}>")
+                await utils.discord.send_success(event.channel, f"Set the info channel to <#{channel_id}>")
             case _:
                 await utils.discord.send_error(event.channel, f"Invalid option: {event.args[1]}.\n"
                                                               f"Valid options are: ``prefix``, ``stratrole``, ``memberrole``, ``logchannel``")

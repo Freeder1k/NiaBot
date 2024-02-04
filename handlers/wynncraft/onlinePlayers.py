@@ -34,13 +34,13 @@ async def _notify_guild_member_name_changes(client: Client, prev_names: list[Min
     channel = client.get_channel(serverConfig.get_log_channel_id(botConfig.GUILD_DISCORD))
     if not isinstance(channel, TextChannel):
         print(channel)
-        handlers.logging.log_error("Log channel for guild server is not text channel!")
+        handlers.logging.error("Log channel for guild server is not text channel!")
         return
 
     perms = channel.permissions_for(channel.guild.me)
     if not perms.send_messages and perms.embed_links:
         print(channel)
-        handlers.logging.log_error("Missing perms for log channel for guild server!")
+        handlers.logging.error("Missing perms for info channel for guild server!")
         return
 
     prev_names_dict = {p.uuid: p.name for p in prev_names}
@@ -74,7 +74,7 @@ async def _fetch_and_update_username(username: str):
     prev_p = None
 
     if p is None:
-        handlers.logging.log_debug(f"{username} is not a minecraft name but online on wynncraft!")
+        handlers.logging.debug(f"{username} is not a minecraft name but online on wynncraft!")
     else:
         prev_p = await wrappers.storage.usernameData.update(p.uuid, p.name)
 
@@ -88,7 +88,7 @@ async def _update_usernames(client: Client):
     max_calls = wrappers.api.minecraft._mojang_rate_limit.calculate_remaining_calls()
     calls = min(max_calls, _unknown_players.qsize())
     if calls >= 10:
-        handlers.logging.log_debug(f"Updating {calls} minecraft usernames.")
+        handlers.logging.debug(f"Updating {calls} minecraft usernames.")
     # TODO use usernames endpoint if a lot of usernames
 
     res = await asyncio.gather(*(_fetch_and_update_username(_unknown_players.get()) for _ in range(0, calls)))
@@ -109,16 +109,16 @@ async def _record_stats(username: str):
     except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
         p = await wrappers.storage.usernameData.get_player(username=username)
         if p is None:
-            handlers.logging.log_debug(f"Couldn't get stats of player {username}")
+            handlers.logging.debug(f"Couldn't get stats of player {username}")
             return
         try:
             uuid = utils.misc.get_dashed_uuid(p.uuid)
             stats = await wrappers.api.wynncraft.v3.player.stats(player=uuid)
             await wrappers.storage.playerTrackerData.add_record(stats)
         except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
-            handlers.logging.log_debug(f"Couldn't get stats of player {username}")
+            handlers.logging.debug(f"Couldn't get stats of player {username}")
     except Exception as e:
-        handlers.logging.log_error(username, stats)
+        handlers.logging.error(username, stats)
         raise e
 
 
@@ -129,7 +129,7 @@ async def _track_stats():
     max_calls = min(200, wrappers.api.wynncraft.v3.session.calculate_remaining_requests())
     calls = min(max_calls, _players_to_track.qsize())
     if calls >= 50:
-        handlers.logging.log_debug(f"Recording {calls} player's stats.")
+        handlers.logging.debug(f"Recording {calls} player's stats.")
 
     await asyncio.gather(*(_record_stats(_players_to_track.get()) for _ in range(0, calls)))
 
@@ -155,7 +155,7 @@ async def update_players(client: Client):
         await _track_stats()
 
     except Exception as ex:
-        await handlers.logging.log_exception(ex)
+        await handlers.logging.error(exc_info=ex)
         await asyncio.sleep(60)  # Wait here so the loop reconnect doesn't trigger a RateLimitException instantly
         raise ex
 

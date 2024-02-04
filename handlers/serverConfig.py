@@ -92,8 +92,8 @@ async def set_chief_role_id(server_id: int, role_id: int):
 
 def get_log_channel_id(server_id: int) -> int:
     """
-    Get the log channel ID of the specified server
-    :returns: 0 if no log channel is set, otherwise the ID.
+    Get the info channel ID of the specified server
+    :returns: 0 if no info channel is set, otherwise the ID.
     """
     return _server_configs.get(server_id, _default_conf).log_channel_id
 

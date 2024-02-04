@@ -14,10 +14,10 @@ from wrappers.storage import guildMemberLogData
 class LogCommand(command.Command):
     def __init__(self):
         super().__init__(
-            name="log",
+            name="info",
             aliases=("l",),
-            usage=f"log [<amount> <timeframe>]",
-            description="Get a list of log entries.\n"
+            usage=f"info [<amount> <timeframe>]",
+            description="Get a list of info entries.\n"
                         "- ``amount`` must be an integer\n"
                         "- ``timeframe`` must be either ``d`` or ``m`` (days/months)",
             req_perms=Permissions().none(),
@@ -70,7 +70,7 @@ class LogCommand(command.Command):
 
         if len(logs) == 0:
             await utils.discord.send_info(event.channel,
-                                          f"No log entries found since {discord.utils.format_dt(time, style='D')}.")
+                                          f"No info entries found since {discord.utils.format_dt(time, style='D')}.")
             return
 
         text = "```" + \

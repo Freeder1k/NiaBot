@@ -21,7 +21,7 @@ try:
         with open(f"{botConfig.GUILD_NAME}.json", 'r') as _f:
             _guild = types.GuildStats.from_json(json.load(_f))
 except Exception as e:
-    handlers.logging.log_error(
+    handlers.logging.error(
         f"Failed to load stored guild stats. Delete the file if this happens after an update. {e}")
 
 
@@ -30,7 +30,7 @@ async def _store_guild():
         json.dump(dataclasses.asdict(_guild), f, indent=4)
 
 
-# TODO refactor duplicate log code with onlineplayers.py
+# TODO refactor duplicate info code with onlineplayers.py
 async def _check_member_updates(client: Client, guild_now: types.GuildStats):
     members_prev = {uuid.replace("-", "").lower() for uuid in _guild.members.all.keys()}
     members_now = {uuid.replace("-", "").lower() for uuid in guild_now.members.all.keys()}
@@ -41,13 +41,13 @@ async def _check_member_updates(client: Client, guild_now: types.GuildStats):
     channel = client.get_channel(serverConfig.get_log_channel_id(botConfig.GUILD_DISCORD))
     if not isinstance(channel, TextChannel):
         print(channel)
-        handlers.logging.log_error("Log channel for guild server is not text channel!")
+        handlers.logging.error("Log channel for guild server is not text channel!")
         return
 
     perms = channel.permissions_for(channel.guild.me)
     if not perms.send_messages and perms.embed_links:
         print(channel)
-        handlers.logging.log_error("Missing perms for log channel for guild server!")
+        handlers.logging.error("Missing perms for info channel for guild server!")
         return
 
     joined = {p.uuid: p.name for p in await minecraftPlayer.get_players(uuids=list(joined_uuids))}
@@ -93,7 +93,7 @@ async def update_guild(client: Client):
         _guild = guild_now
         await _store_guild()
     except Exception as e:
-        await handlers.logging.log_exception(e)
+        await handlers.logging.error(exc_info=e)
         raise e
 
 

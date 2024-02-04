@@ -2,7 +2,7 @@ import types
 from abc import ABC, abstractmethod
 from typing import Union, Type, TypeVar
 
-from handlers.logging import log_error
+from handlers.logging import error
 
 JsonBaseType = Union[int, float, str, bool, None]
 JsonType = Union[dict[str, 'JsonType'], list['JsonType'], JsonBaseType]
@@ -47,5 +47,5 @@ class Jsonable(ABC):
         except:
             pass
 
-        log_error(f"Couldn't convert {json_obj} to {cls} in json conversion.")
+        error(f"Couldn't convert {json_obj} to {cls} in json conversion.")
         return json_obj
