@@ -30,8 +30,8 @@ async def send_info(channel: TextChannel, message: str):
     await channel.send(embed=Embed(color=botConfig.INFO_COLOR, description=f":information_source: {message}"))
 
 
-async def send_exception(event: CommandEvent, exception: Exception):
-    await event.channel.send(embed=Embed(
+async def send_exception(channel: TextChannel, exception: Exception):
+    await channel.send(embed=Embed(
         color=botConfig.ERROR_COLOR,
         title=f"A wild {type(exception)} appeared!",
         description="Please scream at the bot owner to fix it."

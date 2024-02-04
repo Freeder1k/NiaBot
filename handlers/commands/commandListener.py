@@ -72,3 +72,4 @@ async def on_message(message: Message):
         raise e
     except Exception as e:
         handlers.logging.error(exc_info=e, extra={"command_event": command_event})
+        await utils.discord.send_exception(command_event.channel, e)
