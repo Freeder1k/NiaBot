@@ -6,6 +6,7 @@ from niatypes.jsonableDataclass import JsonableDataclass
 
 @dataclass(frozen=True)
 class GuildStats(JsonableDataclass):
+    uuid: str
     name: str
     prefix: str
     level: int
@@ -54,6 +55,7 @@ class GuildStats(JsonableDataclass):
 class Territory(JsonableDataclass):
     @dataclass(frozen=True)
     class _Guild(JsonableDataclass):
+        uuid: str
         name: str
         prefix: str
 

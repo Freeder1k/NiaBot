@@ -37,9 +37,9 @@ async def list_guilds() -> list[WynncraftGuild]:
     """
     Request a list of all wynncraft guilds.
     """
-    data: list = await session.get("/guild/list/guild")
+    data: dict = await session.get("/guild/list/guild")
 
-    return [WynncraftGuild(g['name'], g['prefix']) for g in data]
+    return [WynncraftGuild(name, g['prefix']) for name, g in data.items()]
 
 
 @alru_cache(ttl=10)
