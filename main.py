@@ -22,7 +22,8 @@ import wrappers.storage.usernameData
 from handlers import serverConfig
 from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, \
     configCommand, \
-    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, guildCommand, shutdownCommand
+    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, shutdownCommand
+from handlers.commands.hybrid import guildCommand
 from handlers.commands.prefixed import logCommand, playtimeCommand
 
 load_dotenv()
@@ -52,11 +53,10 @@ commands = [
     evalCommand.EvalCommand(),
     playerCommand.PlayerCommand(),
     playtimeCommand.PlaytimeCommand(),
-    guildCommand.GuildCommand(),
     logCommand.LogCommand(),
     shutdownCommand.ShutdownCommand()
 ]
-
+hybrid_commands = [guildCommand.GuildCommand()]
 
 @client.event
 async def on_ready():
@@ -76,7 +76,7 @@ async def on_ready():
 
             handlers.commands.commandListener.on_ready(client)
 
-            handlers.commands.commandListener.register_commands(*commands)
+            handlers.commands.commandListener.register_commands(*commands, *hybrid_commands)
 
             today = datetime.now(timezone.utc).date()
             if (await wrappers.storage.playtimeData.get_first_date_after(today)) is None:
@@ -85,6 +85,8 @@ async def on_ready():
             initialized = True
 
             handlers.logging.info("Syncing command tree...")
+            for cmd in hybrid_commands:
+                tree.add_command(cmd)
 
             await tree.sync()
 

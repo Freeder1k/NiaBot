@@ -9,10 +9,11 @@ import utils.misc
 import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 import wrappers.storage.usernameData
-from handlers.commands import command
-from niatypes.dataTypes import PrefixedCommandEvent, WynncraftGuild
+from handlers.commands import command, hybridCommand
+from niatypes.dataTypes import PrefixedCommandEvent, WynncraftGuild, SlashCommandEvent
 from utils import tableBuilder
 from wrappers import botConfig
+import discord
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}$')
 
@@ -74,24 +75,27 @@ async def _create_guild_embed(guild: WynncraftGuild):
     return embed
 
 
-class GuildCommand(command.Command):
+class GuildCommand(hybridCommand.HybridCommand):
     def __init__(self):
         super().__init__(
             name="guild",
             aliases=("g",),
-            usage=f"guild <name|tag>",
+            params=[hybridCommand.CommandParam("guild", "The name or tag of the guild.", required=True, ptype=discord.AppCommandOptionType.string)],
             description="Get a wynncraft guild by its name or tag.",
-            req_perms=Permissions().none(),
+            base_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
     async def _execute(self, event: PrefixedCommandEvent):
         async with event.channel.typing():
-            if len(event.args) < 2:
-                await utils.discord.send_error(event.channel, "Please specify a guild!")
-                return
+            if isinstance(event, PrefixedCommandEvent):
+                if len(event.args) < 2:
+                    await utils.discord.send_error(event.channel, "Please specify a guild!")
+                    return
 
-            guild_str = event.message.content.split(" ", 1)[1]
+                guild_str = event.message.content.split(" ", 1)[1]
+            elif isinstance(event, SlashCommandEvent):
+                guild_str = event.args["guild"]
 
             if not _guild_re.match(guild_str):
                 await utils.discord.send_error(event.channel, f"Invalid guild name or tag``{guild_str}``")
