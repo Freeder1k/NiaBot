@@ -44,4 +44,4 @@ class EvalCommand(command.Command):
                         color=botConfig.DEFAULT_COLOR
                     ))
             except Exception as e:
-                await utils.discord.send_exception(event, e)
+                await utils.discord.send_exception(event.channel, e)
