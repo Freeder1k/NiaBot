@@ -6,7 +6,7 @@ from discord import Permissions, Embed
 import utils.discord
 import utils.misc
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from wrappers import botConfig
 from wrappers.storage import guildMemberLogData
 
@@ -24,7 +24,7 @@ class LogCommand(command.Command):
             permission_lvl=command.PermissionLevel.STRAT,
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         td = timedelta(days=7)
 
         if len(event.args) < 2:

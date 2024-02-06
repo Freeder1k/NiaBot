@@ -6,7 +6,7 @@ import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.v3.guild
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from wrappers import botConfig, minecraftPlayer
 
 
@@ -21,7 +21,7 @@ class WandererCommand(command.Command):
             permission_lvl=command.PermissionLevel.STRAT,
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         guild = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
 
         seven_days_ago = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59) - timedelta(days=7)

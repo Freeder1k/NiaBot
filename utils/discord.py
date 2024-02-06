@@ -5,7 +5,7 @@ import typing
 from discord import TextChannel, Embed, Guild, Member, Permissions
 
 import wrappers.minecraftPlayer
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from wrappers.api.wynncraft.v3.types import GuildStats
 from utils.misc import split_str
 from utils.tableBuilder import TableBuilder

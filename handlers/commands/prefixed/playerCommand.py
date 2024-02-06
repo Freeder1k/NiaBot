@@ -11,7 +11,7 @@ import utils.tableBuilder
 import wrappers.api.minecraft
 import wrappers.api.wynncraft.v3.player
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent, MinecraftPlayer
+from niatypes.dataTypes import PrefixedCommandEvent, MinecraftPlayer
 from wrappers import botConfig, minecraftPlayer
 from wrappers.api.wynncraft.v3.types import PlayerStats
 
@@ -115,7 +115,7 @@ class PlayerCommand(command.Command):
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         async with event.channel.typing():
             if len(event.args) < 2:
                 await utils.discord.send_error(event.channel, "Please specify a username or uuid!")

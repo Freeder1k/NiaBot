@@ -3,7 +3,7 @@ from discord import Permissions
 import utils.discord
 import wrappers.storage.strikeData
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 
 
 class UnstrikeCommand(command.Command):
@@ -17,7 +17,7 @@ class UnstrikeCommand(command.Command):
             permission_lvl=command.PermissionLevel.CHIEF
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         if len(event.args) < 2:
             await utils.discord.send_error(event.channel, "Please specify a strike!")
             return

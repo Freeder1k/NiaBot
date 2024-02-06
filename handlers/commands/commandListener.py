@@ -1,14 +1,13 @@
-import handlers.logging
 import re
-import traceback
 from re import Pattern
 
 from discord import Message, TextChannel, Client
 
+import handlers.logging
 import utils.discord
 from handlers import serverConfig
 from handlers.commands.command import Command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 
 _bot_mention: Pattern
 _commands: list[Command] = []
@@ -64,7 +63,7 @@ async def on_message(message: Message):
     if args[0] not in _command_map:
         return
 
-    command_event = CommandEvent(message, args, message.author, message.channel, message.guild, _client)
+    command_event = PrefixedCommandEvent(message, args, _client)
 
     try:
         await _command_map[args[0]].run(command_event)

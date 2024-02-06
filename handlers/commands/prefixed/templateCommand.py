@@ -1,7 +1,7 @@
 from discord import Permissions
 
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 
 
 class TemplateCommand(command.Command):
@@ -15,5 +15,5 @@ class TemplateCommand(command.Command):
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         pass

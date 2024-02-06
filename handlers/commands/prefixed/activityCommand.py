@@ -7,7 +7,7 @@ import utils.discord
 import wrappers.api.wynncraft.v3.guild
 import wrappers.storage.playtimeData
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from wrappers import botConfig
 from wrappers.api.wynncraft.v3.types import GuildStats
 
@@ -65,7 +65,7 @@ class ActivityCommand(command.Command):
             permission_lvl=command.PermissionLevel.STRAT
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         async with event.channel.typing():
             embed = await _create_activity_embed()
             await event.channel.send(embed=embed)

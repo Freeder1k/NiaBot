@@ -9,7 +9,7 @@ from discord import Permissions, Embed
 import utils.discord
 import wrappers.storage.playtimeData
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from wrappers import botConfig, minecraftPlayer
 
 _username_re = re.compile(r'[0-9A-Za-z_]+$')
@@ -27,7 +27,7 @@ class PlaytimeCommand(command.Command):
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         async with event.channel.typing():
             if len(event.args) < 2:
                 await utils.discord.send_error(event.channel, "Please specify a username or uuid!")

@@ -5,7 +5,7 @@ from discord import Permissions, Embed, Forbidden
 
 import utils.discord
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from wrappers import botConfig
 from wrappers.storage import strikeData
 
@@ -31,7 +31,7 @@ class StrikeCommand(command.Command):
             permission_lvl=command.PermissionLevel.CHIEF
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         if len(event.args) < 2:
             await utils.discord.send_error(event.channel, "Please specify a user!")
             return

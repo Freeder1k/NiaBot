@@ -8,7 +8,7 @@ import utils.misc
 import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from utils.misc import format_uuid
 from wrappers import botConfig, minecraftPlayer
 from wrappers.api.wynncraft.v3.types import GuildStats
@@ -82,7 +82,7 @@ class SeenCommand(command.Command):
             permission_lvl=command.PermissionLevel.STRAT
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         async with event.channel.typing():
             embed = await _create_seen_embed()
             await event.channel.send(embed=embed)

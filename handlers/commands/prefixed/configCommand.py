@@ -2,7 +2,7 @@ from discord import Permissions, Embed
 
 import utils.discord
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from wrappers import botConfig
 from handlers import serverConfig
 
@@ -19,7 +19,7 @@ class ConfigCommand(command.Command):
             permission_lvl=command.PermissionLevel.CHIEF
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         server_id = event.guild.id
 
         if len(event.args) < 2:

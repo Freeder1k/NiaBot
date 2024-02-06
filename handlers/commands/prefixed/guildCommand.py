@@ -10,7 +10,7 @@ import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 import wrappers.storage.usernameData
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent, WynncraftGuild
+from niatypes.dataTypes import PrefixedCommandEvent, WynncraftGuild
 from utils import tableBuilder
 from wrappers import botConfig
 
@@ -85,7 +85,7 @@ class GuildCommand(command.Command):
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         async with event.channel.typing():
             if len(event.args) < 2:
                 await utils.discord.send_error(event.channel, "Please specify a guild!")

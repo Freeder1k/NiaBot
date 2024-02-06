@@ -6,7 +6,7 @@ from discord import Permissions, Embed
 import utils.discord
 import wrappers.api.nasa
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from wrappers import botConfig
 from handlers.rateLimit import RateLimitException
 
@@ -22,7 +22,7 @@ class SpaceCommand(command.Command):
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         async with event.channel.typing():
             try:
                 apod = await wrappers.api.nasa.get_random_apod()

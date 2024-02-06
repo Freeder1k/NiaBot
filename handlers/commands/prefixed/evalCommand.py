@@ -2,7 +2,7 @@ from discord import Permissions, Embed
 
 import utils.discord
 from handlers.commands import command
-from niatypes.dataTypes import CommandEvent
+from niatypes.dataTypes import PrefixedCommandEvent
 from wrappers import botConfig
 
 
@@ -17,7 +17,7 @@ class EvalCommand(command.Command):
             permission_lvl=command.PermissionLevel.DEV
         )
 
-    async def _execute(self, event: CommandEvent):
+    async def _execute(self, event: PrefixedCommandEvent):
         if len(event.args) < 2:
             return
 
