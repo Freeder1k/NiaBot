@@ -37,7 +37,7 @@ class CommandEvent:
             description="Please scream at the bot owner to fix it."
         ))
 
-    async def waiting(self) -> Typing:
+    def waiting(self) -> Typing:
         return self.channel.typing()
 
 
