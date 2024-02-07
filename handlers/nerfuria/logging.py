@@ -24,12 +24,32 @@ async def _upload_to_discord(client, embed):
     await channel.send(embed=embed)
 
 
-async def log_member_join():
-    pass  # TODO
+async def log_member_join(client: Client, username: str, uuid: str):
+    em = Embed(
+        title=f"**{username} has joined the guild**",
+        color=botConfig.DEFAULT_COLOR,
+    )
+    em.set_footer(text=f"UUID: {utils.misc.format_uuid(uuid)}")
+
+    await guildMemberLogData.log(LogEntryType.MEMBER_JOIN,
+                                 f"{username} has joined the guild",
+                                 uuid)
+
+    await _upload_to_discord(client, em)
 
 
-async def log_member_leave():
-    pass  # TODO
+async def log_member_leave(client: Client, username: str, uuid: str):
+    em = Embed(
+        title=f"**{username} has left the guild**",
+        color=botConfig.DEFAULT_COLOR,
+    )
+    em.set_footer(text=f"UUID: {utils.misc.format_uuid(uuid)}")
+
+    await guildMemberLogData.log(LogEntryType.MEMBER_LEAVE,
+                                 f"{username} has left the guild",
+                                 uuid)
+
+    await _upload_to_discord(client, em)
 
 
 async def log_member_name_change(client: Client, uuid: str, prev_name: str, new_name: str):
