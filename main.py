@@ -1,18 +1,18 @@
 import asyncio
 from datetime import datetime, timezone
 
-import aiohttp.client_exceptions
 import discord
 from discord import app_commands
-from discord.ext import tasks
 from dotenv import load_dotenv
 
 import handlers.commands.commandListener
 import handlers.logging
+import handlers.rateLimit
+import handlers.rateLimit
 import workers.guildUpdater
-import handlers.rateLimit
-import handlers.rateLimit
+import workers.presenceUpdater
 import workers.statTracker
+import workers.usernameUpdater
 import wrappers.api.sessionManager
 import wrappers.api.wynncraft.v3.player
 import wrappers.storage.manager
@@ -20,12 +20,10 @@ import wrappers.storage.playtimeData
 import wrappers.storage.playtimeData
 import wrappers.storage.usernameData
 from handlers import serverConfig
-from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, \
-    configCommand, \
-    strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, shutdownCommand
 from handlers.commands.hybrid import guildCommand
-from handlers.commands.prefixed import logCommand, playtimeCommand
-import workers.usernameUpdater
+from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, \
+    configCommand, strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, shutdownCommand, \
+    logCommand, playtimeCommand
 
 load_dotenv()
 import os
@@ -59,6 +57,7 @@ commands = [
 ]
 hybrid_commands = [guildCommand.GuildCommand()]
 
+
 @client.event
 async def on_ready():
     try:
@@ -73,7 +72,7 @@ async def on_ready():
             await wrappers.storage.manager.init_database()
             await wrappers.api.sessionManager.init_sessions()
 
-            start_scheduling()
+            start_workers()
 
             handlers.commands.commandListener.on_ready(client)
 
@@ -103,40 +102,19 @@ async def on_message(message: discord.Message):
     asyncio.create_task(handlers.commands.commandListener.on_message(message))
 
 
-@tasks.loop(minutes=1, reconnect=True)
-async def update_presence():
-    try:
-        await client.change_presence(
-            status=discord.Status.online,
-            activity=discord.Activity(
-                name=f"{await wrappers.api.wynncraft.v3.player.player_count()} players play Wynncraft",
-                type=discord.ActivityType.watching
-            )
-        )
-    except Exception as ex:
-        await handlers.logging.error(exc_info=ex)
-        raise ex
-
-
-update_presence.add_exception_type(
-    aiohttp.client_exceptions.ClientError,
-    handlers.rateLimit.RateLimitException
-)
-
-
-def start_scheduling():
+def start_workers():
     wrappers.storage.playtimeData.update_playtimes.start()
-    update_presence.start()
+    workers.presenceUpdater.update_presence.start()
     workers.guildUpdater.update_guild.start(client=client)
     workers.usernameUpdater.start(client=client)
     workers.statTracker.start()
 
 
-def stop_scheduling():
+def stop_workers():
     workers.statTracker.stop()
     workers.usernameUpdater.stop()
     workers.guildUpdater.update_guild.stop()
-    update_presence.stop()
+    workers.presenceUpdater.update_presence.stop()
     wrappers.storage.playtimeData.update_playtimes.stop()
 
 
@@ -151,20 +129,20 @@ def main():
         handlers.logging.info("Booting up...")
         asyncio.run(runner())
     except (KeyboardInterrupt, SystemExit) as e:
-        handlers.logging.info(f"{e.__class__.__name__}: {e}")
+        handlers.logging.info(f"{e.__class__.__name__}")
     except Exception as e:
         handlers.logging.error(exc_info=e)
     finally:
         asyncio.run(stop())
+        handlers.logging.info("Stopped")
 
 
 async def stop():
     handlers.logging.info("Shutting down...")
-    stop_scheduling()
+    stop_workers()
     await client.close()
     await wrappers.api.sessionManager.close()
     await wrappers.storage.manager.close()
-    handlers.logging.info("Stopped")
 
 
 if __name__ == "__main__":
