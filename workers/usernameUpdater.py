@@ -30,9 +30,13 @@ _worker = QueueWorker(delay=0.1)
 async def _notify_guild_member_name_changes(client: Client):
     await _worker.join()
 
-    guild = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
-
     if len(_updated_players) == 0:
+        return
+
+    try:
+        guild = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
+    except Exception as e:
+        handlers.logging.error("Failed to fetch guild data for bot guild!", e)
         return
 
     prev_names, updated_names = zip(*_updated_players)
