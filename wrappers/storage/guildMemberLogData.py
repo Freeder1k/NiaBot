@@ -1,14 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
-from enum import IntEnum
 
+from handlers.nerfuria.logging import LogEntryType
 from . import manager
-
-
-class LogEntryType(IntEnum):
-    MEMBER_JOIN = 1
-    MEMBER_LEAVE = 2
-    MEMBER_NAME_CHANGE = 3
 
 
 @dataclass(frozen=True)

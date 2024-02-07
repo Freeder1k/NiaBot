@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 import handlers.commands.commandListener
 import handlers.logging
-import handlers.nerfuria.guildUpdater
+import workers.guildUpdater
 import handlers.rateLimit
 import handlers.rateLimit
 import workers.statTracker
@@ -127,7 +127,7 @@ update_presence.add_exception_type(
 def start_scheduling():
     wrappers.storage.playtimeData.update_playtimes.start()
     update_presence.start()
-    handlers.nerfuria.guildUpdater.update_guild.start(client=client)
+    workers.guildUpdater.update_guild.start(client=client)
     workers.usernameUpdater.start(client=client)
     workers.statTracker.start()
 
@@ -135,7 +135,7 @@ def start_scheduling():
 def stop_scheduling():
     workers.statTracker.stop()
     workers.usernameUpdater.stop()
-    handlers.nerfuria.guildUpdater.update_guild.stop()
+    workers.guildUpdater.update_guild.stop()
     update_presence.stop()
     wrappers.storage.playtimeData.update_playtimes.stop()
 

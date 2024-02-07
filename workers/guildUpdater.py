@@ -7,6 +7,7 @@ from discord import Client, TextChannel, Embed
 from discord.ext import tasks
 
 import handlers.logging
+import handlers.nerfuria.logging
 import handlers.rateLimit
 import utils.misc
 from handlers import serverConfig
@@ -61,9 +62,9 @@ async def _check_member_updates(client: Client, guild_now: types.GuildStats):
         )
         em.set_footer(text=f"UUID: {utils.misc.format_uuid(uuid)}")
         embeds.append(em)
-        await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_JOIN,
+        await guildMemberLogData.log(handlers.nerfuria.logging.LogEntryType.MEMBER_JOIN,
                                      f"{joined.get(uuid, '*unknown*')} has joined the guild",
-                                     uuid)
+                                      uuid)
     for uuid in left_uuids:
         em = Embed(
             title=f"**{left.get(uuid, '*unknown*')} has left the guild**",
@@ -71,7 +72,7 @@ async def _check_member_updates(client: Client, guild_now: types.GuildStats):
         )
         em.set_footer(text=f"UUID: {utils.misc.format_uuid(uuid)}")
         embeds.append(em)
-        await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_LEAVE,
+        await guildMemberLogData.log(handlers.nerfuria.logging.LogEntryType.MEMBER_LEAVE,
                                      f"{left.get(uuid, '*unknown*')} has left the guild",
                                      uuid)
 

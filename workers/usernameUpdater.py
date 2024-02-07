@@ -1,12 +1,13 @@
 import asyncio
 
 import aiohttp.client_exceptions
-from discord import Client, TextChannel, Embed
+from discord import Client
 from discord.ext import tasks
 
 import handlers.logging
+import handlers.nerfuria.logging
+import handlers.nerfuria.logging
 import handlers.rateLimit
-import utils.misc
 import wrappers.api
 import wrappers.api.minecraft
 import wrappers.api.wynncraft.v3.guild
@@ -15,11 +16,9 @@ import wrappers.api.wynncraft.v3.session
 import wrappers.storage
 import wrappers.storage.playerTrackerData
 import wrappers.storage.usernameData
-from handlers import serverConfig
 from niatypes.dataTypes import MinecraftPlayer
 from workers.queueWorker import QueueWorker
 from wrappers import botConfig
-from wrappers.storage import guildMemberLogData
 
 _online_players: set[str] = set()
 _updated_players: list[tuple[MinecraftPlayer, MinecraftPlayer]] = []
@@ -42,41 +41,16 @@ async def _notify_guild_member_name_changes(client: Client):
     prev_names, updated_names = zip(*_updated_players)
     _updated_players.clear()
 
-    channel = client.get_channel(serverConfig.get_log_channel_id(botConfig.GUILD_DISCORD))
-    if not isinstance(channel, TextChannel):
-        print(channel)
-        handlers.logging.error("Log channel for guild server is not text channel!")
-        return
-
-    perms = channel.permissions_for(channel.guild.me)
-    if not perms.send_messages and perms.embed_links:
-        print(channel)
-        handlers.logging.error("Missing perms for info channel for guild server!")
-        return
-
-    prev_names_dict = {p.uuid: p.name for p in prev_names}
+    prev_names_dict = {p.uuid: p.name for p in prev_names if p is not None}
 
     guild_members = {uuid.replace("-", "") for uuid in guild.members.all.keys()}
-    updated_guild_members = []
-    for player in updated_names:
-        if player.uuid in guild_members:
-            updated_guild_members.append(player)
+    updated_guild_members = [p for p in updated_names if p.uuid in guild_members]
 
-    embeds = []
     for player in updated_guild_members:
-        em = Embed(
-            title=f"Name changed: **{prev_names_dict.get(player.uuid, '*unknown*')} -> {player.name}**",
-            color=botConfig.DEFAULT_COLOR,
-        )
-        em.set_footer(text=f"UUID: {utils.misc.format_uuid(player.uuid)}")
-        embeds.append(em)
-        await guildMemberLogData.log(guildMemberLogData.LogEntryType.MEMBER_NAME_CHANGE,
-                                     f"Name changed: {prev_names_dict.get(player.uuid, '*unknown*')} -> {player.name}",
-                                     player.uuid)
-
-    if len(embeds) > 0:
-        for i in range(0, len(embeds), 10):
-            await channel.send(embeds=embeds[i:i + 10])
+        await handlers.nerfuria.logging.log_member_name_change(client,
+                                                               player.uuid,
+                                                               prev_names_dict.get(player.uuid, "*unknown*"),
+                                                               player.name)
 
 
 async def _fetch_and_update_username(username: str):
