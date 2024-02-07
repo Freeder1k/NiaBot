@@ -13,19 +13,19 @@ _logger.setLevel(log_lvl)
 
 
 def debug(*args):
-    _logger.debug(msg=' '.join(args))
+    _logger.debug(msg=' '.join((str(arg) for arg in args)))
 
 
 def info(*args):
-    _logger.info(msg=' '.join(args))
+    _logger.info(msg=' '.join((str(arg) for arg in args)))
 
 
 def warning(*args):
-    _logger.warning(msg=' '.join(args))
+    _logger.warning(msg=' '.join((str(arg) for arg in args)))
 
 
 def error(*args, exc_info=None, extra=None):
-    _logger.error(msg=' '.join(args), exc_info=exc_info, extra=extra)
+    _logger.error(msg=' '.join((str(arg) for arg in args)), exc_info=exc_info, extra=extra)
 
 
 def _init_base_handlers():

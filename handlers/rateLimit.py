@@ -70,3 +70,6 @@ class RateLimit:
 
     def get_period(self) -> int:
         return self._period
+
+    def get_time_until_next_free(self) -> int:
+        return self._period * 60 + self._calls[0] - time.time()

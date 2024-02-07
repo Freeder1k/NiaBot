@@ -1,7 +1,7 @@
 import asyncio
+from typing import Callable
 
 import discord.utils
-from discord.utils import MaybeAwaitableFunc, P, T
 
 import handlers.logging
 
@@ -28,7 +28,10 @@ class QueueWorker:
                 await asyncio.sleep((2 ** self._error_count) - 1)
                 task, args, kwargs = await self._queue.get()
 
-                await discord.utils.maybe_coroutine(task, *args, **kwargs)
+                try:
+                    await discord.utils.maybe_coroutine(task, *args, **kwargs)
+                finally:
+                    self._queue.task_done()
 
                 if self._error_count > 0:
                     self._error_count -= 1
@@ -40,14 +43,12 @@ class QueueWorker:
                 handlers.logging.error(exc_info=ex)
                 if self._error_count < 12:
                     self._error_count += 1
-            finally:
-                self._queue.task_done()
 
-    def put(self, f: MaybeAwaitableFunc[P, T], *args: P.args, **kwargs: P.kwargs):
+    def put(self, f: Callable, *args, **kwargs):
         """
         Add a task to the queue for execution.
 
-        :param f: The function to call. Can be either a coroutine or a regular function.
+        :param f: The function to call. If the function is a coroutine, it will be awaited.
         :param args: The arguments to pass to the function.
         :param kwargs: The keyword arguments to pass to the function.
         """

@@ -12,7 +12,7 @@ import handlers.logging
 import handlers.nerfuria.guildUpdater
 import handlers.rateLimit
 import handlers.rateLimit
-import handlers.wynncraft.onlinePlayers
+import workers.statTracker
 import wrappers.api.sessionManager
 import wrappers.api.wynncraft.v3.player
 import wrappers.storage.manager
@@ -25,6 +25,7 @@ from handlers.commands.prefixed import helpCommand, activityCommand, wandererCom
     strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, shutdownCommand
 from handlers.commands.hybrid import guildCommand
 from handlers.commands.prefixed import logCommand, playtimeCommand
+import workers.usernameUpdater
 
 load_dotenv()
 import os
@@ -127,11 +128,13 @@ def start_scheduling():
     wrappers.storage.playtimeData.update_playtimes.start()
     update_presence.start()
     handlers.nerfuria.guildUpdater.update_guild.start(client=client)
-    handlers.wynncraft.onlinePlayers.update_players.start(client=client)
+    workers.usernameUpdater.start(client=client)
+    workers.statTracker.start()
 
 
 def stop_scheduling():
-    handlers.wynncraft.onlinePlayers.update_players.stop()
+    workers.statTracker.stop()
+    workers.usernameUpdater.stop()
     handlers.nerfuria.guildUpdater.update_guild.stop()
     update_presence.stop()
     wrappers.storage.playtimeData.update_playtimes.stop()
