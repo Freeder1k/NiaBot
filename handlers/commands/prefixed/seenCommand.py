@@ -8,7 +8,7 @@ import utils.misc
 import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 from handlers.commands import command
-from niatypes.dataTypes import PrefixedCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent
 from utils.misc import format_uuid
 from wrappers import botConfig, minecraftPlayer
 from wrappers.api.wynncraft.v3.types import GuildStats

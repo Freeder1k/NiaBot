@@ -3,7 +3,7 @@ from discord import Permissions
 import utils.discord
 import wrappers.storage.strikeData
 from handlers.commands import command
-from niatypes.dataTypes import PrefixedCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent
 
 
 class UnstrikeCommand(command.Command):

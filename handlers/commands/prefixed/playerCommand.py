@@ -11,7 +11,8 @@ import utils.tableBuilder
 import wrappers.api.minecraft
 import wrappers.api.wynncraft.v3.player
 from handlers.commands import command
-from niatypes.dataTypes import PrefixedCommandEvent, MinecraftPlayer
+from niatypes.dataTypes import MinecraftPlayer
+from handlers.commands.commandEvent import PrefixedCommandEvent
 from wrappers import botConfig, minecraftPlayer
 from wrappers.api.wynncraft.v3.types import PlayerStats
 

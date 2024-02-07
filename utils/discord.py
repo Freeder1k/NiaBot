@@ -5,14 +5,15 @@ import typing
 from discord import TextChannel, Embed, Guild, Member, Permissions
 
 import wrappers.minecraftPlayer
-from niatypes.dataTypes import PrefixedCommandEvent
-from wrappers.api.wynncraft.v3.types import GuildStats
 from utils.misc import split_str
 from utils.tableBuilder import TableBuilder
 from wrappers import botConfig
+from wrappers.api.wynncraft.v3.types import GuildStats
 
 mention_reg = re.compile(r"\\?<(?:#|@[!&]?)(\d+)>")
 
+
+# TODO remove redundant
 
 async def send(channel: TextChannel, message: str):
     await channel.send(embed=Embed(color=botConfig.DEFAULT_COLOR, description=message))

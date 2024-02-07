@@ -6,7 +6,7 @@ from discord import Permissions, Embed
 import utils.discord
 import wrappers.storage.strikeData
 from handlers.commands import command
-from niatypes.dataTypes import PrefixedCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent
 from wrappers import botConfig
 
 

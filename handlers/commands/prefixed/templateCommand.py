@@ -1,7 +1,7 @@
 from discord import Permissions
 
 from handlers.commands import command
-from niatypes.dataTypes import PrefixedCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent
 
 
 class TemplateCommand(command.Command):

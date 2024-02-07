@@ -9,7 +9,7 @@ from discord import Permissions, Embed
 import utils.discord
 import wrappers.storage.playtimeData
 from handlers.commands import command
-from niatypes.dataTypes import PrefixedCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent
 from wrappers import botConfig, minecraftPlayer
 
 _username_re = re.compile(r'[0-9A-Za-z_]+$')

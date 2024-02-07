@@ -6,7 +6,7 @@ import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.v3.guild
 from handlers.commands import command
-from niatypes.dataTypes import PrefixedCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent
 from wrappers import botConfig, minecraftPlayer
 
 

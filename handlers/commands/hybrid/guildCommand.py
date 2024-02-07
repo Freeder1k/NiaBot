@@ -1,6 +1,7 @@
 import re
 from collections.abc import Iterable
 
+import discord
 from async_lru import alru_cache
 from discord import Permissions, Embed
 
@@ -10,10 +11,10 @@ import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
 import wrappers.storage.usernameData
 from handlers.commands import command, hybridCommand
-from niatypes.dataTypes import PrefixedCommandEvent, WynncraftGuild, SlashCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent, SlashCommandEvent
+from niatypes.dataTypes import WynncraftGuild
 from utils import tableBuilder
 from wrappers import botConfig
-import discord
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}$')
 
@@ -80,17 +81,18 @@ class GuildCommand(hybridCommand.HybridCommand):
         super().__init__(
             name="guild",
             aliases=("g",),
-            params=[hybridCommand.CommandParam("guild", "The name or tag of the guild.", required=True, ptype=discord.AppCommandOptionType.string)],
+            params=[hybridCommand.CommandParam("guild", "The name or tag of the guild.", required=True,
+                                               ptype=discord.AppCommandOptionType.string)],
             description="Get a wynncraft guild by its name or tag.",
             base_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
     async def _execute(self, event: PrefixedCommandEvent):
-        async with event.channel.typing():
+        async with event.waiting():
             if isinstance(event, PrefixedCommandEvent):
                 if len(event.args) < 2:
-                    await utils.discord.send_error(event.channel, "Please specify a guild!")
+                    await event.reply_error("Please specify a guild!")
                     return
 
                 guild_str = event.message.content.split(" ", 1)[1]
@@ -98,31 +100,31 @@ class GuildCommand(hybridCommand.HybridCommand):
                 guild_str = event.args["guild"]
 
             if not _guild_re.match(guild_str):
-                await utils.discord.send_error(event.channel, f"Invalid guild name or tag``{guild_str}``")
+                await event.reply_error(f"Invalid guild name or tag``{guild_str}``")
                 return
 
             possible_guilds: tuple[WynncraftGuild] = await wrappers.api.wynncraft.v3.guild.find(guild_str)
             if not possible_guilds:
-                await utils.discord.send_error(event.channel, f"Couldn't find guild ``{guild_str}``")
+                await event.reply_error(f"Couldn't find guild ``{guild_str}``")
                 return
             if len(possible_guilds) == 1:
                 guild = possible_guilds[0]
             else:
                 exact_matches = [g for g in possible_guilds if g.tag == guild_str or g.name == guild_str]
                 if not exact_matches:
-                    await utils.discord.send_info(event.channel,
-                                                  f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(possible_guilds)}")
+                    await event.reply_info(
+                        f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(possible_guilds)}")
                     return
                 elif len(exact_matches) == 1:
                     guild = exact_matches[0]
                 else:
-                    await utils.discord.send_info(event.channel,
-                                                  f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(exact_matches)}")
+                    await event.reply_info(
+                        f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(exact_matches)}")
                     return
 
             embed = await _create_guild_embed(guild)
             if embed is None:
-                await utils.discord.send_error(event.channel, f"Failed to retrieve stats for guild ``{guild_str}``")
+                await event.reply_error(f"Failed to retrieve stats for guild ``{guild_str}``")
                 return
 
-            await event.channel.send(embed=embed)
+            await event.reply(embed=embed)

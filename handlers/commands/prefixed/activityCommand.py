@@ -7,7 +7,7 @@ import utils.discord
 import wrappers.api.wynncraft.v3.guild
 import wrappers.storage.playtimeData
 from handlers.commands import command
-from niatypes.dataTypes import PrefixedCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent
 from wrappers import botConfig
 from wrappers.api.wynncraft.v3.types import GuildStats
 

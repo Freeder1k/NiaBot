@@ -10,7 +10,8 @@ from discord.app_commands import Choice, locale_str
 from discord.utils import MISSING
 
 import handlers.commands.command
-from niatypes.dataTypes import SlashCommandEvent, CommandEvent
+from handlers.commands.commandEvent import CommandEvent, SlashCommandEvent
+import handlers.logging
 
 _name_reg = re.compile(r"^[-\w]{1,32}$")
 
@@ -81,7 +82,14 @@ class HybridCommand(handlers.commands.command.Command, discord.app_commands.Comm
         )
 
         async def app_callback(interaction: discord.Interaction, **kwargs):
-            await self.run(SlashCommandEvent(interaction, kwargs))
+            event = SlashCommandEvent(interaction, kwargs)
+            try:
+                await self.run(event)
+            except (KeyboardInterrupt, SystemExit) as e:
+                raise e
+            except Exception as e:
+                handlers.logging.error(exc_info=e, extra={"slash_command_event": event})
+                await event.reply_exception(e)
 
         self._callback = app_callback
         self._params = {p.name: p for p in params}

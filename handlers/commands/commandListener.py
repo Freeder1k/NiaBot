@@ -7,7 +7,7 @@ import handlers.logging
 import utils.discord
 from handlers import serverConfig
 from handlers.commands.command import Command
-from niatypes.dataTypes import PrefixedCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent
 
 _bot_mention: Pattern
 _commands: list[Command] = []
