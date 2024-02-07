@@ -31,6 +31,10 @@ async def _notify_guild_member_name_changes(client: Client):
     await _worker.join()
 
     guild = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
+
+    if len(_updated_players) == 0:
+        return
+
     prev_names, updated_names = zip(*_updated_players)
     _updated_players.clear()
 
