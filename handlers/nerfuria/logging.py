@@ -1,18 +1,11 @@
-from enum import IntEnum
-
 from discord import Embed, Client, TextChannel
 
 import handlers.logging
 import utils.misc
 from handlers import serverConfig
+from niatypes.enums import LogEntryType
 from wrappers import botConfig
 from wrappers.storage import guildMemberLogData
-
-
-class LogEntryType(IntEnum):
-    MEMBER_JOIN = 1
-    MEMBER_LEAVE = 2
-    MEMBER_NAME_CHANGE = 3
 
 
 async def _upload_to_discord(client, embed):

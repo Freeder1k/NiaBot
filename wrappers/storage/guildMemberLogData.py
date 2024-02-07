@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from handlers.nerfuria.logging import LogEntryType
+from niatypes.enums import LogEntryType
 from . import manager
 
 

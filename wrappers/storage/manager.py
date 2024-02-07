@@ -1,6 +1,7 @@
 import aiosqlite
 
 import handlers.nerfuria.logging
+import niatypes.enums
 from . import guildMemberLogData
 
 _con: aiosqlite.Connection = None
@@ -35,7 +36,7 @@ async def init_database():
                     );
                     CREATE TABLE IF NOT EXISTS guild_member_log(
                         log_id INTEGER PRIMARY KEY,
-                        entry_type INTEGER CHECK(entry_type IN {tuple(t.value for t in handlers.nerfuria.logging.LogEntryType)}) NOT NULL,
+                        entry_type INTEGER CHECK(entry_type IN {tuple(t.value for t in niatypes.enums.LogEntryType)}) NOT NULL,
                         content TEXT NOT NULL,
                         uuid TEXT NOT NULL COLLATE NOCASE,
                         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL

@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class WynnGuildRank(Enum):
@@ -65,3 +65,9 @@ class AnsiFormat(Enum):
     BG_INDIGO = 45
     BG_LIGHT_GRAY = 46
     BG_WHITE = 47
+
+
+class LogEntryType(IntEnum):
+    MEMBER_JOIN = 1
+    MEMBER_LEAVE = 2
+    MEMBER_NAME_CHANGE = 3
