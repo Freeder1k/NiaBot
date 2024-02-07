@@ -1,15 +1,15 @@
 import aiohttp.client_exceptions
 import discord
+from discord import Client
 from discord.ext import tasks
 
 import handlers.logging
 import handlers.rateLimit
 import wrappers.api.wynncraft.v3.player
-from main import client
 
 
 @tasks.loop(seconds=61, reconnect=True)
-async def update_presence():
+async def update_presence(client: Client):
     try:
         await client.change_presence(
             status=discord.Status.online,
