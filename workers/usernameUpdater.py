@@ -91,7 +91,7 @@ async def _fetch_and_update_username(username: str):
         handlers.logging.debug(f"{username} is not a minecraft name but online on wynncraft!")
     else:
         prev_p = await wrappers.storage.usernameData.update(p.uuid, p.name)
-        _updated_players.append((p, prev_p))
+        _updated_players.append((prev_p, p))
 
 
 @tasks.loop(seconds=61, reconnect=True)
