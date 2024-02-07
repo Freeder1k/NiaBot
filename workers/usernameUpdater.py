@@ -22,7 +22,6 @@ from wrappers import botConfig
 
 _online_players: set[str] = set()
 _updated_players: list[tuple[MinecraftPlayer, MinecraftPlayer]] = []
-_error_count = 0
 _worker = QueueWorker(delay=0.1)
 
 
