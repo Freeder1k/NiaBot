@@ -72,7 +72,6 @@ async def _notify_guild_member_name_changes(client: Client):
 
 
 async def _fetch_and_update_username(username: str):
-    print(username)
     if wrappers.api.minecraft._mojang_rate_limit.calculate_remaining_calls() < 10:
         wait_time = wrappers.api.minecraft._mojang_rate_limit.get_time_until_next_free()
         await asyncio.sleep(wait_time + 1)
