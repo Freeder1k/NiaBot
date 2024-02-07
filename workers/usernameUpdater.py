@@ -25,7 +25,7 @@ _updated_players: list[tuple[MinecraftPlayer, MinecraftPlayer]] = []
 _worker = QueueWorker(delay=0.1)
 
 
-async def _notify_guild_member_name_changes(client: Client):
+async def _log_name_changes(client: Client):
     await _worker.join()
 
     if len(_updated_players) == 0:
@@ -91,7 +91,7 @@ async def _update_usernames(client: Client):
         if len(unknown_names) >= 10:
             handlers.logging.debug(f"Updating {len(unknown_names)} minecraft usernames.")
 
-        asyncio.create_task(_notify_guild_member_name_changes(client))
+        asyncio.create_task(_log_name_changes(client))
     except handlers.rateLimit.RateLimitException:
         pass
     except Exception as ex:
