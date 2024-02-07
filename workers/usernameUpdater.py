@@ -53,21 +53,23 @@ async def _notify_guild_member_name_changes(client: Client):
                                                                player.name)
 
 
-async def _fetch_and_update_username(username: str):
+async def _fetch_and_update_usernames(usernames: list[str]):
     if wrappers.api.minecraft._mojang_rate_limit.calculate_remaining_calls() < 10:
         wait_time = wrappers.api.minecraft._mojang_rate_limit.get_time_until_next_free()
         await asyncio.sleep(wait_time + 1)
 
     try:
-        p = await wrappers.api.minecraft.get_player(username=username)
+        players = await wrappers.api.minecraft.get_players(usernames=usernames)
     except handlers.rateLimit.RateLimitException as e:
         handlers.logging.error("Rate limit reached for mojang api!", e)
-        _worker.put(_fetch_and_update_username, username)
+        _worker.put(_fetch_and_update_usernames, usernames)
         return
 
-    if p is None:
-        handlers.logging.debug(f"{username} is not a minecraft name but online on wynncraft!")
-    else:
+    for name in usernames:
+        if name not in players:
+            handlers.logging.debug(f"{name} is not a minecraft name but online on wynncraft!")
+
+    for p in players.values():
         prev_p = await wrappers.storage.usernameData.update(p.uuid, p.name)
         _updated_players.append((prev_p, p))
 
@@ -82,12 +84,13 @@ async def _update_usernames(client: Client):
         joined_players = _online_players - prev_online_players
 
         known_names = {p.name for p in await wrappers.storage.usernameData.get_players(usernames=list(joined_players))}
+        unknown_names = [name for name in joined_players if name not in known_names]
 
-        updates = len(
-            [_worker.put(_fetch_and_update_username, name) for name in joined_players if name not in known_names])
+        for i in range(0, len(unknown_names), 10):
+            _worker.put(_fetch_and_update_usernames, unknown_names[i:i+10])
 
-        if updates >= 10:
-            handlers.logging.debug(f"Updating {updates} minecraft usernames.")
+        if len(unknown_names) >= 10:
+            handlers.logging.debug(f"Updating {len(unknown_names)} minecraft usernames.")
 
         asyncio.create_task(_notify_guild_member_name_changes(client))
     except handlers.rateLimit.RateLimitException:
