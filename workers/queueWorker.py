@@ -23,7 +23,6 @@ class QueueWorker:
         self._task: asyncio.Task = None
 
     async def _worker(self):
-        stopped = False
         while True:
             try:
                 await asyncio.sleep((2 ** self._error_count) - 1)
@@ -36,7 +35,6 @@ class QueueWorker:
 
                 await asyncio.sleep(self._delay)
             except (KeyboardInterrupt, SystemExit, asyncio.CancelledError) as e:
-                stopped = True
                 raise e
             except Exception as ex:
                 handlers.logging.error(exc_info=ex)
