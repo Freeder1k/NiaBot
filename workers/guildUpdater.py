@@ -40,9 +40,9 @@ async def _log_member_updates(client: Client, guild_now: types.GuildStats):
     left = {p.uuid: p.name for p in await minecraftPlayer.get_players(uuids=list(left_uuids))}
 
     for uuid in joined_uuids:
-        await handlers.nerfuria.logging.log_member_join(client, joined.get(uuid, '*unknown*'), uuid)
+        await handlers.nerfuria.logging.log_member_join(joined.get(uuid, '*unknown*'), uuid)
     for uuid in left_uuids:
-        await handlers.nerfuria.logging.log_member_leave(client, left.get(uuid, '*unknown*'), uuid)
+        await handlers.nerfuria.logging.log_member_leave(left.get(uuid, '*unknown*'), uuid)
 
 
 @tasks.loop(minutes=10, reconnect=True)

@@ -5,9 +5,9 @@ from typing import Collection
 from discord import Permissions, Member, TextChannel, Embed
 
 import utils.discord
+from handlers import serverConfig
 from handlers.commands.commandEvent import CommandEvent
 from wrappers import botConfig
-from handlers import serverConfig
 
 
 class PermissionLevel(IntEnum):
@@ -19,6 +19,10 @@ class PermissionLevel(IntEnum):
 
 
 class Command(ABC):
+    """
+    Base class for all commands. This class should be inherited and the _execute method should be overridden to
+    create a new command. The run method should not be overridden.
+    """
     def __init__(self, name: str, aliases: Collection[str], usage: str, description: str, req_perms: Permissions,
                  permission_lvl: PermissionLevel):
         self.name = name.lower()
@@ -30,9 +34,15 @@ class Command(ABC):
 
     @abstractmethod
     async def _execute(self, command_event: CommandEvent):
+        """
+        This method should be overridden to create a new command. This method is called when the command is run.
+        """
         pass
 
     async def run(self, command_event: CommandEvent):
+        """
+        Runs the command and checks if the user has the required permissions to run the command.
+        """
         if not command_event.channel.permissions_for(command_event.guild.me).send_messages:
             return
 
@@ -58,6 +68,9 @@ class Command(ABC):
         await self._execute(command_event)
 
     async def send_help(self, channel: TextChannel):
+        """
+        Sends an embed with information about the command to the specified channel.
+        """
         help_embed = Embed(
             color=botConfig.DEFAULT_COLOR,
             title=f"**{self.name.capitalize()} Command Info:**"
@@ -100,5 +113,8 @@ class Command(ABC):
             return False
 
     def is_this_command(self, command: str) -> bool:
+        """
+        Returns True if the given command string corresponds to this command or one of its aliases.
+        """
         command = command.lower()
         return command == self.name or command in self.aliases

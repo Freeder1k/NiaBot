@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
+from typing import Final
 
 import discord
 from discord import app_commands
@@ -7,6 +8,7 @@ from dotenv import load_dotenv
 
 import handlers.commands.commandListener
 import handlers.logging
+import handlers.nerfuria.logging
 import handlers.rateLimit
 import handlers.rateLimit
 import workers.guildUpdater
@@ -33,7 +35,7 @@ intents.message_content = True
 intents.members = True
 
 client = discord.Client(intents=intents)
-start_time = datetime.now(timezone.utc)
+start_time: Final = datetime.now(timezone.utc)
 
 tree = app_commands.CommandTree(client)
 
@@ -62,6 +64,7 @@ hybrid_commands = [guildCommand.GuildCommand()]
 async def on_ready():
     try:
         await handlers.logging.init_discord_handler(client)
+        handlers.nerfuria.logging.set_client(client)
 
         handlers.logging.info(f"Logged in as {client.user}")
         handlers.logging.info("Initializing...")

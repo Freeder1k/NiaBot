@@ -10,13 +10,17 @@ from discord.app_commands import Choice, locale_str
 from discord.utils import MISSING
 
 import handlers.commands.command
-from handlers.commands.commandEvent import CommandEvent, SlashCommandEvent
 import handlers.logging
+from handlers.commands.commandEvent import CommandEvent, SlashCommandEvent
 
 _name_reg = re.compile(r"^[-\w]{1,32}$")
 
 
 class CommandParam(discord.app_commands.transformers.CommandParameter):
+    """
+    Describes a parameter for a slash command.
+    """
+
     def __init__(
             self, name: str,
             description: str,
@@ -59,6 +63,12 @@ class CommandParam(discord.app_commands.transformers.CommandParameter):
 
 
 class HybridCommand(handlers.commands.command.Command, discord.app_commands.Command):
+    """
+    Base class for a hybrid command that can be run either through a chat message with a prefix or as a slash command.
+    This class should be inherited and the _execute method should be overridden to
+    create a new command.
+    """
+
     def __init__(self,
                  name: str,
                  aliases: Collection[str],

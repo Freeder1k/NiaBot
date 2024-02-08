@@ -7,9 +7,13 @@ from niatypes.enums import LogEntryType
 from wrappers import botConfig
 from wrappers.storage import guildMemberLogData
 
+_client: Client = None
 
-async def _upload_to_discord(client, embed):
-    channel = client.get_channel(serverConfig.get_log_channel_id(botConfig.GUILD_DISCORD))
+async def _upload_to_discord(embed):
+    if _client is None:
+        return
+
+    channel = _client.get_channel(serverConfig.get_log_channel_id(botConfig.GUILD_DISCORD))
     if not isinstance(channel, TextChannel):
         print(channel)
         handlers.logging.error("Log channel for guild server is not text channel!")
@@ -24,7 +28,10 @@ async def _upload_to_discord(client, embed):
     await channel.send(embed=embed)
 
 
-async def log_member_join(client: Client, username: str, uuid: str):
+async def log_member_join(username: str, uuid: str):
+    """
+    Log a member join event.
+    """
     em = Embed(
         title=f"**{username} has joined the guild**",
         color=botConfig.DEFAULT_COLOR,
@@ -35,10 +42,13 @@ async def log_member_join(client: Client, username: str, uuid: str):
                                  f"{username} has joined the guild",
                                  uuid)
 
-    await _upload_to_discord(client, em)
+    await _upload_to_discord(em)
 
 
-async def log_member_leave(client: Client, username: str, uuid: str):
+async def log_member_leave(username: str, uuid: str):
+    """
+    Log a member leave event.
+    """
     em = Embed(
         title=f"**{username} has left the guild**",
         color=botConfig.DEFAULT_COLOR,
@@ -49,10 +59,13 @@ async def log_member_leave(client: Client, username: str, uuid: str):
                                  f"{username} has left the guild",
                                  uuid)
 
-    await _upload_to_discord(client, em)
+    await _upload_to_discord(em)
 
 
-async def log_member_name_change(client: Client, uuid: str, prev_name: str, new_name: str):
+async def log_member_name_change(uuid: str, prev_name: str, new_name: str):
+    """
+    Log a member name change event.
+    """
     em = Embed(
         title=f"Name changed: **{prev_name} -> {new_name}**",
         color=botConfig.DEFAULT_COLOR,
@@ -63,4 +76,11 @@ async def log_member_name_change(client: Client, uuid: str, prev_name: str, new_
                                  f"Name changed: {prev_name} -> {new_name}",
                                  uuid)
 
-    await _upload_to_discord(client, em)
+    await _upload_to_discord(em)
+
+def set_client(client: Client):
+    """
+    Set the client for the logging module.
+    """
+    global _client
+    _client = client

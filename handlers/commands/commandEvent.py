@@ -10,27 +10,48 @@ from wrappers import botConfig
 
 @dataclass()
 class CommandEvent:
+    """
+    Base class describing details relevant to a command that was run by a user.
+    """
     sender: discord.Member
     channel: discord.TextChannel
     guild: discord.Guild
     client: discord.Client
 
     async def reply(self, content: str = None, **kwargs):
+        """
+        Wrapper to reply to the command.
+        """
         await self.channel.send(content, **kwargs)
 
     async def reply_normal(self, message: str):
+        """
+        Normal reply message.
+        """
         await self.reply(embed=Embed(color=botConfig.DEFAULT_COLOR, description=message))
 
     async def reply_success(self, message: str):
+        """
+        Reply with a message that indicates success.
+        """
         await self.reply(embed=Embed(color=botConfig.SUCCESS_COLOR, description=f"{chr(0x2705)} {message}"))
 
     async def reply_error(self, message: str):
+        """
+        Reply with an error message.
+        """
         await self.reply(embed=Embed(color=botConfig.ERROR_COLOR, description=f"{chr(0x274c)} {message}"))
 
     async def reply_info(self, message: str):
+        """
+        Reply with an info message.
+        """
         await self.reply(embed=Embed(color=botConfig.INFO_COLOR, description=f":information_source: {message}"))
 
     async def reply_exception(self, exception: Exception):
+        """
+        Reply, indicating that an exception occurred.
+        """
         await self.reply(embed=Embed(
             color=botConfig.ERROR_COLOR,
             title=f"A wild {type(exception)} appeared!",
@@ -38,11 +59,17 @@ class CommandEvent:
         ))
 
     def waiting(self) -> Typing:
+        """
+        Returns a context manager that can be used to indicate that the bot is thinking.
+        """
         return self.channel.typing()
 
 
 @dataclass()
 class PrefixedCommandEvent(CommandEvent):
+    """
+    Describes a command event that was run as a chat message in prefix style.
+    """
     message: discord.Message
     args: list[str]
 
@@ -53,6 +80,10 @@ class PrefixedCommandEvent(CommandEvent):
 
 
 class Defer:
+    """
+    Context manager that can be used to indicate that the bot is thinking for slash commands.
+    """
+
     def __init__(self, interaction: discord.Interaction):
         self.interaction = interaction
 
@@ -66,6 +97,9 @@ class Defer:
 
 @dataclass()
 class SlashCommandEvent(CommandEvent):
+    """
+    Describes a command event that was run as a slash command.
+    """
     interaction: discord.Interaction
     args: dict
 

@@ -59,17 +59,32 @@ class RateLimit:
         self._calls.extend([curr_time] * self.calculate_remaining_calls())
 
     def calculate_usage(self) -> int:
+        """
+        Calculates the amount of requests made in the current period. This also clears expired calls.
+        """
         self._clear_expired_calls()
         return len(self._calls) + self._curr_call_amount
 
     def calculate_remaining_calls(self) -> int:
+        """
+        Calculates the amount of requests left in the current period. This also clears expired calls.
+        """
         return self.get_max_calls() - self.calculate_usage()
 
     def get_max_calls(self) -> int:
+        """
+        :return: The maximum amount of requests allowed
+        """
         return self._max_calls
 
     def get_period(self) -> int:
+        """
+        :return: The period in minutes
+        """
         return self._period
 
     def get_time_until_next_free(self) -> int:
-        return self._period * 60 + self._calls[0] - time.time()
+        """
+        :return: The time in seconds until the next free request
+        """
+        return max(self._period * 60 + self._calls[0] - time.time(), 0)

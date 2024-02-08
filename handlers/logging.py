@@ -13,18 +13,32 @@ _logger.setLevel(log_lvl)
 
 
 def debug(*args):
+    """
+    Logs the args at debug level
+    """
     _logger.debug(msg=' '.join((str(arg) for arg in args)))
 
 
 def info(*args):
+    """
+    Logs the args at info level
+    """
     _logger.info(msg=' '.join((str(arg) for arg in args)))
 
 
 def warning(*args):
+    """
+    Logs the args at warning level
+    """
     _logger.warning(msg=' '.join((str(arg) for arg in args)))
 
 
 def error(*args, exc_info=None, extra=None):
+    """
+    Logs the args at error level
+
+    :param exc_info: Additional exception info to log
+    """
     _logger.error(msg=' '.join((str(arg) for arg in args)), exc_info=exc_info, extra=extra)
 
 
@@ -47,6 +61,9 @@ _init_base_handlers()
 
 
 async def init_discord_handler(client: Client):
+    """
+    Initializes the discord logger handler
+    """
     try:
         channel_id = botConfig.LOG_CHANNEL
         channel = await client.fetch_channel(channel_id)

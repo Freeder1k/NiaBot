@@ -16,6 +16,9 @@ _client: Client = None
 
 
 def register_commands(*new_commands: Command):
+    """
+    Registers new commands to the command listener.
+    """
     global _commands
     _commands += new_commands
     for cmd in new_commands:
@@ -24,20 +27,32 @@ def register_commands(*new_commands: Command):
 
 
 def get_commands() -> tuple[Command]:
+    """
+    Returns a tuple of all registered commands.
+    """
     return tuple(_commands)
 
 
 def get_command_map() -> dict[str, Command]:
+    """
+    Returns a map of all registered commands including aliases.
+    """
     return _command_map
 
 
 def on_ready(client: Client):
+    """
+    Called when the client is ready.
+    """
     global _bot_mention, _client
     _bot_mention = re.compile(f"\?<@!?{client.user.id}>")
     _client = client
 
 
 async def on_message(message: Message):
+    """
+    Called when a message is received.
+    """
     if type(message.channel) is not TextChannel:
         return
     if message.webhook_id is not None:

@@ -46,8 +46,7 @@ async def _log_name_changes(client: Client):
     updated_guild_members = [p for p in updated_names if p.uuid in guild_members]
 
     for player in updated_guild_members:
-        await handlers.nerfuria.logging.log_member_name_change(client,
-                                                               player.uuid,
+        await handlers.nerfuria.logging.log_member_name_change(player.uuid,
                                                                prev_names_dict.get(player.uuid, "*unknown*"),
                                                                player.name)
 
