@@ -129,7 +129,7 @@ def main():
         handlers.logging.info("Booting up...")
         asyncio.run(runner())
     except (KeyboardInterrupt, SystemExit) as e:
-        handlers.logging.info(f"{e.__class__.__name__}")
+        handlers.logging.info(e.__class__.__name__)
     except Exception as e:
         handlers.logging.error(exc_info=e)
     finally:
