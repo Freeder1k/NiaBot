@@ -19,7 +19,7 @@ colors = {
     "BLACK": "#191919"
 }
 
-pattern_map = {
+_pattern_map = {
     "BASE": "base",
     "BORDER": "border",
     "BRICKS": "bricks",
@@ -76,16 +76,15 @@ def _tint_image(src: Image.Image, color="#FFFFFF"):
     return result
 
 
-def create_banner(patterns: list[tuple[str, str]]) -> Image:
+def create_banner(layers: list[tuple[str, str]]) -> Image:
     """
     Create a banner with the given patterns.
 
-    :param patterns: A list of tuples in the format (color, pattern) to be used in the banner.
+    :param layers: A list of tuples in the format (color, pattern) to be used in the banner.
     """
-
     banner = Image.new("RGBA", (20, 40), colors["WHITE"])
-    for color, pattern in patterns:
-        im = Image.open(f"../assets/banner/{pattern_map[pattern]}.png")
+    for color, pattern in layers:
+        im = Image.open(f"../assets/banner/{_pattern_map[pattern]}.png")
         im = _tint_image(im, colors[color])
         banner = Image.alpha_composite(banner, im)
 
