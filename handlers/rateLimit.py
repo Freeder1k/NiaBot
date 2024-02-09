@@ -87,4 +87,6 @@ class RateLimit:
         """
         :return: The time in seconds until the next free request
         """
+        if len(self._calls) == 0:
+            return 0
         return max(self._period * 60 + self._calls[0] - time.time(), 0)

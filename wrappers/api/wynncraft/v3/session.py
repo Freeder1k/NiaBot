@@ -21,14 +21,17 @@ async def get(url: str, **params: str) -> JsonType:
     with _rate_limit:
         session = sessionManager.get_session(_v3_session_id)
         async with session.get(f"/v3{url}", params=params) as resp:
+            resp.raise_for_status()
+
             global _rl_reset, _last_req_time
-            _rl_reset = int(resp.headers.get("ratelimit-reset"))
             _last_req_time = time.time()
-            remaining = int(resp.headers.get("x-ratelimit-remaining-minute"))
+            _rl_reset = resp.headers.get("ratelimit-reset")
+            _rl_reset = int(_rl_reset) if _rl_reset else 0
+            remaining = resp.headers.get("x-ratelimit-remaining-minute")
+            remaining = int(remaining) if remaining else 0
             if remaining == 0:
                 _rate_limit._set_full()
 
-            resp.raise_for_status()
             return await resp.json()
 
 
