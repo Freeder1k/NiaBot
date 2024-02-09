@@ -19,6 +19,7 @@ from niatypes.dataTypes import WynncraftGuild
 from niatypes.enums import PlayerIdentifier
 from utils import tableBuilder, banner
 from wrappers import botConfig
+import handlers.logging
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}')
 
@@ -44,8 +45,12 @@ async def _create_guild_embed(guild: WynncraftGuild):
         color=botConfig.DEFAULT_COLOR
     )
 
-    banner_img = banner.create_banner([(l["colour"],l["pattern"]) for l in guild_stats.banner["layers"]])
-    banner_img = banner_img.resize((200, 400), resample=Image.BOX)
+    try:
+        banner_img = banner.create_banner([(l["colour"],l["pattern"]) for l in guild_stats.banner["layers"]])
+        banner_img = banner_img.resize((200, 400), resample=Image.BOX)
+    except Exception as e:
+        handlers.logging.error(f"Failed to create guild banner for guild {guild.name}!", exc_info=e)
+        banner_img = None
 
     embed.set_thumbnail(url="attachment://banner.png")
 
@@ -134,6 +139,10 @@ class GuildCommand(hybridCommand.HybridCommand):
             embed, banner_img = await _create_guild_embed(guild)
             if embed is None:
                 await event.reply_error(f"Failed to retrieve stats for guild ``{guild_str}``")
+                return
+
+            if banner_img is None:
+                await event.reply(embed=embed)
                 return
 
             with io.BytesIO() as image_binary:
