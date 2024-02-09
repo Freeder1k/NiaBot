@@ -42,6 +42,7 @@ _pattern_map = {
     "MOJANG": "mojang",
     "PIGLIN": "piglin",
     "RHOMBUS": "rhombus",
+    "RHOMBUS_MIDDLE": "rhombus",  # Wynn api uses this
     "SKULL": "skull",
     "SMALL_STRIPES": "small_stripes",
     "SQUARE_BOTTOM_LEFT": "square_bottom_left",
@@ -65,27 +66,27 @@ _pattern_map = {
 }
 
 
-def _tint_image(src: Image.Image, color="#FFFFFF"):
-    alpha = None
-    if src.mode == "LA":
-        alpha = src.split()[-1]
+def _colorize_image(src: Image.Image, color="#FFFFFF"):
+    src = src.convert("LA")
+    alpha = src.split()[-1]
     src = src.convert("L")
     result = ImageOps.colorize(src, (0, 0, 0, 0), color)
-    if alpha:
-        result.putalpha(alpha)
+    result.putalpha(alpha)
     return result
 
 
-def create_banner(layers: list[tuple[str, str]]) -> Image:
+def create_banner(base_color: str, layers: list[tuple[str, str]]) -> Image:
     """
     Create a banner with the given patterns.
 
     :param layers: A list of tuples in the format (color, pattern) to be used in the banner.
     """
-    banner = Image.new("RGBA", (20, 40), colors["WHITE"])
+    base = Image.open("../assets/banner/base.png")
+    banner = _colorize_image(base, base_color)
     for color, pattern in layers:
-        im = Image.open(f"assets/banner/{_pattern_map[pattern]}.png")
-        im = _tint_image(im, colors[color])
-        banner = Image.alpha_composite(banner, im)
+        layer_color = _colorize_image(base, colors[color])
+        mask = Image.open(f"../assets/banner/{_pattern_map[pattern]}.png")
+
+        banner = Image.composite(layer_color, banner, mask)
 
     return banner
