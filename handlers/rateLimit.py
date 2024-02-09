@@ -22,7 +22,6 @@ class RateLimit:
         self._max_calls = max_calls
         self._period = period
         self._calls = collections.deque(maxlen=max_calls)
-        self._curr_call_amount = 0
         self._lock = Lock()
 
     def __enter__(self):
@@ -34,15 +33,11 @@ class RateLimit:
             if self.calculate_remaining_calls() <= 0:
                 raise RateLimitException(f"Rate limit of {self._max_calls} requests per {self._period}min reached!")
 
-            self._curr_call_amount += 1
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        with self._lock:
-            self._curr_call_amount -= 1
-
             curr_time = time.time()
             self._calls.append(curr_time)
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        with self._lock:
             if exc_type is ClientResponseError and exc_val.status == HTTPStatus.TOO_MANY_REQUESTS:
                 usage = self.calculate_usage()
                 self._set_full()
@@ -63,7 +58,7 @@ class RateLimit:
         Calculates the amount of requests made in the current period. This also clears expired calls.
         """
         self._clear_expired_calls()
-        return len(self._calls) + self._curr_call_amount
+        return len(self._calls)
 
     def calculate_remaining_calls(self) -> int:
         """
