@@ -13,6 +13,7 @@ import wrappers.api.wynncraft.v3.session
 import wrappers.storage
 import wrappers.storage.playerTrackerData
 import wrappers.storage.usernameData
+from niatypes.enums import PlayerIdentifier
 from workers.queueWorker import QueueWorker
 from wrappers.api.wynncraft.v3.types import PlayerStats
 
@@ -21,7 +22,7 @@ _players_to_track: asyncio.Queue[str] = asyncio.Queue()
 _worker = QueueWorker(delay=0.1)
 
 
-async def _record_stats(uuid: str):
+async def _record_stats(uuid: str, retried: bool = False):
     if wrappers.api.wynncraft.v3.session.calculate_remaining_requests() < 10:
         wait_time = wrappers.api.wynncraft.v3.session.ratelimit_reset_time()
         await asyncio.sleep(wait_time + 1)
@@ -31,9 +32,17 @@ async def _record_stats(uuid: str):
         stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(uuid=uuid)
         await wrappers.storage.playerTrackerData.add_record(stats)
     except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
-        handlers.logging.debug(f"Couldn't get stats of player with uuid {uuid}")
+        handlers.logging.debug(f"Couldn't get stats of player with uuid {uuid}: Unknown player.")
+    except aiohttp.client_exceptions.ClientError as e:
+        if not retried:
+            await asyncio.sleep(1)
+            await _record_stats(uuid, True)
+        else:
+            handlers.logging.error(f"Client error in player stat tracker: uuid: {uuid}")
+            raise e
     except Exception as e:
-        handlers.logging.error(uuid, stats, exc_info=e)
+        handlers.logging.error(f"Exception in player stat tracker: uuid: {uuid}, stats: {stats}")
+        raise e
 
 
 @tasks.loop(seconds=61, reconnect=True)
@@ -41,15 +50,14 @@ async def _update_online():
     try:
         global _online_players, _players_to_track
         prev_online_players = _online_players
-        _online_players = (await wrappers.api.wynncraft.v3.player.player_list(identifier='uuid')).keys()
+        _online_players = (await wrappers.api.wynncraft.v3.player.player_list(identifier=PlayerIdentifier.UUID)).keys()
 
         left_players = prev_online_players - _online_players
 
-        updates = len(
-            [_worker.put(_record_stats, name) for name in left_players])
+        [_worker.put(_record_stats, name) for name in left_players]
 
-        if updates >= 50:
-            handlers.logging.debug(f"Tracking {updates} player's stats.")
+        if len(left_players) >= 50:
+            handlers.logging.debug(f"Tracking {len(left_players)} player's stats.")
     except handlers.rateLimit.RateLimitException:
         pass
     except Exception as ex:
