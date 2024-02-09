@@ -51,7 +51,7 @@ async def _create_guild_embed(guild: WynncraftGuild):
     embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)
 
     player_worlds = await wrappers.api.wynncraft.v3.player.player_list(identifier='uuid')
-    online_players = {utils.misc.get_dashed_uuid(p.uuid): p for p in
+    online_players = {utils.misc.format_uuid(p.uuid): p for p in
                       await wrappers.storage.usernameData.get_players(uuids=list(player_worlds.keys()))}
 
     online_members = [(f"{5 * _star}{online_players[uuid].name}", player_worlds[uuid])

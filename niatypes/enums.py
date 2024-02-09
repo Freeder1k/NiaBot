@@ -1,4 +1,4 @@
-from enum import Enum, IntEnum
+from enum import Enum, IntEnum, StrEnum
 
 
 class WynnGuildRank(Enum):
@@ -71,3 +71,7 @@ class LogEntryType(IntEnum):
     MEMBER_JOIN = 1
     MEMBER_LEAVE = 2
     MEMBER_NAME_CHANGE = 3
+
+class PlayerIdentifier(StrEnum):
+    UUID = "uuid"
+    USERNAME = "username"

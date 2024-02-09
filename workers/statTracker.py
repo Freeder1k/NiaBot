@@ -28,7 +28,7 @@ async def _record_stats(uuid: str):
 
     stats = None
     try:
-        stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(player=uuid)
+        stats: PlayerStats = await wrappers.api.wynncraft.v3.player.stats(uuid=uuid)
         await wrappers.storage.playerTrackerData.add_record(stats)
     except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
         handlers.logging.debug(f"Couldn't get stats of player with uuid {uuid}")

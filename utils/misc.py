@@ -1,5 +1,6 @@
 import dataclasses
 import datetime
+import re
 from datetime import datetime, timezone
 from typing import TypeVar, Any, Type
 
@@ -128,19 +129,31 @@ def get_relative_date_str(dt: datetime, years=False, months=False, weeks=False, 
         )
 
 
-def get_dashed_uuid(uuid: str) -> str:
-    if len(uuid) != 32:
-        raise ValueError("uuid parameter must be a string of length 32")
+_dashed_uuid_re = re.compile(r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}')
+_undashed_uuid_re = re.compile(r'[0-9a-fA-F]{32}')
 
-    return f"{uuid[0:8]}-{uuid[8:12]}-{uuid[12:16]}-{uuid[16:20]}-{uuid[20:32]}"
+
+def format_uuid(uuid: str, dashed: bool = True) -> str:
+    """
+    Convert a minecraft uuid to the specified format.
+
+    :param uuid: The uuid to convert. Can be either in dashed or un-dashed format.
+    :param dashed: If True, the uuid is formatted with dashes, otherwise without.
+
+    :return: The formatted uuid.
+
+    :raises ValueError: If the uuid is not in a valid format.
+    """
+    if _dashed_uuid_re.fullmatch(uuid):
+        return uuid if dashed else uuid.replace("-", "")
+    elif _undashed_uuid_re.fullmatch(uuid):
+        return f"{uuid[0:8]}-{uuid[8:12]}-{uuid[12:16]}-{uuid[16:20]}-{uuid[20:32]}" if dashed else uuid
+    else:
+        raise ValueError(f"Invalid uuid format: {uuid}")
 
 
 def ansi_format(*formatting: AnsiFormat):
+    """
+    Get the ANSI escape sequence for the specified formatting.
+    """
     return f"\u001b[{';'.join((str(f.value) for f in formatting))}m"
-
-
-def format_uuid(uuid: str) -> str:
-    """
-    Add the "-" to a uuid.
-    """
-    return "-".join((uuid[:8], uuid[8:12], uuid[12:16], uuid[16:20], uuid[20:32]))
