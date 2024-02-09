@@ -84,8 +84,9 @@ async def _create_guild_embed(guild: WynncraftGuild):
     table_builder = tableBuilder.TableBuilder.from_str('l   r')
     [table_builder.add_row(*t) for t in online_members]
 
-    # TODO split
-    embed.add_field(name=f"Online members ({len(online_members)})", value=f">>> ```\n{table_builder.build()}```")
+    splits = utils.misc.split_str(table_builder.build(), 1000, "\n")
+    for split in splits:
+        embed.add_field(name=f"Online members ({len(online_members)})", value=f">>> ```\n{split}```")
 
     return embed, banner_img
 
