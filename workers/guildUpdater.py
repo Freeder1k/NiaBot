@@ -19,8 +19,7 @@ try:
         with open(f"{botConfig.GUILD_NAME}.json", 'r') as _f:
             _guild = types.GuildStats.from_json(json.load(_f))
 except Exception as e:
-    handlers.logging.error(
-        f"Failed to load stored guild stats. Delete the file if this happens after an update. {e}")
+    handlers.logging.error("Failed to load stored guild stats.", exc_info=e)
 
 
 async def _store_guild():
@@ -44,18 +43,25 @@ async def _log_member_updates(guild_now: types.GuildStats):
         await handlers.nerfuria.logging.log_member_leave(left.get(uuid, '*unknown*'), uuid)
 
 
-@tasks.loop(minutes=10, reconnect=True)
+@tasks.loop(seconds=601, reconnect=True)
 async def update_guild():
     try:
         global _guild
 
-        guild_now = await guild.stats(name=botConfig.GUILD_NAME)
+        try:
+            guild_now = await guild.stats(name=botConfig.GUILD_NAME)
+        except guild.UnknownGuildException:
+            handlers.logging.error(f"Guild {botConfig.GUILD_NAME} not found. Disabling guild update loop.")
+            update_guild.stop()
+            return
 
         if _guild is not None:
             await _log_member_updates(guild_now)
 
         _guild = guild_now
         await _store_guild()
+    except handlers.rateLimit.RateLimitException:
+        pass
     except Exception as e:
         await handlers.logging.error(exc_info=e)
         raise e
@@ -63,6 +69,5 @@ async def update_guild():
 
 update_guild.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    handlers.rateLimit.RateLimitException,
     Exception
 )
