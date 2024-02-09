@@ -24,6 +24,7 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
     return await _get_and_store_from_api(uuid=uuid, username=username)
 
 
+# TODO improve
 async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -> list[MinecraftPlayer]:
     """
     Get a list of players by uuids and names.
