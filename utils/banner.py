@@ -84,7 +84,7 @@ def create_banner(layers: list[tuple[str, str]]) -> Image:
     """
     banner = Image.new("RGBA", (20, 40), colors["WHITE"])
     for color, pattern in layers:
-        im = Image.open(f"../assets/banner/{_pattern_map[pattern]}.png")
+        im = Image.open(f"assets/banner/{_pattern_map[pattern]}.png")
         im = _tint_image(im, colors[color])
         banner = Image.alpha_composite(banner, im)
 
