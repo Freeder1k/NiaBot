@@ -1,7 +1,6 @@
 import asyncio
 
 import aiohttp.client_exceptions
-from discord import Client
 from discord.ext import tasks
 
 import handlers.logging
@@ -22,10 +21,10 @@ from wrappers import botConfig
 
 _online_players: set[str] = set()
 _updated_players: list[tuple[MinecraftPlayer, MinecraftPlayer]] = []
-_worker = QueueWorker(delay=0.1)
+_worker = QueueWorker(delay=0.5)
 
 
-async def _log_name_changes(client: Client):
+async def _log_name_changes():
     await _worker.join()
 
     if len(_updated_players) == 0:
@@ -52,7 +51,7 @@ async def _log_name_changes(client: Client):
 
 
 async def _fetch_and_update_usernames(usernames: list[str]):
-    if wrappers.api.minecraft._mojang_rate_limit.calculate_remaining_calls() < 10:
+    if wrappers.api.minecraft._mojang_rate_limit.calculate_remaining_calls() < 2:
         wait_time = wrappers.api.minecraft._mojang_rate_limit.get_time_until_next_free()
         await asyncio.sleep(wait_time + 1)
 
@@ -60,8 +59,14 @@ async def _fetch_and_update_usernames(usernames: list[str]):
         players = await wrappers.api.minecraft.get_players(usernames=usernames)
     except handlers.rateLimit.RateLimitException as e:
         handlers.logging.error("Rate limit reached for mojang api!", e)
+        wait_time = wrappers.api.minecraft._mojang_rate_limit.get_time_until_next_free()
+        print(wait_time)
+        await asyncio.sleep(wait_time + 1)
         _worker.put(_fetch_and_update_usernames, usernames)
         return
+    except aiohttp.client_exceptions.ClientError as e:
+        _worker.put(_fetch_and_update_usernames, usernames)
+        raise e
 
     for name in usernames:
         if name not in players:
@@ -73,7 +78,7 @@ async def _fetch_and_update_usernames(usernames: list[str]):
 
 
 @tasks.loop(seconds=61, reconnect=True)
-async def _update_usernames(client: Client):
+async def _update_usernames():
     try:
         global _online_players
         prev_online_players = _online_players
@@ -85,12 +90,12 @@ async def _update_usernames(client: Client):
         unknown_names = [name for name in joined_players if name not in known_names]
 
         for i in range(0, len(unknown_names), 10):
-            _worker.put(_fetch_and_update_usernames, unknown_names[i:i+10])
+            _worker.put(_fetch_and_update_usernames, unknown_names[i:i + 10])
 
         if len(unknown_names) >= 10:
             handlers.logging.debug(f"Updating {len(unknown_names)} minecraft usernames.")
 
-        asyncio.create_task(_log_name_changes(client))
+        asyncio.create_task(_log_name_changes())
     except handlers.rateLimit.RateLimitException:
         pass
     except Exception as ex:
@@ -99,12 +104,13 @@ async def _update_usernames(client: Client):
 
 
 _update_usernames.add_exception_type(
-    aiohttp.client_exceptions.ClientError
+    aiohttp.client_exceptions.ClientError,
+    Exception
 )
 
 
-def start(client: Client):
-    _update_usernames.start(client=client)
+def start():
+    _update_usernames.start()
     _worker.start()
     handlers.logging.info("Username updater workers started.")
 

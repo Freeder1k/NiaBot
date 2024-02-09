@@ -109,7 +109,7 @@ def start_workers():
     wrappers.storage.playtimeData.update_playtimes.start()
     workers.presenceUpdater.update_presence.start(client=client)
     workers.guildUpdater.update_guild.start(client=client)
-    workers.usernameUpdater.start(client=client)
+    workers.usernameUpdater.start()
     workers.statTracker.start()
 
 

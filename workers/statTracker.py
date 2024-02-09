@@ -59,6 +59,7 @@ async def _update_online():
 
 _update_online.add_exception_type(
     aiohttp.client_exceptions.ClientError,
+    Exception
 )
 
 

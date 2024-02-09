@@ -25,5 +25,6 @@ async def update_presence(client: Client):
 
 update_presence.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    handlers.rateLimit.RateLimitException
+    handlers.rateLimit.RateLimitException,
+    Exception
 )

@@ -64,5 +64,6 @@ async def update_guild(client: Client):
 
 update_guild.add_exception_type(
     aiohttp.client_exceptions.ClientError,
-    handlers.rateLimit.RateLimitException
+    handlers.rateLimit.RateLimitException,
+    Exception
 )
