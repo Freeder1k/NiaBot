@@ -16,6 +16,7 @@ import wrappers.storage
 import wrappers.storage.playerTrackerData
 import wrappers.storage.usernameData
 from niatypes.dataTypes import MinecraftPlayer
+from niatypes.enums import PlayerIdentifier
 from workers.queueWorker import QueueWorker
 from wrappers import botConfig
 
@@ -82,7 +83,8 @@ async def _update_usernames():
     try:
         global _online_players
         prev_online_players = _online_players
-        _online_players = (await wrappers.api.wynncraft.v3.player.player_list(identifier='username')).keys()
+        _online_players = (
+            await wrappers.api.wynncraft.v3.player.player_list(identifier=PlayerIdentifier.USERNAME)).keys()
 
         joined_players = _online_players - prev_online_players
 

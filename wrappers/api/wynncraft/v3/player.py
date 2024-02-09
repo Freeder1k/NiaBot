@@ -87,7 +87,7 @@ async def abilities(player_uuid: str, character_uuid: str) -> AbilityMap:
 
 @alru_cache(ttl=30)
 async def _online_players(identifier: PlayerIdentifier = PlayerIdentifier.USERNAME) -> dict:
-    return await session.get(f"/player", identifier=identifier.value())
+    return await session.get(f"/player", identifier=identifier)
 
 
 async def player_list(identifier: PlayerIdentifier = PlayerIdentifier.USERNAME) -> dict[str, str]:

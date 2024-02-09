@@ -1,7 +1,9 @@
+import io
 import re
 from collections.abc import Iterable
 
 import discord
+from PIL import Image
 from async_lru import alru_cache
 from discord import Permissions, Embed
 
@@ -9,14 +11,16 @@ import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.v3.guild
 import wrappers.api.wynncraft.v3.player
+import wrappers.api.wynncraft.v3.types
 import wrappers.storage.usernameData
 from handlers.commands import command, hybridCommand
 from handlers.commands.commandEvent import PrefixedCommandEvent, SlashCommandEvent
 from niatypes.dataTypes import WynncraftGuild
-from utils import tableBuilder
+from niatypes.enums import PlayerIdentifier
+from utils import tableBuilder, banner
 from wrappers import botConfig
 
-_guild_re = re.compile(r'[A-Za-z ]{3,30}$')
+_guild_re = re.compile(r'[A-Za-z ]{3,30}')
 
 _star = "★"
 
@@ -27,9 +31,11 @@ def _format_guilds(guilds: Iterable[WynncraftGuild]) -> str:
 
 @alru_cache(ttl=60)
 async def _create_guild_embed(guild: WynncraftGuild):
-    guild_stats = await wrappers.api.wynncraft.v3.guild.stats(name=guild.name)
-    if guild_stats is None:
-        return None
+    guild_stats: wrappers.api.wynncraft.v3.types.GuildStats
+    try:
+        guild_stats = await wrappers.api.wynncraft.v3.guild.stats(name=guild.name)
+    except wrappers.api.wynncraft.v3.guild.UnknownGuildException:
+        return None, None
 
     embed = Embed(
         description=f"# [{guild_stats.prefix}] {guild_stats.name}\n"
@@ -37,8 +43,11 @@ async def _create_guild_embed(guild: WynncraftGuild):
                     f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
         color=botConfig.DEFAULT_COLOR
     )
-    # TODO create own implementation
-    embed.set_thumbnail(url=f'https://wynn-guild-banner.toki317.dev/banners/{guild_stats.name.replace(" ", "%20")}')
+
+    banner_img = banner.create_banner([(l["colour"],l["pattern"]) for l in guild_stats.banner["layers"]])
+    banner_img = banner_img.resize((200, 400), resample=Image.BOX)
+
+    embed.set_thumbnail(url="attachment://banner.png")
 
     embed.add_field(name="Guild level", value=f"{guild_stats.level} ({guild_stats.xpPercent}%)", inline=True)
     embed.add_field(name="Members", value=guild_stats.members.total, inline=True)
@@ -50,7 +59,7 @@ async def _create_guild_embed(guild: WynncraftGuild):
 
     embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)
 
-    player_worlds = await wrappers.api.wynncraft.v3.player.player_list(identifier='uuid')
+    player_worlds = await wrappers.api.wynncraft.v3.player.player_list(identifier=PlayerIdentifier.UUID)
     online_players = {utils.misc.format_uuid(p.uuid): p for p in
                       await wrappers.storage.usernameData.get_players(uuids=list(player_worlds.keys()))}
 
@@ -73,7 +82,7 @@ async def _create_guild_embed(guild: WynncraftGuild):
     # TODO split
     embed.add_field(name=f"Online members ({len(online_members)})", value=f">>> ```\n{table_builder.build()}```")
 
-    return embed
+    return embed, banner_img
 
 
 class GuildCommand(hybridCommand.HybridCommand):
@@ -99,7 +108,7 @@ class GuildCommand(hybridCommand.HybridCommand):
             elif isinstance(event, SlashCommandEvent):
                 guild_str = event.args["guild"]
 
-            if not _guild_re.match(guild_str):
+            if not _guild_re.fullmatch(guild_str):
                 await event.reply_error(f"Invalid guild name or tag``{guild_str}``")
                 return
 
@@ -122,9 +131,13 @@ class GuildCommand(hybridCommand.HybridCommand):
                         f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(exact_matches)}")
                     return
 
-            embed = await _create_guild_embed(guild)
+            embed, banner_img = await _create_guild_embed(guild)
             if embed is None:
                 await event.reply_error(f"Failed to retrieve stats for guild ``{guild_str}``")
                 return
 
-            await event.reply(embed=embed)
+            with io.BytesIO() as image_binary:
+                banner_img.save(image_binary, 'PNG')
+                image_binary.seek(0)
+                file = discord.File(fp=image_binary, filename='banner.png')
+                await event.reply(embed=embed, file=file)
