@@ -24,6 +24,7 @@ _pattern_map = {
     "BORDER": "border",
     "BRICKS": "bricks",
     "CIRCLE": "circle",
+    "CIRCLE_MIDDLE": "circle",  # Wynn api uses this
     "CREEPER": "creeper",
     "CROSS": "cross",
     "CURLY_BORDER": "curly_border",
@@ -45,6 +46,7 @@ _pattern_map = {
     "RHOMBUS_MIDDLE": "rhombus",  # Wynn api uses this
     "SKULL": "skull",
     "SMALL_STRIPES": "small_stripes",
+    "STRIPE_SMALL": "small_stripes",  # Wynn api uses this
     "SQUARE_BOTTOM_LEFT": "square_bottom_left",
     "SQUARE_BOTTOM_RIGHT": "square_bottom_right",
     "SQUARE_TOP_LEFT": "square_top_left",
@@ -58,7 +60,6 @@ _pattern_map = {
     "STRIPE_MIDDLE": "stripe_middle",
     "STRIPE_RIGHT": "stripe_right",
     "STRIPE_TOP": "stripe_top",
-    "STRIPE_SMALL": "small_stripes",  # Wynn api uses this
     "TRIANGLE_BOTTOM": "triangle_bottom",
     "TRIANGLE_TOP": "triangle_top",
     "TRIANGLES_BOTTOM": "triangles_bottom",
@@ -81,11 +82,11 @@ def create_banner(base_color: str, layers: list[tuple[str, str]]) -> Image:
 
     :param layers: A list of tuples in the format (color, pattern) to be used in the banner.
     """
-    base = Image.open("../assets/banner/base.png")
+    base = Image.open("assets/banner/base.png")
     banner = _colorize_image(base, base_color)
     for color, pattern in layers:
         layer_color = _colorize_image(base, colors[color])
-        mask = Image.open(f"../assets/banner/{_pattern_map[pattern]}.png")
+        mask = Image.open(f"assets/banner/{_pattern_map[pattern]}.png")
 
         banner = Image.composite(layer_color, banner, mask)
 

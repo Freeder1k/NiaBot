@@ -46,7 +46,7 @@ async def _create_guild_embed(guild: WynncraftGuild):
     )
 
     try:
-        banner_img = banner.create_banner([(l["colour"],l["pattern"]) for l in guild_stats.banner["layers"]])
+        banner_img = banner.create_banner(guild_stats.banner["base"], [(l["colour"],l["pattern"]) for l in guild_stats.banner["layers"]])
         banner_img = banner_img.resize((200, 400), resample=Image.BOX)
     except Exception as e:
         handlers.logging.error(f"Failed to create guild banner for guild {guild.name}!", exc_info=e)
