@@ -3,7 +3,6 @@ import json
 import os
 
 import aiohttp.client_exceptions
-from discord import Client
 from discord.ext import tasks
 
 import handlers.logging
@@ -29,7 +28,7 @@ async def _store_guild():
         json.dump(dataclasses.asdict(_guild), f, indent=4)
 
 
-async def _log_member_updates(client: Client, guild_now: types.GuildStats):
+async def _log_member_updates(guild_now: types.GuildStats):
     members_prev = {uuid.replace("-", "").lower() for uuid in _guild.members.all.keys()}
     members_now = {uuid.replace("-", "").lower() for uuid in guild_now.members.all.keys()}
 
@@ -46,14 +45,14 @@ async def _log_member_updates(client: Client, guild_now: types.GuildStats):
 
 
 @tasks.loop(minutes=10, reconnect=True)
-async def update_guild(client: Client):
+async def update_guild():
     try:
         global _guild
 
         guild_now = await guild.stats(name=botConfig.GUILD_NAME)
 
         if _guild is not None:
-            await _log_member_updates(client, guild_now)
+            await _log_member_updates(guild_now)
 
         _guild = guild_now
         await _store_guild()

@@ -108,7 +108,7 @@ async def on_message(message: discord.Message):
 def start_workers():
     wrappers.storage.playtimeData.update_playtimes.start()
     workers.presenceUpdater.update_presence.start(client=client)
-    workers.guildUpdater.update_guild.start(client=client)
+    workers.guildUpdater.update_guild.start()
     workers.usernameUpdater.start()
     workers.statTracker.start()
 
