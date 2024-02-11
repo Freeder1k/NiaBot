@@ -20,6 +20,7 @@ from niatypes.enums import PlayerIdentifier
 from utils import tableBuilder, banner
 from wrappers import botConfig
 import handlers.logging
+import aiohttp.client_exceptions
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}')
 
@@ -35,7 +36,7 @@ async def _create_guild_embed(guild: WynncraftGuild):
     guild_stats: wrappers.api.wynncraft.v3.types.GuildStats
     try:
         guild_stats = await wrappers.api.wynncraft.v3.guild.stats(name=guild.name)
-    except wrappers.api.wynncraft.v3.guild.UnknownGuildException:
+    except (wrappers.api.wynncraft.v3.guild.UnknownGuildException, aiohttp.client_exceptions.ClientResponseError):
         return None, None
 
     embed = Embed(
@@ -115,7 +116,7 @@ class GuildCommand(hybridCommand.HybridCommand):
                 guild_str = event.args["guild"]
 
             if not _guild_re.fullmatch(guild_str):
-                await event.reply_error(f"Invalid guild name or tag``{guild_str}``")
+                await event.reply_error(f"Invalid guild name or tag ``{guild_str}``")
                 return
 
             possible_guilds: tuple[WynncraftGuild] = await wrappers.api.wynncraft.v3.guild.find(guild_str)
