@@ -1,5 +1,6 @@
 from discord import Embed, Client, TextChannel
 
+from discord.utils import escape_markdown
 import handlers.logging
 import utils.misc
 from handlers import serverConfig
@@ -33,7 +34,7 @@ async def log_member_join(username: str, uuid: str):
     Log a member join event.
     """
     em = Embed(
-        title=f"**{username} has joined the guild**",
+        title=f"**{escape_markdown(username)} has joined the guild**",
         color=botConfig.DEFAULT_COLOR,
     )
     em.set_footer(text=f"UUID: {utils.misc.format_uuid(uuid)}")
@@ -56,7 +57,7 @@ async def log_member_leave(username: str, uuid: str):
     em.set_footer(text=f"UUID: {utils.misc.format_uuid(uuid)}")
 
     await guildMemberLogData.log(LogEntryType.MEMBER_LEAVE,
-                                 f"{username} has left the guild",
+                                 f"**{escape_markdown(username)} has left the guild**",
                                  uuid)
 
     await _upload_to_discord(em)
@@ -67,7 +68,7 @@ async def log_member_name_change(uuid: str, prev_name: str, new_name: str):
     Log a member name change event.
     """
     em = Embed(
-        title=f"Name changed: **{prev_name} -> {new_name}**",
+        title=f"Name changed: **{escape_markdown(prev_name)} -> {escape_markdown(new_name)}**",
         color=botConfig.DEFAULT_COLOR,
     )
     em.set_footer(text=f"UUID: {utils.misc.format_uuid(uuid)}")
