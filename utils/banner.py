@@ -10,6 +10,7 @@ colors = {
     "PINK": "#F27FA5",
     "GRAY": "#4C4C4C",
     "LIGHT_GRAY": "#999999",
+    "SILVER": "#999999",
     "CYAN": "#4C7F99",
     "PURPLE": "#7F3FB2",
     "BLUE": "#334CB2",
@@ -31,15 +32,19 @@ _pattern_map = {
     "DIAGONAL_LEFT": "diagonal_left",
     "DIAGONAL_RIGHT": "diagonal_right",
     "DIAGONAL_UP_LEFT": "diagonal_up_left",
+    "DIAGONAL_LEFT_MIRROR": "diagonal_up_left",  # Wynn api uses this
     "DIAGONAL_UP_RIGHT": "diagonal_up_right",
+    "DIAGONAL_RIGHT_MIRROR": "diagonal_up_right",  # Wynn api uses this
     "FLOWER": "flower",
     "GLOBE": "globe",
     "GRADIENT": "gradient",
     "GRADIENT_UP": "gradient_up",
     "HALF_HORIZONTAL": "half_horizontal",
     "HALF_HORIZONTAL_BOTTOM": "half_horizontal_bottom",
+    "HALF_HORIZONTAL_MIRROR": "half_horizontal_bottom",  # Wynn api uses this
     "HALF_VERTICAL": "half_vertical",
     "HALF_VERTICAL_RIGHT": "half_vertical_right",
+    "HALF_VERTICAL_MIRROR": "half_vertical_right",  # Wynn api uses this
     "MOJANG": "mojang",
     "PIGLIN": "piglin",
     "RHOMBUS": "rhombus",
