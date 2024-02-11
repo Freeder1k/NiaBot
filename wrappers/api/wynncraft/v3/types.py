@@ -151,6 +151,7 @@ class PlayerStats(JsonableDataclass):
 
     @dataclass(frozen=True)
     class _Guild(JsonableDataclass):
+        uuid: str
         name: str
         prefix: str
         rank: str
@@ -225,7 +226,7 @@ class AbilityMap(JsonableDataclass):
         class _Meta(JsonableDataclass):
             icon: str  # Minecraft legacy item id e.g. 275:67
             page: int
-            id: str  # Internal id of the ability, abilities in AT response are refered by the same id
+            id: str  # Internal id of the ability, abilities in AT response are referred by the same id
 
         meta: _Meta
         family: list[str]

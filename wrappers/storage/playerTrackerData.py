@@ -3,8 +3,8 @@ from datetime import datetime
 from async_lru import alru_cache
 
 from niatypes.wynncraft.trackedPlayerStats import TrackedPlayerStats
-from ..api.wynncraft.v3.types import PlayerStats
 from . import manager
+from ..api.wynncraft.v3.types import PlayerStats
 
 
 @alru_cache(ttl=60)
@@ -56,7 +56,8 @@ async def add_record(stats: PlayerStats, record_time: datetime = None):
 
     con = manager.get_connection()
     cur = await manager.get_cursor()
-    await cur.execute("""
+    await cur.execute(
+        """
             INSERT INTO player_tracking (
                 record_time,
                 uuid,
@@ -66,6 +67,7 @@ async def add_record(stats: PlayerStats, record_time: datetime = None):
                 first_join, 
                 last_join, 
                 playtime, 
+                guild_uuid,
                 guild_name, 
                 guild_rank, 
                 wars, 
@@ -101,52 +103,53 @@ async def add_record(stats: PlayerStats, record_time: datetime = None):
                 pvp_kills, 
                 pvp_deaths
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-                      (
-                          record_time,
-                          stats.uuid.replace("-", "").lower(),
-                          stats.username,
-                          stats.rank,
-                          stats.supportRank,
-                          stats.firstJoin,
-                          stats.lastJoin,
-                          stats.playtime,
-                          stats.guild.name if stats.guild is not None else None,
-                          stats.guild.rank if stats.guild is not None else None,
-                          stats.globalData.wars,
-                          stats.globalData.totalLevel,
-                          stats.globalData.killedMobs,
-                          stats.globalData.chestsFound,
-                          stats.globalData.dungeons.total if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Decrepit Sewers', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Infested Pit', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Lost Sanctuary', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Underworld Crypt', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Sand-Swept Tomb', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Ice Barrows', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Galleon\'s Graveyard', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Undergrowth Ruins', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Corrupted Decrepit Sewers', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Corrupted Infested Pit', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Corrupted Lost Sanctuary', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Corrupted Sand-Swept Tomb', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Corrupted Underworld Crypt', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Corrupted Galleon\'s Graveyard',
-                                                             0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Corrupted Undergrowth Ruins', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Corrupted Ice Barrows', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Fallen Factory', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Eldritch Outlook', 0) if has_dungeons else 0,
-                          stats.globalData.dungeons.list.get('Timelost Sanctum', 0) if has_dungeons else 0,
-                          stats.globalData.raids.total if has_raids else 0,
-                          stats.globalData.raids.list.get('Nest of the Grootslangs', 0) if has_raids else 0,
-                          stats.globalData.raids.list.get('Orphion\'s Nexus of Light', 0) if has_raids else 0,
-                          stats.globalData.raids.list.get('The Canyon Colossus', 0) if has_raids else 0,
-                          stats.globalData.raids.list.get('The Nameless Anomaly', 0) if has_raids else 0,
-                          stats.globalData.completedQuests,
-                          stats.globalData.pvp.kills,
-                          stats.globalData.pvp.deaths
-                      ))
+        (
+            record_time,
+            stats.uuid.replace("-", "").lower(),
+            stats.username,
+            stats.rank,
+            stats.supportRank,
+            stats.firstJoin,
+            stats.lastJoin,
+            stats.playtime,
+            stats.guild.uuid if stats.guild is not None else None,
+            stats.guild.name if stats.guild is not None else None,
+            stats.guild.rank if stats.guild is not None else None,
+            stats.globalData.wars,
+            stats.globalData.totalLevel,
+            stats.globalData.killedMobs,
+            stats.globalData.chestsFound,
+            stats.globalData.dungeons.total if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Decrepit Sewers', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Infested Pit', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Lost Sanctuary', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Underworld Crypt', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Sand-Swept Tomb', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Ice Barrows', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Galleon\'s Graveyard', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Undergrowth Ruins', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Corrupted Decrepit Sewers', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Corrupted Infested Pit', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Corrupted Lost Sanctuary', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Corrupted Sand-Swept Tomb', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Corrupted Underworld Crypt', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Corrupted Galleon\'s Graveyard',
+                                               0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Corrupted Undergrowth Ruins', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Corrupted Ice Barrows', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Fallen Factory', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Eldritch Outlook', 0) if has_dungeons else 0,
+            stats.globalData.dungeons.list.get('Timelost Sanctum', 0) if has_dungeons else 0,
+            stats.globalData.raids.total if has_raids else 0,
+            stats.globalData.raids.list.get('Nest of the Grootslangs', 0) if has_raids else 0,
+            stats.globalData.raids.list.get('Orphion\'s Nexus of Light', 0) if has_raids else 0,
+            stats.globalData.raids.list.get('The Canyon Colossus', 0) if has_raids else 0,
+            stats.globalData.raids.list.get('The Nameless Anomaly', 0) if has_raids else 0,
+            stats.globalData.completedQuests,
+            stats.globalData.pvp.kills,
+            stats.globalData.pvp.deaths
+        ))
 
     await con.commit()

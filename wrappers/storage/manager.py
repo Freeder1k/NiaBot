@@ -1,8 +1,6 @@
 import aiosqlite
 
-import handlers.nerfuria.logging
 import niatypes.enums
-from . import guildMemberLogData
 
 _con: aiosqlite.Connection = None
 
@@ -50,6 +48,7 @@ async def init_database():
                         first_join DATE,
                         last_join DATE,
                         playtime INTEGER,
+                        guild_uuid TEXT,
                         guild_name TEXT,
                         guild_rank TEXT,
                         wars INTEGER,
