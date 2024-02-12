@@ -88,7 +88,7 @@ def create_banner(base_color: str, layers: list[tuple[str, str]]) -> Image:
     :param layers: A list of tuples in the format (color, pattern) to be used in the banner.
     """
     base = Image.open("assets/banner/base.png")
-    banner = _colorize_image(base, base_color)
+    banner = _colorize_image(base, colors[base_color])
     for color, pattern in layers:
         layer_color = _colorize_image(base, colors[color])
         mask = Image.open(f"assets/banner/{_pattern_map[pattern]}.png")
