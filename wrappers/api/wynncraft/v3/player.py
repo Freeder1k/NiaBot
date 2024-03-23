@@ -1,3 +1,5 @@
+import time
+
 import aiohttp.client_exceptions
 from async_lru import alru_cache
 
@@ -87,7 +89,14 @@ async def abilities(player_uuid: str, character_uuid: str) -> AbilityMap:
 
 @alru_cache(ttl=30)
 async def _online_players(identifier: PlayerIdentifier = PlayerIdentifier.USERNAME) -> dict:
-    return await session.get(f"/player", identifier=identifier)
+    try:
+        return await session.get(f"/player", identifier=identifier)
+    except aiohttp.client_exceptions.ClientResponseError as ex:
+        if ex.status == 524:
+            time.sleep(1)
+            return await session.get(f"/player", identifier=identifier)
+        else:
+            raise ex
 
 
 async def player_list(identifier: PlayerIdentifier = PlayerIdentifier.USERNAME) -> dict[str, str]:
