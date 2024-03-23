@@ -60,7 +60,9 @@ async def _create_guild_embed(guild: WynncraftGuild):
     embed.add_field(name="", value="", inline=True)
     embed.add_field(name="Territories", value=guild_stats.territories, inline=True)
     embed.add_field(name="Total wars", value=guild_stats.wars, inline=True)
-    embed.add_field(name="Season rating", value=guild_stats.seasonRanks[max(guild_stats.seasonRanks.keys())].rating,
+
+    curr_season = max(guild_stats.seasonRanks.keys(), key=lambda x: int(x))
+    embed.add_field(name="Season rating", value=guild_stats.seasonRanks[curr_season].rating,
                     inline=True)
 
     embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)

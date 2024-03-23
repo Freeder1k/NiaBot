@@ -52,15 +52,15 @@ async def _log_name_changes():
 
 
 async def _fetch_and_update_usernames(usernames: list[str]):
-    if wrappers.api.minecraft._mojang_rate_limit.calculate_remaining_calls() < 2:
-        wait_time = wrappers.api.minecraft._mojang_rate_limit.get_time_until_next_free()
+    if wrappers.api.minecraft._mc_services_rate_limit.calculate_remaining_calls() < 2:
+        wait_time = wrappers.api.minecraft._mc_services_rate_limit.get_time_until_next_free()
         await asyncio.sleep(wait_time + 1)
 
     try:
         players = await wrappers.api.minecraft.get_players(usernames=usernames)
     except handlers.rateLimit.RateLimitException as e:
         handlers.logging.error("Rate limit reached for mojang api!", e)
-        wait_time = wrappers.api.minecraft._mojang_rate_limit.get_time_until_next_free()
+        wait_time = wrappers.api.minecraft._mc_services_rate_limit.get_time_until_next_free()
         print(wait_time)
         await asyncio.sleep(wait_time + 1)
         _worker.put(_fetch_and_update_usernames, usernames)
