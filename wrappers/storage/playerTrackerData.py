@@ -2,49 +2,64 @@ from datetime import datetime
 
 from async_lru import alru_cache
 
-from niatypes.wynncraft.trackedPlayerStats import TrackedPlayerStats
-from . import manager
-from ..api.wynncraft.v3.types import PlayerStats
+from niatypes.dataTypes import WynncraftGuild
+from niatypes.enums import PlayerStatsIdentifier
+from wrappers.api.wynncraft.v3.types import PlayerStats
+from wrappers.storage import manager
+import wrappers.api.wynncraft.v3.guild
 
 
-@alru_cache(ttl=60)
-async def get_stats_before(uuid: str, record_time: datetime) -> TrackedPlayerStats | None:
+@alru_cache(ttl=600)
+async def get_stats(uuid: str, stat: PlayerStatsIdentifier, after: datetime = None, before: datetime = None) -> tuple:
     uuid = uuid.replace("-", "").lower()
+    if after is None:
+        after = datetime.min
+    if before is None:
+        before = datetime.max
 
     cur = await manager.get_cursor()
-    res = await cur.execute("""
-                SELECT * FROM player_tracking
-                WHERE uuid = ?
-                AND record_time <= ?
-                ORDER BY record_time desc
-                LIMIT 1
-            """, (uuid, record_time))
-
-    data = tuple(await res.fetchall())
-    if len(data) == 0:
-        return None
-
-    return TrackedPlayerStats(**{k: data[0][k] for k in data[0].keys()})
-
-
-@alru_cache(ttl=60)
-async def get_stats_after(uuid: str, record_time: datetime) -> TrackedPlayerStats | None:
-    uuid = uuid.replace("-", "").lower()
-
-    cur = await manager.get_cursor()
-    res = await cur.execute("""
-                SELECT * FROM player_tracking
+    res = await cur.execute(f"""
+                SELECT {stat} as stat FROM player_tracking
                 WHERE uuid = ?
                 AND record_time >= ?
+                AND record_time <= ?
                 ORDER BY record_time
-                LIMIT 1
-            """, (uuid, record_time))
+            """, (uuid, after, before))
 
-    data = tuple(await res.fetchall())
-    if len(data) == 0:
-        return None
+    return tuple(row['stat'] for row in await res.fetchall())
 
-    return TrackedPlayerStats(**{k: data[0][k] for k in data[0].keys()})
+@alru_cache(ttl=600)
+async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = None, after: datetime = None, before: datetime = None) -> dict[str, tuple]:
+    if after is None:
+        after = datetime.min
+    if before is None:
+        before = datetime.max
+
+    uuids = None
+    if guild is not None:
+        try:
+            guild_stats: wrappers.api.wynncraft.v3.types.GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=guild.name)
+            uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
+        except wrappers.api.wynncraft.v3.guild.UnknownGuildException:
+            raise ValueError(f"Guild {guild.name} not found.")
+
+    params = (after, before) + (uuids if uuids is not None else ())
+
+    cur = await manager.get_cursor()
+    res = await cur.execute(f"""
+                SELECT uuid, stat from (
+                    SELECT uuid, max(record_time), {stat} as stat from player_tracking
+                    WHERE record_time >= ?
+                    AND record_time <= ?
+                    {f"AND uuid IN ({', '.join('?' for _ in uuids)})" if uuids is not None else ""}
+                    GROUP BY uuid
+                )
+                WHERE stat > 0
+                ORDER BY stat DESC
+                LIMIT 100
+            """, params)
+
+    return {row['uuid']: row['stat'] for row in await res.fetchall()}
 
 
 async def add_record(stats: PlayerStats, record_time: datetime = None):

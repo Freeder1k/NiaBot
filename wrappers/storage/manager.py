@@ -85,6 +85,7 @@ async def init_database():
                         pvp_deaths INTEGER,
                         PRIMARY KEY (uuid, record_time)
                     );
+                    CREATE INDEX IF NOT EXISTS lb_index ON player_tracking (uuid, record_time DESC);
     """)
 
 
