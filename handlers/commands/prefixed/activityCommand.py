@@ -28,7 +28,7 @@ async def _get_playtime(uuid: str, _):
     if pt1 is None or pt2 is None:
         return '0 min'
     else:
-        return f'{pt1.playtime - pt2.playtime} min'
+        return f'{(pt1.playtime - pt2.playtime)//60} hrs'
 
 
 @alru_cache(ttl=600)
