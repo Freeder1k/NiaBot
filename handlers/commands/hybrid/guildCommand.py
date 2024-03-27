@@ -2,11 +2,13 @@ import io
 import re
 from collections.abc import Iterable
 
+import aiohttp.client_exceptions
 import discord
 from PIL import Image
 from async_lru import alru_cache
 from discord import Permissions, Embed
 
+import handlers.logging
 import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.v3.guild
@@ -19,8 +21,6 @@ from niatypes.dataTypes import WynncraftGuild
 from niatypes.enums import PlayerIdentifier
 from utils import tableBuilder, banner
 from wrappers import botConfig
-import handlers.logging
-import aiohttp.client_exceptions
 
 _guild_re = re.compile(r'[A-Za-z ]{3,30}')
 
@@ -29,6 +29,13 @@ _star = "★"
 
 def _format_guilds(guilds: Iterable[WynncraftGuild]) -> str:
     return '\n'.join([f"- {g.name} [{g.tag}]" for g in guilds])
+
+
+def _get_curr_sr(guild_stats: wrappers.api.wynncraft.v3.types.GuildStats) -> int:
+    if not guild_stats.seasonRanks:
+        return 0
+    curr_season = max(guild_stats.seasonRanks.keys(), key=lambda x: int(x))
+    return guild_stats.seasonRanks[curr_season].rating
 
 
 @alru_cache(ttl=60)
@@ -47,8 +54,12 @@ async def _create_guild_embed(guild: WynncraftGuild):
     )
 
     try:
-        banner_img = banner.create_banner(guild_stats.banner["base"], [(l["colour"],l["pattern"]) for l in guild_stats.banner["layers"]])
-        banner_img = banner_img.resize((200, 400), resample=Image.BOX)
+        if guild_stats.banner is None:
+            banner_img = None
+        else:
+            banner_img = banner.create_banner(guild_stats.banner["base"],
+                                              [(l["colour"], l["pattern"]) for l in guild_stats.banner["layers"]])
+            banner_img = banner_img.resize((200, 400), resample=Image.BOX)
     except Exception as e:
         handlers.logging.error(f"Failed to create guild banner for guild {guild.name}!", exc_info=e)
         banner_img = None
@@ -60,9 +71,7 @@ async def _create_guild_embed(guild: WynncraftGuild):
     embed.add_field(name="", value="", inline=True)
     embed.add_field(name="Territories", value=guild_stats.territories, inline=True)
     embed.add_field(name="Total wars", value=guild_stats.wars, inline=True)
-
-    curr_season = max(guild_stats.seasonRanks.keys(), key=lambda x: int(x))
-    embed.add_field(name="Season rating", value=guild_stats.seasonRanks[curr_season].rating,
+    embed.add_field(name="Season rating", value=_get_curr_sr(guild_stats),
                     inline=True)
 
     embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯", inline=False)
