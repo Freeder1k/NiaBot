@@ -70,7 +70,8 @@ class TableBuilder:
         self.rows: list[_Row] = []
         self.row_widths = [0] * self.width
 
-    def add_row(self, *values: str):
+    def add_row(self, *values):
+        values = tuple(str(v) for v in values)
         if len(values) > self.width:
             raise RuntimeError(f"Amount of values {len(values)} cannot be higher than column count {self.width}.")
 
