@@ -47,16 +47,17 @@ async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = N
 
     cur = await manager.get_cursor()
     res = await cur.execute(f"""
-                SELECT uuid, stat from (
-                    SELECT uuid, max(record_time), {stat} as stat from player_tracking
+                SELECT a.uuid, {stat} as stat FROM
+                player_tracking as a
+                JOIN (SELECT uuid, max(record_time) as t
+                    FROM player_tracking
                     WHERE record_time >= ?
                     AND record_time <= ?
                     {f"AND uuid IN ({', '.join('?' for _ in uuids)})" if uuids is not None else ""}
-                    GROUP BY uuid
-                )
-                WHERE stat > 0
+                    GROUP BY uuid) as b
+                ON a.uuid = b.uuid AND a.record_time = b.t
                 ORDER BY stat DESC
-                LIMIT 100
+                LIMIT 100;
             """, params)
 
     return {row['uuid']: row['stat'] for row in await res.fetchall()}
