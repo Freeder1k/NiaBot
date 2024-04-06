@@ -1,13 +1,15 @@
 import asyncio
 import time
 
-from wrappers.storage import manager
+import aiosqlite
 
 
 async def main():
-    await manager.init_database()
+    con = await aiosqlite.connect("./NiaBot.db")
+    con.row_factory = aiosqlite.Row
 
-    cur = await manager.get_cursor()
+    cur = await con.cursor()
+
     t = time.time()
     res = await cur.execute(f"""
         SELECT row_number() over () as rank, uuid, wars FROM (
@@ -41,7 +43,7 @@ async def main():
     print("\n".join([f"{row['rank']: >5} {row['uuid']} {row['wars']: >6}" for row in await res.fetchall()]))
     print("Time: ", time.time() - t)
 
-    await manager.close()
+    await con.close()
 
 
 if __name__ == '__main__':
