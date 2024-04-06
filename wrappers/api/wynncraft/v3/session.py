@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from handlers import reservableRateLimit
@@ -23,6 +24,7 @@ async def get(url: str, retry = True, **params: str) -> JsonType:
         session = sessionManager.get_session(_v3_session_id)
         async with session.get(f"/v3{url}", params=params) as resp:
             if resp.status == 500 and retry:
+                await asyncio.sleep(1)
                 return await get(url, retry=False, **params)
 
             resp.raise_for_status()
