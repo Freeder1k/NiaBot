@@ -12,7 +12,7 @@ _rl_reset = 0
 _last_req_time = 0
 
 
-async def get(url: str, retry = True, **params: str) -> JsonType:
+async def get(url: str, **params: str) -> JsonType:
     """
     Send a GET request to the wynncraft API V3. This has a ratelimit of 300 requests per minute.
     :param url: The url of the request. Must start with '/'.
@@ -23,10 +23,6 @@ async def get(url: str, retry = True, **params: str) -> JsonType:
     with _rate_limit:
         session = sessionManager.get_session(_v3_session_id)
         async with session.get(f"/v3{url}", params=params) as resp:
-            if resp.status == 500 and retry:
-                await asyncio.sleep(1)
-                return await get(url, retry=False, **params)
-
             resp.raise_for_status()
 
             global _rl_reset, _last_req_time
