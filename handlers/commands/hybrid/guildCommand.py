@@ -1,6 +1,4 @@
 import io
-import re
-from collections.abc import Iterable
 
 import aiohttp.client_exceptions
 import discord
@@ -9,6 +7,7 @@ from async_lru import alru_cache
 from discord import Permissions, Embed
 
 import handlers.logging
+import utils.command
 import utils.discord
 import utils.misc
 import wrappers.api.wynncraft.v3.guild
@@ -22,13 +21,7 @@ from niatypes.enums import PlayerIdentifier
 from utils import tableBuilder, banner
 from wrappers import botConfig
 
-_guild_re = re.compile(r'[A-Za-z ]{3,30}')
-
 _star = "★"
-
-
-def _format_guilds(guilds: Iterable[WynncraftGuild]) -> str:
-    return '\n'.join([f"- {g.name} [{g.tag}]" for g in guilds])
 
 
 def _get_curr_sr(guild_stats: wrappers.api.wynncraft.v3.types.GuildStats) -> int:
@@ -126,28 +119,14 @@ class GuildCommand(hybridCommand.HybridCommand):
             elif isinstance(event, SlashCommandEvent):
                 guild_str = event.args["guild"]
 
-            if not _guild_re.fullmatch(guild_str):
-                await event.reply_error(f"Invalid guild name or tag ``{guild_str}``")
+            try:
+                guild = await utils.command.parse_guild(guild_str)
+            except utils.command.AmbiguousGuildError as e:
+                await event.reply_info(str(e))
                 return
-
-            possible_guilds: tuple[WynncraftGuild] = await wrappers.api.wynncraft.v3.guild.find(guild_str)
-            if not possible_guilds:
-                await event.reply_error(f"Couldn't find guild ``{guild_str}``")
+            except (ValueError, utils.command.UnknownGuildError) as e:
+                await event.reply_error(str(e))
                 return
-            if len(possible_guilds) == 1:
-                guild = possible_guilds[0]
-            else:
-                exact_matches = [g for g in possible_guilds if g.tag == guild_str or g.name == guild_str]
-                if not exact_matches:
-                    await event.reply_info(
-                        f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(possible_guilds)}")
-                    return
-                elif len(exact_matches) == 1:
-                    guild = exact_matches[0]
-                else:
-                    await event.reply_info(
-                        f"Found multiple matches for ``{guild_str}``:\n{_format_guilds(exact_matches)}")
-                    return
 
             embed, banner_img = await _create_guild_embed(guild)
             if embed is None:

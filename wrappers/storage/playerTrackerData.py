@@ -2,11 +2,11 @@ from datetime import datetime
 
 from async_lru import alru_cache
 
+import wrappers.api.wynncraft.v3.guild
 from niatypes.dataTypes import WynncraftGuild
 from niatypes.enums import PlayerStatsIdentifier
 from wrappers.api.wynncraft.v3.types import PlayerStats
 from wrappers.storage import manager
-import wrappers.api.wynncraft.v3.guild
 
 
 @alru_cache(ttl=600)
@@ -28,8 +28,10 @@ async def get_stats(uuid: str, stat: PlayerStatsIdentifier, after: datetime = No
 
     return tuple(row['stat'] for row in await res.fetchall())
 
+
 @alru_cache(ttl=600)
-async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = None, after: datetime = None, before: datetime = None) -> dict[str, tuple]:
+async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = None, after: datetime = None,
+                          before: datetime = None) -> dict[str, tuple]:
     if after is None:
         after = datetime.min
     if before is None:
@@ -38,7 +40,8 @@ async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = N
     uuids = None
     if guild is not None:
         try:
-            guild_stats: wrappers.api.wynncraft.v3.types.GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=guild.name)
+            guild_stats: wrappers.api.wynncraft.v3.types.GuildStats = await wrappers.api.wynncraft.v3.guild.stats(
+                name=guild.name)
             uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
         except wrappers.api.wynncraft.v3.guild.UnknownGuildException:
             raise ValueError(f"Guild {guild.name} not found.")
@@ -61,6 +64,95 @@ async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = N
             """, params)
 
     return {row['uuid']: row['stat'] for row in await res.fetchall()}
+
+
+@alru_cache(ttl=600)
+async def get_warcount(guild: WynncraftGuild = None) -> list[
+    tuple[int, str, int]]:
+    """
+    Get the warcount leaderboard.
+    :param guild: The guild to get the warcount leaderboard for. If None, the global leaderboard is returned.
+    :return: A list of tuples containing the rank, uuid and warcount of the players.
+    """
+    uuids = None
+    if guild is not None:
+        try:
+            guild_stats = await wrappers.api.wynncraft.v3.guild.stats(name=guild.name)
+            uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
+        except wrappers.api.wynncraft.v3.guild.UnknownGuildException:
+            raise ValueError(f"Guild {guild.name} not found.")
+
+    params = (uuids if uuids is not None else ())
+
+    cur = await manager.get_cursor()
+    res = await cur.execute(f"""
+                SELECT row_number() over () as rank, uuid, wars
+                FROM (
+                    SELECT uuid, max(wars) as wars
+                    FROM player_tracking
+                    INDEXED BY wars_idx
+                    WHERE wars > 0
+                    {f"AND uuid IN ({', '.join('?' for _ in uuids)})" if uuids is not None else ""}
+                    GROUP BY uuid
+                    ORDER BY wars DESC
+                )
+            """, params)
+
+    return [(row['rank'], row['uuid'], row['wars']) for row in await res.fetchall()]
+
+
+@alru_cache(ttl=600)
+async def get_warcount_relative(t_from: datetime, t_to: datetime, guild: WynncraftGuild = None) -> list[
+    tuple[int, str, int]]:
+    """
+    Get the realtive warcount leaderboard between two dates.
+    :param t_from: The start of the time range to get the leaderboard for.
+    :param t_to: The end of the time range to get the leaderboard for.
+    :param guild: The guild to get the warcount leaderboard for. If None, the global leaderboard is returned.
+    :return: A list of tuples containing the rank, uuid and warcount of the players.
+    """
+    uuids = None
+    if guild is not None:
+        try:
+            guild_stats = await wrappers.api.wynncraft.v3.guild.stats(name=guild.name)
+            uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
+        except wrappers.api.wynncraft.v3.guild.UnknownGuildException:
+            raise ValueError(f"Guild {guild.name} not found.")
+
+    params = (t_from, t_to) + (uuids if uuids is not None else ())
+    params = params + params
+
+    cur = await manager.get_cursor()
+    res = await cur.execute(f"""
+                SELECT row_number() over () as rank, uuid, wars FROM (
+                    SELECT a.uuid as uuid, wars_max - wars_min as wars
+                    FROM (
+                        SELECT uuid, max(wars) as wars_max
+                        FROM player_tracking
+                        INDEXED BY wars_idx
+                        WHERE wars > 0
+                        AND record_time >= ?
+                        AND record_time <= ?
+                        {f"AND uuid IN ({', '.join('?' for _ in uuids)})" if uuids is not None else ""}
+                        GROUP BY uuid
+                    ) as a
+                    JOIN (
+                        SELECT uuid, min(wars) as wars_min
+                        FROM player_tracking
+                        INDEXED BY wars_idx
+                        WHERE wars > 0
+                        AND record_time >= ?
+                        AND record_time <= ?
+                        {f"AND uuid IN ({', '.join('?' for _ in uuids)})" if uuids is not None else ""}
+                        GROUP BY uuid
+                    ) as b
+                    ON a.uuid = b.uuid AND a.wars_max > b.wars_min
+                    ORDER BY wars DESC
+                    LIMIT 1000
+                )
+            """, params)
+
+    return [(row['rank'], row['uuid'], row['wars']) for row in await res.fetchall()]
 
 
 async def add_record(stats: PlayerStats, record_time: datetime = None):
