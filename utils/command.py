@@ -1,8 +1,13 @@
 import re
+from datetime import datetime, timedelta
 from typing import Iterable
 
+import discord.utils
+
 import wrappers.api.wynncraft.v3.guild
+from niatypes.constants import time_units_map, seasons
 from niatypes.dataTypes import WynncraftGuild
+from utils.misc import pluralize
 
 guild_re = re.compile(r'[A-Za-z ]{3,30}')
 
@@ -51,3 +56,61 @@ async def parse_guild(guild_str: str) -> WynncraftGuild:
             return exact_matches[0]
         else:
             raise AmbiguousGuildError(guild_str, exact_matches)
+
+
+_rel_time_pattern = re.compile(r"^(\d+)(.*)")
+_season_pattern = re.compile(r"^s(\d+)")
+
+
+class Timeframe:
+    """
+    Represents a timeframe (start and end date and a string representation).
+    """
+
+    def __init__(self, start: datetime, end: datetime, str_repr: str = None):
+        self.start = start
+        self.end = end
+        if str_repr is None:
+            self.str_repr = discord.utils.format_dt(start, "f") + " - " + discord.utils.format_dt(end, "f")
+        else:
+            self.str_repr = str_repr
+
+    @classmethod
+    def from_timeframe_str(cls, timeframe: str):
+        """
+        Create a Timeframe object from a string representation.
+        Valid formats:
+        - ``<number><unit>`` (e.g. ``5days``) for relative time since now
+        - ``s<number>`` (e.g. ``s1``) for a specific season number
+        """
+        match = _rel_time_pattern.fullmatch(timeframe)
+        if match is not None:
+            num = int(match.group(0))
+            unit = match.group(1)
+            if unit not in time_units_map:
+                raise ValueError(f"Invalid time unit: ``{unit}``")
+            unit = time_units_map[unit]
+            if unit == "months":
+                unit = "days"
+                num *= 31
+            elif unit == "years":
+                unit = "days"
+                num *= 365
+
+            return cls(
+                datetime.utcnow() - timedelta(**{unit: num}),
+                datetime.utcnow(),
+                f"last {num} {pluralize(num, unit[:-1])}"
+            )
+
+        match = _season_pattern.fullmatch(timeframe)
+        if match is not None:
+            season = int(match.group(1))
+            if season >= len(seasons):
+                raise ValueError(f"Invalid season number: ``{match.group(1)}``")
+            return cls(seasons[season][0], seasons[season][1], f"season {season}")
+
+        raise ValueError(f"Invalid timeframe format: ``{timeframe}``")
+
+    def __str__(self):
+        return self.str_repr

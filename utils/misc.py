@@ -157,3 +157,11 @@ def ansi_format(*formatting: AnsiFormat):
     Get the ANSI escape sequence for the specified formatting.
     """
     return f"\u001b[{';'.join((str(f.value) for f in formatting))}m"
+
+def pluralize(num, s) -> str:
+    """
+    Pluralize a string if num is not 1.
+    """
+    if num == 1:
+        return s
+    return s + "s"
