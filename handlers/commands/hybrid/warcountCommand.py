@@ -1,4 +1,3 @@
-import re
 import time
 from datetime import datetime
 
@@ -26,7 +25,7 @@ from wrappers import botConfig
 
 
 async def _create_warcount_embed(warcounts, query_time, timeframe: utils.command.Timeframe = None,
-                           guild: WynncraftGuild = None):
+                                 guild: WynncraftGuild = None):
     guild_str = f'## Guild: {guild.name}\n' if guild else ''
     timeframe_str = ' (all time)' if timeframe is None else f' ({timeframe.comment})' if timeframe.comment else f'\n## {timeframe}'
     embed = Embed(
@@ -157,27 +156,6 @@ class WarcountCommand(hybridCommand.HybridCommand):
             if isinstance(event, PrefixedCommandEvent):
                 # await event.reply_error("This command is not yet implemented in prefixed mode.")
                 return
-                if len(event.args) < 2:
-                    await event.reply(embed=await _create_warcount_embed())
-                    return
-
-                if len(event.args) == 2:
-                    arg = event.args[1]
-                    try:
-                        guild_arg = await utils.command.parse_guild(arg)
-
-                        await event.reply(embed=await _create_warcount_embed(guild_arg))
-                        return
-                    except utils.command.AmbiguousGuildError as e:
-                        await event.reply_info(str(e))
-                        return
-                    except utils.command.UnknownGuildError as e:
-                        await event.reply_error(str(e))
-                        return
-                    except ValueError:
-                        pass
-
-                    # TODO parse timeframes and stuff
 
             elif isinstance(event, SlashCommandEvent):
                 start = event.args.get("start")
