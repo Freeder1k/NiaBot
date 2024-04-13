@@ -47,7 +47,7 @@ def _parse_date(date_str: str) -> datetime:
     return datetime.strptime(date_str, "%B %d, %Y")
 
 
-seasons = [(_parse_date(d1), _parse_date(d1)) for d1, d2 in [
+seasons = [(_parse_date(d1), _parse_date(d2)) for d1, d2 in [
     # https://wynncraft.wiki.gg/wiki/Guild_Seasons
     ("July 5th, 2021", "July 7th, 2021"),  # 0
     ("July 9th, 2021", "September 20th, 2021"),  # 1

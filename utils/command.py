@@ -85,8 +85,8 @@ class Timeframe:
         """
         match = _rel_time_pattern.fullmatch(timeframe)
         if match is not None:
-            num = int(match.group(0))
-            unit = match.group(1)
+            num = int(match.group(1))
+            unit = match.group(2)
             if unit not in time_units_map:
                 raise ValueError(f"Invalid time unit: ``{unit}``")
             unit = time_units_map[unit]
