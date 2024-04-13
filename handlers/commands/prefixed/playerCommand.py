@@ -89,7 +89,7 @@ async def _create_player_embed(p: MinecraftPlayer) -> Embed | None:
             if char.nickname is None:
                 char_name = char.type.capitalize()
             else:
-                char_name = f"{escape_markdown(char.nickname)} ({char.type.capitalize()})"
+                char_name = f"{char.nickname} ({char.type.capitalize()})"
             embed.add_field(
                 name="",
                 value=f"**[{char_name}](https://wynncraft.com/stats/player/{stats.uuid}?class={char_id})**\n" \
