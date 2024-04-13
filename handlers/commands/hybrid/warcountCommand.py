@@ -24,23 +24,19 @@ from niatypes.dataTypes import WynncraftGuild
 from utils import tableBuilder
 from wrappers import botConfig
 
-_guild_re = re.compile(r'[A-Za-z ]{3,30}')
 
-
-@alru_cache(ttl=60)
-async def _create_warcount_embed(guild: WynncraftGuild = None):
+async def _create_warcount_embed(warcounts, query_time, timeframe: utils.command.Timeframe = None,
+                           guild: WynncraftGuild = None):
     guild_str = f'## Guild: {guild.name}\n' if guild else ''
+    timeframe_str = ' (all time)' if timeframe is None else f' ({timeframe.comment})' if timeframe.comment else f'\n## {timeframe}'
     embed = Embed(
-        description=f"# Top 100 warrers (all time)\n{guild_str}"
+        description=f"# Top 100 warrers{timeframe_str}\n{guild_str}"
                     f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
         color=botConfig.DEFAULT_COLOR,
         timestamp=discord.utils.utcnow()
     )
 
-    t = time.time()
-    warcounts = (await wrappers.storage.playerTrackerData.get_warcount(guild=guild))[:100]
-    t = time.time() - t
-    embed.set_footer(text=f"Query took {t:.2f}s")
+    embed.set_footer(text=f"Query took {query_time:.2f}s")
 
     names = {p.uuid: p.name for p in await wrappers.minecraftPlayer.get_players(uuids=[t[1] for t in warcounts])}
 
@@ -57,35 +53,24 @@ async def _create_warcount_embed(guild: WynncraftGuild = None):
 
 
 @alru_cache(ttl=60)
-async def _create_rel_warcount_embed(timeframe: utils.command.Timeframe, guild: WynncraftGuild = None):
-    guild_str = f'## Guild: {guild.name}\n' if guild else ''
-    embed = Embed(
-        description=f"# Top 100 warrers \n## ({timeframe})\n{guild_str}"
-                    f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
-        color=botConfig.DEFAULT_COLOR,
-        timestamp=discord.utils.utcnow()
-    )
+async def _create_normal_warcount_embed(guild: WynncraftGuild = None):
+    t = time.time()
+    warcounts = (await wrappers.storage.playerTrackerData.get_warcount(guild=guild))[:100]
+    t = time.time() - t
 
+    return await _create_warcount_embed(warcounts, t, guild=guild)
+
+
+@alru_cache(ttl=60)
+async def _create_rel_warcount_embed(timeframe: utils.command.Timeframe, guild: WynncraftGuild = None):
     t = time.time()
     warcounts = (await wrappers.storage.playerTrackerData.get_warcount_relative(
         t_from=timeframe.start,
         t_to=timeframe.end,
         guild=guild))[:100]
     t = time.time() - t
-    embed.set_footer(text=f"Query took {t:.2f}s")
 
-    names = {p.uuid: p.name for p in await wrappers.minecraftPlayer.get_players(uuids=[t[1] for t in warcounts])}
-
-    table_builder = tableBuilder.TableBuilder.from_str('l  l  r')
-    table_builder.add_row("Rank", "Name", "Wars")
-    table_builder.add_seperator_row()
-    [table_builder.add_row(rank, names[uuid], wars) for rank, uuid, wars in warcounts]
-
-    splits = utils.misc.split_str(table_builder.build(), 1000, "\n")
-    for split in splits:
-        embed.add_field(name="", value=f">>> ```\n{split}```", inline=False)
-
-    return embed
+    return await _create_warcount_embed(warcounts, t, timeframe, guild)
 
 
 async def _guild_autocomplete(
@@ -170,7 +155,7 @@ class WarcountCommand(hybridCommand.HybridCommand):
     async def _execute(self, event: PrefixedCommandEvent):
         async with event.waiting():
             if isinstance(event, PrefixedCommandEvent):
-                await event.reply_error("This command is not yet implemented in prefixed mode.")
+                # await event.reply_error("This command is not yet implemented in prefixed mode.")
                 return
                 if len(event.args) < 2:
                     await event.reply(embed=await _create_warcount_embed())
@@ -232,5 +217,5 @@ class WarcountCommand(hybridCommand.HybridCommand):
                     embed = await _create_rel_warcount_embed(timeframe=timeframe, guild=guild)
                     await event.reply(embed=embed)
                 else:
-                    embed = await _create_warcount_embed(guild=guild)
+                    embed = await _create_normal_warcount_embed(guild=guild)
                     await event.reply(embed=embed)

@@ -67,13 +67,10 @@ class Timeframe:
     Represents a timeframe (start and end date and a string representation).
     """
 
-    def __init__(self, start: datetime, end: datetime, str_repr: str = None):
+    def __init__(self, start: datetime, end: datetime, comment: str = None):
         self.start = start
         self.end = end
-        if str_repr is None:
-            self.str_repr = discord.utils.format_dt(start, "f") + " - " + discord.utils.format_dt(end, "f")
-        else:
-            self.str_repr = str_repr
+        self.comment = comment
 
     @classmethod
     def from_timeframe_str(cls, timeframe: str):
@@ -113,4 +110,4 @@ class Timeframe:
         raise ValueError(f"Invalid timeframe format: ``{timeframe}``")
 
     def __str__(self):
-        return self.str_repr
+        return discord.utils.format_dt(self.start, "d") + " - " + discord.utils.format_dt(self.end, "d")
