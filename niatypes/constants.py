@@ -41,7 +41,9 @@ time_units_map = {
 
 
 def _parse_date(date_str: str) -> datetime:
-    date_str.replace("st", "").replace("nd", "").replace("rd", "").replace("th", "")
+    date_str = date_str.replace("August", "$Aug")
+    date_str = date_str.replace("st", "").replace("nd", "").replace("rd", "").replace("th", "")
+    date_str = date_str.replace("$Aug", "August")
     return datetime.strptime(date_str, "%B %d, %Y")
 
 
