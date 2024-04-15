@@ -1,4 +1,3 @@
-import asyncio
 import time
 
 from handlers import reservableRateLimit
@@ -22,9 +21,7 @@ async def get(url: str, **params: str) -> JsonType:
     """
     with _rate_limit:
         session = sessionManager.get_session(_v3_session_id)
-        async with session.get(f"/v3{url}", params=params) as resp:
-            resp.raise_for_status()
-
+        async with session.get(f"/v3{url}", params=params, raise_for_status=True) as resp:
             global _rl_reset, _last_req_time
             _last_req_time = time.time()
             _rl_reset = resp.headers.get("ratelimit-reset")
