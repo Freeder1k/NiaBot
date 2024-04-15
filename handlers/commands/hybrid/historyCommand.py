@@ -116,4 +116,7 @@ class HistoryCommand(hybridCommand.HybridCommand):
                 return
 
             embed, chart = await _create_history_embed(stat, player)
-            await event.reply(embed=embed, file=chart)
+            if chart is None:
+                await event.reply(embed=embed)
+            else:
+                await event.reply(embed=embed, file=chart)
