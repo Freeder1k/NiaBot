@@ -163,10 +163,7 @@ async def player_autocomplete(
 ) -> list[Choice[str]]:
     if len(current) < 3:
         return []
-    t = time.time()
-    choices = [
+    return [
                Choice(name=p.name, value=p.name)
                for p in await wrappers.storage.usernameData.find_players(current)
            ][0:25]
-    print(time.time() - t)
-    return choices
