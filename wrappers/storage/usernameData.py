@@ -57,7 +57,7 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
 
 async def find_players(s: str) -> list[MinecraftPlayer]:
     """
-    Find all players that have a name containing the specified string.
+    Find all players that have a name starting with the specified string.
 
     :return: A list of all players that were found.
     """
@@ -65,7 +65,7 @@ async def find_players(s: str) -> list[MinecraftPlayer]:
     res = await cur.execute(f"""
                 SELECT * FROM minecraft_usernames
                 WHERE name LIKE ?
-                """, (f"%{s.lower()}%",))
+                """, (f"{s.lower()}%",))
 
     data = await res.fetchall()
 

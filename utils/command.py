@@ -1,4 +1,5 @@
 import re
+import time
 from datetime import datetime, timedelta
 from typing import Iterable
 
@@ -160,9 +161,12 @@ async def player_autocomplete(
         interaction: discord.Interaction,
         current: str,
 ) -> list[Choice[str]]:
-    if len(current) == 0:
+    if len(current) < 3:
         return []
-    return [
+    t = time.time()
+    choices = [
                Choice(name=p.name, value=p.name)
                for p in await wrappers.storage.usernameData.find_players(current)
            ][0:25]
+    print(time.time() - t)
+    return choices
