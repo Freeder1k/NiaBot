@@ -55,6 +55,23 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
     return MinecraftPlayer(data[0]["uuid"], data[0]["name"])
 
 
+async def find_players(s: str) -> list[MinecraftPlayer]:
+    """
+    Find all players that have a name containing the specified string.
+
+    :return: A list of all players that were found.
+    """
+    cur = await manager.get_cursor()
+    res = await cur.execute(f"""
+                SELECT * FROM minecraft_usernames
+                WHERE name LIKE ?
+                """, (f"%{s.lower()}%",))
+
+    data = await res.fetchall()
+
+    return [MinecraftPlayer(row["uuid"], row["name"]) for row in data]
+
+
 async def update(uuid: str, username: str) -> MinecraftPlayer | None:
     """
     Update a player in the database. If any entries exist with the same uuid or (case-insensitive) username these get replaced.

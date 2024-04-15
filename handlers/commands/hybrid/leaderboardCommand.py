@@ -3,7 +3,6 @@ import time
 import discord
 from async_lru import alru_cache
 from discord import Permissions, Embed
-from discord.app_commands.models import Choice
 
 import utils.discord
 import utils.misc
@@ -17,6 +16,7 @@ from handlers.commands import command, hybridCommand
 from handlers.commands.commandEvent import PrefixedCommandEvent, SlashCommandEvent
 from niatypes.enums import PlayerStatsIdentifier
 from utils import tableBuilder
+from utils.command import stats_autocomplete
 from wrappers import botConfig
 
 
@@ -45,20 +45,6 @@ async def _create_leaderboard_embed(stat: PlayerStatsIdentifier):
     return embed
 
 
-async def _stats_autocomplete(
-        interaction: discord.Interaction,
-        current: str,
-) -> list[Choice[str]]:
-    if len(current) == 0:
-        return [Choice(name=stat, value=stat) for stat in PlayerStatsIdentifier if not stat.startswith("dungeon")] \
-            + [Choice(name='dungeons_', value='dungeons_')]
-
-    return [
-               Choice(name=stat, value=stat)
-               for stat in PlayerStatsIdentifier if current.lower() in stat.lower()
-           ][0:25]
-
-
 class LeaderboardCommand(hybridCommand.HybridCommand):
     def __init__(self):
         super().__init__(
@@ -68,7 +54,7 @@ class LeaderboardCommand(hybridCommand.HybridCommand):
                 "stat", "The stat to track.",
                 required=True,
                 ptype=discord.AppCommandOptionType.string,
-                autocomplete=_stats_autocomplete,
+                autocomplete=stats_autocomplete,
             )],  # TODO time period & guild
             description="Get the leaderboard for a specified stat.",
             base_perms=Permissions().none(),

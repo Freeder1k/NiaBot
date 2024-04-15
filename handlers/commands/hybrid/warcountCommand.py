@@ -77,7 +77,7 @@ async def _guild_autocomplete(
         current: str,
 ) -> list[Choice[str]]:
     if len(current) > 1:
-        if not utils.command.guild_re.fullmatch(current):
+        if not utils.command.GUILD_RE.fullmatch(current):
             return []
         guilds = await wrappers.api.wynncraft.v3.guild.list_guilds()
         return [Choice(name=guild.name, value=guild.name) for guild in guilds

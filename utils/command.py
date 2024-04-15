@@ -2,14 +2,20 @@ import re
 from datetime import datetime, timedelta
 from typing import Iterable
 
+import discord
 import discord.utils
+from discord.app_commands import Choice
 
 import wrappers.api.wynncraft.v3.guild
+import wrappers.minecraftPlayer
+import wrappers.storage
+import wrappers.storage.usernameData
 from niatypes.constants import time_units_map, seasons
-from niatypes.dataTypes import WynncraftGuild
+from niatypes.dataTypes import WynncraftGuild, MinecraftPlayer
+from niatypes.enums import PlayerStatsIdentifier
 from utils.misc import pluralize
 
-guild_re = re.compile(r'[A-Za-z ]{3,30}')
+GUILD_RE = re.compile(r'[A-Za-z ]{3,30}')
 
 
 class AmbiguousGuildError(ValueError):
@@ -39,7 +45,7 @@ async def parse_guild(guild_str: str) -> WynncraftGuild:
     :raises ValueError: If the guild string is invalid or the specified guild doesn't exist.
     :raises AmbiguousGuildError: If the guild string is ambiguous.
     """
-    if not guild_re.fullmatch(guild_str):
+    if not GUILD_RE.fullmatch(guild_str):
         raise ValueError(f"Invalid guild name or tag ``{guild_str}``")
 
     possible_guilds: tuple[WynncraftGuild] = await wrappers.api.wynncraft.v3.guild.find(guild_str)
@@ -58,8 +64,31 @@ async def parse_guild(guild_str: str) -> WynncraftGuild:
             raise AmbiguousGuildError(guild_str, exact_matches)
 
 
-_rel_time_pattern = re.compile(r"^(\d+)(.*)")
-_season_pattern = re.compile(r"^s(\d+)")
+USERNAME_RE = re.compile(r'[0-9A-Za-z_]{1,16}')
+UUID_RE = re.compile(r'[a-fA-F0-9]{8}-?([a-fA-F0-9]{4}-?){3}[a-fA-F0-9]{12}')
+
+
+async def parse_player(player_str: str) -> MinecraftPlayer:
+    """
+    Parse a player string into a MinecraftPlayer object.
+    :param player_str: The player string to parse.
+    :return: The MinecraftPlayer object.
+    :raises ValueError: If the player string is invalid or the specified player doesn't exist.
+    """
+    if USERNAME_RE.fullmatch(player_str):
+        p = await wrappers.minecraftPlayer.get_player(username=player_str)
+    elif UUID_RE.fullmatch(player_str):
+        p = await wrappers.storage.usernameData.get_player(uuid=player_str)
+    else:
+        raise ValueError(f"Player must be a valid uuid or username: ``{player_str}``")
+
+    if p is None:
+        raise ValueError(f"Couldn't find player ``{player_str}``.")
+    return p
+
+
+_REL_TIME_RE = re.compile(r"^(\d+)(.*)")
+_SEASON_RE = re.compile(r"^s(\d+)")
 
 
 class Timeframe:
@@ -80,7 +109,7 @@ class Timeframe:
         - ``<number><unit>`` (e.g. ``5days``) for relative time since now
         - ``s<number>`` (e.g. ``s1``) for a specific season number
         """
-        match = _rel_time_pattern.fullmatch(timeframe)
+        match = _REL_TIME_RE.fullmatch(timeframe)
         if match is not None:
             num = int(match.group(1))
             unit = match.group(2)
@@ -100,7 +129,7 @@ class Timeframe:
                 f"last {num} {pluralize(num, unit[:-1])}"
             )
 
-        match = _season_pattern.fullmatch(timeframe)
+        match = _SEASON_RE.fullmatch(timeframe)
         if match is not None:
             season = int(match.group(1))
             if season >= len(seasons):
@@ -111,3 +140,29 @@ class Timeframe:
 
     def __str__(self):
         return discord.utils.format_dt(self.start, "d") + " - " + discord.utils.format_dt(self.end, "d")
+
+
+async def stats_autocomplete(
+        interaction: discord.Interaction,
+        current: str,
+) -> list[Choice[str]]:
+    if len(current) == 0:
+        return [Choice(name=stat, value=stat) for stat in PlayerStatsIdentifier if not stat.startswith("dungeon")] \
+            + [Choice(name='dungeons_', value='dungeons_')]
+
+    return [
+               Choice(name=stat, value=stat)
+               for stat in PlayerStatsIdentifier if current.lower() in stat.lower()
+           ][0:25]
+
+
+async def player_autocomplete(
+        interaction: discord.Interaction,
+        current: str,
+) -> list[Choice[str]]:
+    if len(current) == 0:
+        return []
+    return [
+               Choice(name=p.name, value=p.name)
+               for p in await wrappers.storage.usernameData.find_players(current)
+           ][0:25]

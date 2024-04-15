@@ -155,6 +155,26 @@ async def get_warcount_relative(t_from: datetime, t_to: datetime, guild: Wynncra
     return [(row['rank'], row['uuid'], row['wars']) for row in await res.fetchall()]
 
 
+@alru_cache(ttl=600)
+async def get_history(stat: PlayerStatsIdentifier, uuid: str) -> list[tuple[str, any]]:
+    """
+    Get the history of a specific stat for a player.
+    :param stat: The stat to get the history of.
+    :param uuid: The uuid of the player to get the history for.
+    :return: A list of tuples containing the record time and the stat.
+    """
+    uuid = uuid.replace("-", "").lower()
+
+    cur = await manager.get_cursor()
+    res = await cur.execute(f"""
+                SELECT record_time, {stat} as stat FROM player_tracking
+                WHERE uuid = ?
+                ORDER BY record_time
+            """, (uuid,))
+
+    return [(row['record_time'], row['stat']) for row in await res.fetchall()]
+
+
 async def add_record(stats: PlayerStats, record_time: datetime = None):
     if record_time is None:
         record_time = datetime.utcnow()
