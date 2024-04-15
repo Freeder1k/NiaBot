@@ -33,8 +33,10 @@ async def _record_stats(uuid: str, retried: bool = False):
         await wrappers.storage.playerTrackerData.add_record(stats)
     except wrappers.api.wynncraft.v3.player.UnknownPlayerException:
         handlers.logging.debug(f"Couldn't get stats of player with uuid {uuid}: Unknown player.")
-    except aiohttp.client_exceptions.ClientError as e:
-        if not retried:
+    except aiohttp.client_exceptions.ClientResponseError as e:
+        if e.status == 500:
+            handlers.logging.warning(f"Error 500 for player with uuid: {uuid}")
+        elif not retried:
             await asyncio.sleep(1)
             await _record_stats(uuid, True)
         else:
