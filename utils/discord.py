@@ -1,8 +1,11 @@
 import asyncio
+import io
 import re
 import typing
 
+import discord
 from discord import TextChannel, Embed, Guild, Member, Permissions
+from matplotlib import pyplot as plt
 
 import wrappers.minecraftPlayer
 from utils.misc import split_str
@@ -186,3 +189,25 @@ async def add_guild_member_tables(
         for split in splits:
             base_embed.add_field(name=ranks[i] if first else "", value=f">>> ```\n{split}```", inline=False)
             first = False
+
+
+def create_chart(x, y, xlabel, ylabel):
+    # Initialize IO
+    data_stream = io.BytesIO()
+
+    plt.plot(x, y)
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.grid(True)
+
+    # Save content into the data stream
+    plt.savefig(data_stream, format='png', bbox_inches="tight", dpi=80)
+    plt.close()
+
+    ## Create file
+    # Reset point back to beginning of stream
+    data_stream.seek(0)
+    chart = discord.File(data_stream, filename="chart.png")
+
+    return chart
