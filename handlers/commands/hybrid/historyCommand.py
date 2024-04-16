@@ -89,14 +89,14 @@ async def _generate_relative_history_graph(history: list[tuple[str, int, str]], 
     prev_val = history[0][1]
     prev_d = TimeframeDate.fromisoformat(history[0][0], timeframe)
     for rec_t, stat, _ in history:
-        d = TimeframeDate.fromisoformat(rec_t, timeframe)
-        while i < len(dates) and not dates[i] == d:
+        while i < len(dates) and not dates[i] == TimeframeDate.fromisoformat(rec_t, timeframe):
             i += 1
         if i >= len(dates):
             break
 
         # skip issue with playtimes around that time
-        if not (playtime and d >= date(2023, 12, 5) >= prev_d):
+        d = datetime.fromisoformat(rec_t)
+        if not (playtime and d.date() >= date(2023, 12, 5) >= prev_d.date()):
             values[i] += stat - prev_val
 
         prev_val = stat
