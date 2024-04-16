@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, date
 
 import discord
 from async_lru import alru_cache
@@ -38,33 +40,67 @@ async def _generate_history_graph(history: list[tuple[str, int, str]]):
     return create_chart(dates, values, "Date", "Value")  # TODO y label units
 
 
-def _is_same_timeframe(timeframe: str, t1: datetime, t2: datetime):
-    if timeframe == "day":
-        return t1.date() == t2.date()
-    elif timeframe == "week":
-        t1 = t1.isocalendar()
-        t2 = t2.isocalendar()
-        return t1[0] == t2[0] and t1[1] == t2[1]
-    elif timeframe == "month":
-        return t1.month == t2.month and t1.year == t2.year
-    else:
-        return False
-
-
-async def _generate_relative_history_graph(history: list[tuple[str, int, str]], relative: str):
-    dates = []
-    values = []
-    prev_val = history[0][1]
-    prev_date = None
-    for rec_t, stat, _ in history:
-        if prev_date is None or not _is_same_timeframe(relative, prev_date, datetime.fromisoformat(rec_t)):
-            prev_date = datetime.fromisoformat(rec_t)
-            dates.append(prev_date)
-            values.append(stat - prev_val)
+class TimeframeDate(date):
+    def __new__(cls, timeframe: str, d: date):
+        if timeframe == "day":
+            return super().__new__(cls, d.year, d.month, d.day)
+        elif timeframe == "week":
+            d = d - timedelta(days=d.weekday())
+            return super().__new__(cls, d.year, d.month, d.day)
+        elif timeframe == "month":
+            return super().__new__(cls, d.year, d.month, 1)
         else:
-            values[-1] += stat - prev_val
+            raise ValueError("Invalid timeframe")
+
+    def __init__(self, timeframe: str, d: date):
+        self.timeframe = timeframe
+        super().__init__()
+
+    def next(self) -> TimeframeDate:
+        if self.timeframe == "day":
+            return TimeframeDate(self.timeframe, date(self.year, self.month, self.day) + timedelta(days=1))
+        elif self.timeframe == "week":
+            return TimeframeDate(self.timeframe, date(self.year, self.month, self.day) + timedelta(weeks=1))
+        elif self.timeframe == "month":
+            return TimeframeDate(self.timeframe, date(self.year + self.month // 12, self.month % 12 + 1, 1))
+
+    @classmethod
+    def fromisoformat(cls, date_string: str, timeframe: str = "day") -> TimeframeDate:
+        return cls(timeframe, datetime.fromisoformat(date_string).date())
+
+
+def _get_all_timeframe_dates_between(timeframe: str, start: date, end: date):
+    dates = []
+    start = TimeframeDate(timeframe, start)
+    end = TimeframeDate(timeframe, end)
+    while start <= end:
+        dates.append(start)
+        start = start.next()
+    return dates
+
+async def _generate_relative_history_graph(history: list[tuple[str, int, str]], timeframe: str, playtime: bool):
+    dates = _get_all_timeframe_dates_between(
+        timeframe,
+        datetime.fromisoformat(history[0][0]),
+        datetime.fromisoformat(history[-1][0])
+    )
+    values = [0 for _ in dates]
+    i = 0
+    prev_val = history[0][1]
+    prev_d = TimeframeDate.fromisoformat(history[0][0], timeframe)
+    for rec_t, stat, _ in history:
+        d = TimeframeDate.fromisoformat(rec_t, timeframe)
+        while i < len(dates) and not dates[i] == d:
+            i += 1
+        if i >= len(dates):
+            break
+
+        # skip issue with playtimes around that time
+        if not (playtime and d >= date(2023, 12, 5) >= prev_d):
+            values[i] += stat - prev_val
 
         prev_val = stat
+        prev_d = d
 
     return create_chart(dates, values, "Date", "Value")
 
@@ -84,7 +120,11 @@ async def _create_history_embed(stat: PlayerStatsIdentifier, player: wrappers.mi
 
     if isinstance(history[0][1], int):
         if relative is not None:
-            chart = await _generate_relative_history_graph(history, relative)
+            chart = await _generate_relative_history_graph(
+                history,
+                relative,
+                playtime=(stat == PlayerStatsIdentifier.PLAYTIME)
+            )
         else:
             chart = await _generate_history_graph(history)
         embed.set_image(
