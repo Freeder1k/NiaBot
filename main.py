@@ -23,7 +23,7 @@ import wrappers.storage.playtimeData
 import wrappers.storage.playtimeData
 import wrappers.storage.usernameData
 from handlers import serverConfig
-from handlers.commands.hybrid import guildCommand, leaderboardCommand, warcountCommand, historyCommand
+from handlers.commands.hybrid import guildCommand, leaderboardCommand, warcountCommand, historyCommand, applyCommand
 from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, \
     configCommand, strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, shutdownCommand, \
     logCommand, playtimeCommand
@@ -62,7 +62,8 @@ hybrid_commands = [
     guildCommand.GuildCommand(),
     leaderboardCommand.LeaderboardCommand(),
     warcountCommand.WarcountCommand(),
-    historyCommand.HistoryCommand()
+    historyCommand.HistoryCommand(),
+    applyCommand.ApplyCommand()
 ]
 
 
