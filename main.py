@@ -12,6 +12,7 @@ import handlers.nerfuria.logging
 import handlers.rateLimit
 import handlers.rateLimit
 import workers.guildUpdater
+import workers.playtimeTracker
 import workers.presenceUpdater
 import workers.statTracker
 import workers.usernameUpdater
@@ -88,7 +89,7 @@ async def on_ready():
 
             today = datetime.now(timezone.utc).date()
             if (await wrappers.storage.playtimeData.get_first_date_after(today)) is None:
-                await wrappers.storage.playtimeData.update_playtimes()
+                await workers.playtimeTracker.update_playtimes()
 
             initialized = True
 
@@ -111,7 +112,7 @@ async def on_message(message: discord.Message):
 
 
 def start_workers():
-    wrappers.storage.playtimeData.update_playtimes.start()
+    workers.playtimeTracker.update_playtimes.start()
     workers.presenceUpdater.update_presence.start(client=client)
     workers.guildUpdater.update_guild.start()
     workers.usernameUpdater.start()
@@ -123,7 +124,7 @@ def stop_workers():
     workers.usernameUpdater.stop()
     workers.guildUpdater.update_guild.stop()
     workers.presenceUpdater.update_presence.stop()
-    wrappers.storage.playtimeData.update_playtimes.stop()
+    workers.playtimeTracker.update_playtimes.stop()
 
 
 def main():
