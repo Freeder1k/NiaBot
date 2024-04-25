@@ -47,7 +47,7 @@ async def init_database():
                         support_rank TEXT,
                         first_join DATE,
                         last_join DATE,
-                        playtime INTEGER,
+                        playtime REAL,
                         guild_uuid TEXT,
                         guild_name TEXT,
                         guild_rank TEXT,

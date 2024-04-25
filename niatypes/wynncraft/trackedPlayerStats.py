@@ -10,7 +10,7 @@ class TrackedPlayerStats:
     support_rank: str
     first_join: str     # datetime in ISO8601 format
     last_join: str      # datetime in ISO8601 format
-    playtime: int
+    playtime: float
     guild_name: str
     guild_rank: str
     wars: int

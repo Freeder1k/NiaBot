@@ -25,7 +25,7 @@ from utils.discord import create_chart
 from wrappers import botConfig
 
 
-async def _generate_history_graph(history: list[tuple[str, int, str]]):
+async def _generate_history_graph(history: list[tuple[str, int | float, str]]):
     dates = []
     values = []
     prev_val = None
@@ -118,7 +118,7 @@ async def _create_history_embed(stat: PlayerStatsIdentifier, player: wrappers.mi
     t = time.time() - t
     embed.set_footer(text=f"Query took {t:.2f}s")
 
-    if isinstance(history[0][1], int):
+    if isinstance(history[0][1], int) or isinstance(history[0][1], float):
         if relative is not None:
             chart = await _generate_relative_history_graph(
                 history,

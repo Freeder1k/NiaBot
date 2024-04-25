@@ -79,7 +79,7 @@ class CharacterStats(JsonableDataclass):
     xpPercent: int
     totalLevel: int
     wars: int
-    playtime: int
+    playtime: float
     mobsKilled: int
     chestsFound: int
     blocksWalked: int
@@ -147,7 +147,7 @@ class PlayerStats(JsonableDataclass):
     supportRank: str
     firstJoin: str
     lastJoin: str
-    playtime: int
+    playtime: float
 
     @dataclass(frozen=True)
     class _Guild(JsonableDataclass):
