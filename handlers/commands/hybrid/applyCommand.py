@@ -8,16 +8,18 @@ from wrappers import botConfig
 
 
 class GuildQuestionnaire(discord.ui.Modal, title='Nerfuria Guild Application'):
-    name = discord.ui.TextInput(label='Minecraft IGN:', max_length=32)
+    name = discord.ui.TextInput(label='Minecraft IGN:', max_length=16)
     guilds = discord.ui.TextInput(
         label='Previous guilds and why you left:',
         style=discord.TextStyle.paragraph,
         required=False,
+        max_length=1000
     )
     other = discord.ui.TextInput(
         label='Anything else you would like to add:',
         style=discord.TextStyle.paragraph,
         required=False,
+        max_length=1000
     )
 
     async def on_submit(self, interaction: discord.Interaction):
