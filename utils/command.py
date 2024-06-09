@@ -1,5 +1,4 @@
 import re
-import time
 from datetime import datetime, timedelta
 from typing import Iterable
 
@@ -155,6 +154,27 @@ async def stats_autocomplete(
                Choice(name=stat, value=stat)
                for stat in PlayerStatsIdentifier if current.lower() in stat.lower()
            ][0:25]
+
+
+stats_choices = [
+    Choice(name=stat, value=stat)
+    for stat in [
+        "playtime",
+        "wars",
+        "total_levels",
+        "killed_mobs",
+        "chests_found",
+        "dungeons_total",
+        "raids_total",
+        "raids_notg",
+        "raids_nol",
+        "raids_tcc",
+        "raids_tna",
+        "completed_quests",
+        "pvp_kills",
+        "pvp_deaths"
+    ]
+]
 
 
 async def player_autocomplete(

@@ -36,11 +36,15 @@ intents.message_content = True
 intents.members = True
 
 client = discord.Client(intents=intents)
+client2 = discord.Client(intents=intents)
+
 start_time: Final = datetime.now(timezone.utc)
 
 tree = app_commands.CommandTree(client)
+tree2 = app_commands.CommandTree(client2)
 
 initialized = False
+initialized2 = False
 
 commands = [
     helpCommand.HelpCommand(),
@@ -84,7 +88,7 @@ async def on_ready():
 
             start_workers()
 
-            handlers.commands.commandListener.on_ready(client)
+            handlers.commands.commandListener.on_ready()
 
             handlers.commands.commandListener.register_commands(*commands, *hybrid_commands)
 
@@ -106,10 +110,41 @@ async def on_ready():
         await handlers.logging.error(exc_info=e)
         await stop()
 
+@client2.event
+async def on_ready():
+    try:
+        handlers.logging.info(f"Logged in as {client2.user}")
+        handlers.logging.info("Initializing...")
+
+        global initialized2
+        if not initialized2:
+            handlers.commands.commandListener.on_ready()
+
+            handlers.commands.commandListener.register_commands(*commands, *hybrid_commands)
+
+            initialized2 = True
+
+            handlers.logging.info("Syncing command tree...")
+            for cmd in hybrid_commands:
+                tree2.add_command(cmd)
+
+            await tree2.sync()
+
+            handlers.logging.info("Ready")
+            handlers.logging.info(f"Guilds: {[g.name for g in client2.guilds]}")
+    except Exception as e:
+        await handlers.logging.error(exc_info=e)
+        await stop()
+
+
 
 @client.event
 async def on_message(message: discord.Message):
-    asyncio.create_task(handlers.commands.commandListener.on_message(message))
+    asyncio.create_task(handlers.commands.commandListener.on_message(message, client))
+
+@client2.event
+async def on_message(message: discord.Message):
+    asyncio.create_task(handlers.commands.commandListener.on_message(message, client2))
 
 
 def start_workers():
@@ -130,14 +165,16 @@ def stop_workers():
 
 def main():
     print("\n  *:･ﾟ✧(=^･ω･^=)*:･ﾟ✧\n")
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
-    async def runner():
-        async with client:
-            await client.start(os.getenv('BOT_TOKEN'))
+    loop.create_task(client.start(os.getenv('BOT_TOKEN')))
+    if os.getenv('BOT_TOKEN2') is not None:
+        loop.create_task(client2.start(os.getenv('BOT_TOKEN2')))
 
     try:
         handlers.logging.info("Booting up...")
-        asyncio.run(runner())
+        loop.run_forever()
     except (KeyboardInterrupt, SystemExit) as e:
         handlers.logging.info(e.__class__.__name__)
     except Exception as e:
@@ -151,6 +188,7 @@ async def stop():
     handlers.logging.info("Shutting down...")
     stop_workers()
     await client.close()
+    await client2.close()
     await wrappers.api.sessionManager.close()
     await wrappers.storage.manager.close()
 

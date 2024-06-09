@@ -18,9 +18,8 @@ import wrappers.minecraftPlayer
 import wrappers.storage.playerTrackerData
 import wrappers.storage.usernameData
 from handlers.commands import command, hybridCommand
-from handlers.commands.commandEvent import PrefixedCommandEvent, SlashCommandEvent
+from handlers.commands.commandEvent import PrefixedCommandEvent, SlashCommandEvent, CommandEvent
 from niatypes.enums import PlayerStatsIdentifier
-from utils.command import stats_autocomplete
 from utils.discord import create_chart
 from wrappers import botConfig
 
@@ -78,6 +77,7 @@ def _get_all_timeframe_dates_between(timeframe: str, start: date, end: date):
         start = start.next()
     return dates
 
+
 async def _generate_relative_history_graph(history: list[tuple[str, int, str]], timeframe: str, playtime: bool):
     dates = _get_all_timeframe_dates_between(
         timeframe,
@@ -132,7 +132,7 @@ async def _create_history_embed(stat: PlayerStatsIdentifier, player: wrappers.mi
         )
     else:
         chart = None
-        embed.add_field(name="Not implemented yet for non number values!", value="")
+        embed.add_field(name="Not implemented for non number values!", value="")
 
     return embed, chart
 
@@ -141,14 +141,8 @@ class HistoryCommand(hybridCommand.HybridCommand):
     def __init__(self):
         super().__init__(
             name="history",
-            aliases=("h",),
+            aliases=(),
             params=[
-                hybridCommand.CommandParam(
-                    "stat", "The stat to retrieve.",
-                    required=True,
-                    ptype=discord.AppCommandOptionType.string,
-                    autocomplete=stats_autocomplete,
-                ),
                 hybridCommand.CommandParam(
                     "player", "The player, specified by username or uuid",
                     required=True,
@@ -156,7 +150,13 @@ class HistoryCommand(hybridCommand.HybridCommand):
                     autocomplete=utils.command.player_autocomplete,
                 ),
                 hybridCommand.CommandParam(
-                    "relative", "If specified the timeframes to bucket relative data to.",
+                    "stat", "The stat to retrieve.",
+                    required=True,
+                    ptype=discord.AppCommandOptionType.string,
+                    choices=utils.command.stats_choices,
+                ),
+                hybridCommand.CommandParam(
+                    "relative", "If specified, the timeframes to bucket relative data to.",
                     required=False,
                     ptype=discord.AppCommandOptionType.string,
                     choices=[
@@ -173,7 +173,7 @@ class HistoryCommand(hybridCommand.HybridCommand):
             permission_lvl=command.PermissionLevel.ANYONE
         )
 
-    async def _execute(self, event: PrefixedCommandEvent):
+    async def _execute(self, event: CommandEvent):
         async with event.waiting():
             if isinstance(event, PrefixedCommandEvent):
                 return  # TODO
@@ -187,6 +187,7 @@ class HistoryCommand(hybridCommand.HybridCommand):
             except ValueError:
                 await event.reply_error("Invalid stat!")
                 return
+
             try:
                 player = await utils.command.parse_player(player_str)
             except ValueError as e:

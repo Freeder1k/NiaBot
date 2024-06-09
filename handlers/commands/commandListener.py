@@ -40,16 +40,16 @@ def get_command_map() -> dict[str, Command]:
     return _command_map
 
 
-def on_ready(client: Client):
+def on_ready():
     """
     Called when the client is ready.
     """
-    global _bot_mention, _client
-    _bot_mention = re.compile(f"\?<@!?{client.user.id}>")
-    _client = client
+    # global _bot_mention
+    # _bot_mention = re.compile(f"\?<@!?{client.user.id}>")
+    pass
 
 
-async def on_message(message: Message):
+async def on_message(message: Message, client: Client):
     """
     Called when a message is received.
     """
@@ -67,8 +67,8 @@ async def on_message(message: Message):
     cmd_prefix = serverConfig.get_cmd_prefix(message.guild.id)
     if content.startswith(cmd_prefix):
         args = content[len(cmd_prefix):].split(" ")
-    elif _bot_mention.match(content):
-        _, *args = message.content.split(" ")
+    # elif _bot_mention.match(content):
+    #     _, *args = message.content.split(" ")
     else:
         return
 
@@ -78,7 +78,7 @@ async def on_message(message: Message):
     if args[0] not in _command_map:
         return
 
-    command_event = PrefixedCommandEvent(message, args, _client)
+    command_event = PrefixedCommandEvent(message, args, client)
 
     try:
         await _command_map[args[0]].run(command_event)
