@@ -22,7 +22,7 @@ class PlaytimeCommand(command.Command):
             name="playtime",
             aliases=("pt",),
             usage=f"playtime <username|uuid>",
-            description=f"Get a graph of the playtime for the specified player. The player must have been in {botConfig.GUILD_NAME}.",
+            description=f"Get a graph of the playtime for the specified guild member.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE
         )

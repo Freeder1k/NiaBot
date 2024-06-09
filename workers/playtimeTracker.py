@@ -26,6 +26,12 @@ async def update_playtimes():
         guild = await wrappers.api.wynncraft.v3.guild.stats(name=wrappers.botConfig.GUILD_NAME)
 
         await asyncio.gather(*(_update_playtime(uuid) for uuid in guild.members.all.keys()))
+
+        await asyncio.sleep(120)
+
+        guild2 = await wrappers.api.wynncraft.v3.guild.stats(name=wrappers.botConfig.GUILD_NAME2)
+
+        await asyncio.gather(*(_update_playtime(uuid) for uuid in guild2.members.all.keys()))
     except Exception as ex:
         await handlers.logging.error(exc_info=ex)
         raise ex

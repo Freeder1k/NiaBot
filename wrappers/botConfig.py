@@ -35,6 +35,8 @@ DEV_USER_IDS: Final[list[str]] = ast.literal_eval(config.get('MAIN', 'DEV_USER_I
 
 GUILD_NAME: Final = config.get('GUILD', 'GUILD_NAME')
 GUILD_DISCORD: Final = config.getint('GUILD', 'GUILD_DISCORD')
+GUILD_NAME2: Final = config.get('GUILD', 'GUILD_NAME2')
+GUILD_DISCORD2: Final = config.getint('GUILD', 'GUILD_DISCORD2')
 
 # EMBED COLORS
 DEFAULT_COLOR: Final = config.getint('COLORS', 'DEFAULT_COLOR')

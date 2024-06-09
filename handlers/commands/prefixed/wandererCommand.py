@@ -22,7 +22,12 @@ class WandererCommand(command.Command):
         )
 
     async def _execute(self, event: PrefixedCommandEvent):
-        guild = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
+        if event.guild.id == botConfig.GUILD_DISCORD2:
+            guild_name = botConfig.GUILD_NAME2
+        else:
+            guild_name = botConfig.GUILD_NAME
+
+        guild = await wrappers.api.wynncraft.v3.guild.stats(name=guild_name)
 
         seven_days_ago = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59) - timedelta(days=7)
 

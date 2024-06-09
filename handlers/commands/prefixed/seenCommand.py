@@ -49,8 +49,13 @@ def _get_seen_display_value(val):
 
 
 @alru_cache(ttl=600)
-async def _create_seen_embed():
-    guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
+async def _create_seen_embed(server_id):
+    if server_id == botConfig.GUILD_DISCORD2:
+        guild_name = botConfig.GUILD_NAME2
+    else:
+        guild_name = botConfig.GUILD_NAME
+
+    guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=guild_name)
 
     embed = Embed(
         color=botConfig.DEFAULT_COLOR,
@@ -77,12 +82,12 @@ class SeenCommand(command.Command):
             name="seen",
             aliases=("ls", "lastseen"),
             usage=f"seen",
-            description=f"Get a list of the last join dates for members in {botConfig.GUILD_NAME}.",
+            description=f"Get a list of the last join dates for members in the guild.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.STRAT
         )
 
     async def _execute(self, event: PrefixedCommandEvent):
         async with event.channel.typing():
-            embed = await _create_seen_embed()
+            embed = await _create_seen_embed(event.guild.id)
             await event.channel.send(embed=embed)

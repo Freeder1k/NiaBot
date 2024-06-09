@@ -9,9 +9,11 @@ from dotenv import load_dotenv
 import handlers.commands.commandListener
 import handlers.logging
 import handlers.nerfuria.logging
+import handlers.nerfuria.logging2
 import handlers.rateLimit
 import handlers.rateLimit
 import workers.guildUpdater
+import workers.guildUpdater2
 import workers.playtimeTracker
 import workers.presenceUpdater
 import workers.statTracker
@@ -113,6 +115,7 @@ async def on_ready():
 @client2.event
 async def on_ready():
     try:
+        handlers.nerfuria.logging2.set_client(client)
         handlers.logging.info(f"Logged in as {client2.user}")
         handlers.logging.info("Initializing...")
 
@@ -151,6 +154,7 @@ def start_workers():
     workers.playtimeTracker.update_playtimes.start()
     workers.presenceUpdater.update_presence.start(client=client)
     workers.guildUpdater.update_guild.start()
+    workers.guildUpdater2.update_guild.start()
     workers.usernameUpdater.start()
     workers.statTracker.start()
 
@@ -158,6 +162,7 @@ def start_workers():
 def stop_workers():
     workers.statTracker.stop()
     workers.usernameUpdater.stop()
+    workers.guildUpdater2.update_guild.stop()
     workers.guildUpdater.update_guild.stop()
     workers.presenceUpdater.update_presence.stop()
     workers.playtimeTracker.update_playtimes.stop()

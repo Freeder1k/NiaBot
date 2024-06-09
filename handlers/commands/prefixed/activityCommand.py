@@ -32,8 +32,13 @@ async def _get_playtime(uuid: str, _):
 
 
 @alru_cache(ttl=600)
-async def _create_activity_embed():
-    guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
+async def _create_activity_embed(server_id):
+    if server_id == botConfig.GUILD_DISCORD2:
+        guild_name = botConfig.GUILD_NAME2
+    else:
+        guild_name = botConfig.GUILD_NAME
+
+    guild: GuildStats = await wrappers.api.wynncraft.v3.guild.stats(name=guild_name)
 
     embed = Embed(
         color=botConfig.DEFAULT_COLOR,
@@ -60,12 +65,12 @@ class ActivityCommand(command.Command):
             name="activity",
             aliases=("act",),
             usage=f"activity",
-            description=f"Get the playtime of all members in {botConfig.GUILD_NAME} for the past week.",
+            description=f"Get the playtime of all members in the guild for the past week.",
             req_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.STRAT
         )
 
     async def _execute(self, event: PrefixedCommandEvent):
         async with event.channel.typing():
-            embed = await _create_activity_embed()
+            embed = await _create_activity_embed(event.guild.id)
             await event.channel.send(embed=embed)

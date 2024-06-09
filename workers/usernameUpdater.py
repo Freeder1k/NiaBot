@@ -5,7 +5,7 @@ from discord.ext import tasks
 
 import handlers.logging
 import handlers.nerfuria.logging
-import handlers.nerfuria.logging
+import handlers.nerfuria.logging2
 import handlers.rateLimit
 import wrappers.api
 import wrappers.api.minecraft
@@ -37,6 +37,7 @@ async def _log_name_changes():
         handlers.logging.error("Failed to fetch guild data for bot guild!", e)
         return
 
+
     prev_names, updated_names = zip(*_updated_players)
     _updated_players.clear()
 
@@ -47,6 +48,20 @@ async def _log_name_changes():
 
     for player in updated_guild_members:
         await handlers.nerfuria.logging.log_member_name_change(player.uuid,
+                                                               prev_names_dict.get(player.uuid, "*unknown*"),
+                                                               player.name)
+
+    try:
+        guild2 = await wrappers.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME2)
+    except Exception as e:
+        handlers.logging.error("Failed to fetch guild data for bot guild2!", e)
+        return
+
+    guild_members = {uuid.replace("-", "") for uuid in guild2.members.all.keys()}
+    updated_guild_members = [p for p in updated_names if p.uuid in guild_members]
+
+    for player in updated_guild_members:
+        await handlers.nerfuria.logging2.log_member_name_change(player.uuid,
                                                                prev_names_dict.get(player.uuid, "*unknown*"),
                                                                player.name)
 
