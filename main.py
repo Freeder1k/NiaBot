@@ -115,7 +115,7 @@ async def on_ready():
 @client2.event
 async def on_ready():
     try:
-        handlers.nerfuria.logging2.set_client(client)
+        handlers.nerfuria.logging2.set_client(client2)
         handlers.logging.info(f"Logged in as {client2.user}")
         handlers.logging.info("Initializing...")
 
@@ -192,6 +192,7 @@ def main():
 async def stop():
     handlers.logging.info("Shutting down...")
     stop_workers()
+
     await client.close()
     await client2.close()
     await wrappers.api.sessionManager.close()
