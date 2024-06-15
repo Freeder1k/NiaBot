@@ -49,9 +49,11 @@ async def get_players(usernames: list[str]) -> dict[str, MinecraftPlayer]:
     if len(usernames) > 10:
         raise TypeError("usernames list can't contain more than 10 items!")
 
+    json = '[' + ','.join([f'"{name}"' for name in usernames]) + ']'
+
     session = sessionManager.get_session(_mc_services_api_session_id)
     with _mc_services_rate_limit:
-        async with session.post(f"/minecraft/profile/lookup/bulk/byname", json=usernames) as resp:
+        async with session.post(f"/minecraft/profile/lookup/bulk/byname", json=json) as resp:
             resp.raise_for_status()
 
             return {player["name"]: MinecraftPlayer(player["id"], player["name"]) for player in await resp.json()}
