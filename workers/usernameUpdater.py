@@ -81,9 +81,9 @@ async def _fetch_and_update_usernames(usernames: list[str]):
         _worker.put(_fetch_and_update_usernames, usernames)
         return
     except aiohttp.client_exceptions.ClientError as e:
-        handlers.logging.error("Failed usernames: ", usernames)
         await asyncio.sleep(60)
         _worker.put(_fetch_and_update_usernames, usernames)
+        handlers.logging.error("Failed usernames: ", usernames)
         raise e
 
     for name in usernames:
