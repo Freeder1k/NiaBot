@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from datetime import datetime, timezone
 from typing import Final
 
@@ -173,13 +174,22 @@ def main():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    loop.create_task(client.start(os.getenv('BOT_TOKEN')))
-    if os.getenv('BOT_TOKEN2') is not None:
-        loop.create_task(client2.start(os.getenv('BOT_TOKEN2')))
+    async def runner():
+        async with client:
+            await client.start(os.getenv('BOT_TOKEN'))
+
+    async def runner2():
+        if os.getenv('BOT_TOKEN2') is not None:
+            async with client2:
+                await client2.start(os.getenv('BOT_TOKEN2'))
+
+    async def main_runner():
+        runners = [runner(), runner2()]
+        await asyncio.gather(*runners, return_exceptions=True)
 
     try:
         handlers.logging.info("Booting up...")
-        loop.run_forever()
+        asyncio.run(main_runner())
     except (KeyboardInterrupt, SystemExit) as e:
         handlers.logging.info(e.__class__.__name__)
     except Exception as e:
