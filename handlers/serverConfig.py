@@ -20,7 +20,7 @@ class _ServerConfig:
 
 _server_configs: dict[int, _ServerConfig] = {}
 _default_conf = _ServerConfig()
-_configs_file = "server_conf.json"
+_configs_file = "data/server_conf.json"
 
 
 async def load_server_configs():

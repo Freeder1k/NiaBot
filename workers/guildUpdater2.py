@@ -15,15 +15,15 @@ from wrappers.api.wynncraft.v3 import guild, types
 _guild: types.GuildStats = None
 
 try:
-    if os.path.exists(f"{botConfig.GUILD_NAME2}.json"):
-        with open(f"{botConfig.GUILD_NAME2}.json", 'r') as _f:
+    if os.path.exists(f"data/{botConfig.GUILD_NAME2}.json"):
+        with open(f"data/{botConfig.GUILD_NAME2}.json", 'r') as _f:
             _guild = types.GuildStats.from_json(json.load(_f))
 except Exception as e:
     handlers.logging.error("Failed to load stored guild stats.", exc_info=e)
 
 
 async def _store_guild():
-    with open(f"{botConfig.GUILD_NAME2}.json", "w") as f:
+    with open(f"data/{botConfig.GUILD_NAME2}.json", "w") as f:
         json.dump(dataclasses.asdict(_guild), f, indent=4)
 
 

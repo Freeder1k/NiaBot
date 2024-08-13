@@ -9,7 +9,7 @@ async def init_database():
     global _con
     if _con is not None:
         raise RuntimeError("init_database() was already called")
-    _con = await aiosqlite.connect("./NiaBot.db")
+    _con = await aiosqlite.connect("./data/NiaBot.db")
     _con.row_factory = aiosqlite.Row
 
     cur = await _con.cursor()

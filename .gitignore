@@ -1,5 +1,5 @@
 /.env
 /nia-bot.log
-/NiaBot.db
-/server_conf.json
+/data/NiaBot.db
+/data/server_conf.json
 /bot_config.ini
