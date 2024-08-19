@@ -1,5 +1,4 @@
 import asyncio
-import sys
 from datetime import datetime, timezone
 from typing import Final
 
@@ -7,29 +6,23 @@ import discord
 from discord import app_commands
 from dotenv import load_dotenv
 
-import handlers.commands.commandListener
-import handlers.logging
-import handlers.nerfuria.logging
-import handlers.nerfuria.logging2
-import handlers.rateLimit
-import handlers.rateLimit
+import common.commands.commandListener
+import common.logging
+import common.logging
+import common.logging2
 import workers.guildUpdater
 import workers.guildUpdater2
 import workers.playtimeTracker
 import workers.presenceUpdater
 import workers.statTracker
 import workers.usernameUpdater
-import wrappers.api.sessionManager
-import wrappers.api.wynncraft.v3.player
-import wrappers.storage.manager
-import wrappers.storage.playtimeData
-import wrappers.storage.playtimeData
-import wrappers.storage.usernameData
-from handlers import serverConfig
-from handlers.commands.hybrid import guildCommand, leaderboardCommand, warcountCommand, historyCommand, applyCommand
-from handlers.commands.prefixed import helpCommand, activityCommand, wandererCommand, seenCommand, spaceCommand, \
-    configCommand, strikeCommand, strikesCommand, unstrikeCommand, evalCommand, playerCommand, shutdownCommand, \
-    logCommand, playtimeCommand
+import common.storage.playtimeData
+from common.storage import serverConfig
+from common.commands.hybrid import applyCommand, guildCommand, leaderboardCommand, historyCommand, warcountCommand
+from common.commands import helpCommand, seenCommand, strikeCommand, strikesCommand, shutdownCommand, \
+    logCommand, playerCommand, evalCommand
+from common.commands.prefixed import playtimeCommand, unstrikeCommand, configCommand, activityCommand, spaceCommand, \
+    wandererCommand
 
 load_dotenv()
 import os
@@ -77,78 +70,78 @@ hybrid_commands = [
 @client.event
 async def on_ready():
     try:
-        await handlers.logging.init_discord_handler(client)
-        handlers.nerfuria.logging.set_client(client)
+        await common.logging.init_discord_handler(client)
+        common.logging.set_client(client)
 
-        handlers.logging.info(f"Logged in as {client.user}")
-        handlers.logging.info("Initializing...")
+        common.logging.info(f"Logged in as {client.user}")
+        common.logging.info("Initializing...")
 
         global initialized
         if not initialized:
             await serverConfig.load_server_configs()
-            await wrappers.storage.manager.init_database()
-            await wrappers.api.sessionManager.init_sessions()
+            await common.wrappers.storage.manager.init_database()
+            await common.wrappers.api.sessionManager.init_sessions()
 
             start_workers()
 
-            handlers.commands.commandListener.on_ready()
+            common.commands.commandListener.on_ready()
 
-            handlers.commands.commandListener.register_commands(*commands, *hybrid_commands)
+            common.commands.commandListener.register_commands(*commands, *hybrid_commands)
 
             today = datetime.now(timezone.utc).date()
-            if (await wrappers.storage.playtimeData.get_first_date_after(today)) is None:
+            if (await common.storage.playtimeData.get_first_date_after(today)) is None:
                 await workers.playtimeTracker.update_playtimes()
 
             initialized = True
 
-            handlers.logging.info("Syncing command tree...")
+            common.logging.info("Syncing command tree...")
             for cmd in hybrid_commands:
                 tree.add_command(cmd)
 
             await tree.sync()
 
-            handlers.logging.info("Ready")
-            handlers.logging.info(f"Guilds: {[g.name for g in client.guilds]}")
+            common.logging.info("Ready")
+            common.logging.info(f"Guilds: {[g.name for g in client.guilds]}")
     except Exception as e:
-        await handlers.logging.error(exc_info=e)
+        await common.logging.error(exc_info=e)
         await stop()
 
 @client2.event
 async def on_ready():
     try:
-        handlers.nerfuria.logging2.set_client(client2)
-        handlers.logging.info(f"Logged in as {client2.user}")
-        handlers.logging.info("Initializing...")
+        common.logging2.set_client(client2)
+        common.logging.info(f"Logged in as {client2.user}")
+        common.logging.info("Initializing...")
 
         global initialized2
         if not initialized2:
-            handlers.commands.commandListener.on_ready()
+            common.commands.commandListener.on_ready()
 
-            handlers.commands.commandListener.register_commands(*commands, *hybrid_commands)
+            common.commands.commandListener.register_commands(*commands, *hybrid_commands)
 
             initialized2 = True
 
-            handlers.logging.info("Syncing command tree...")
+            common.logging.info("Syncing command tree...")
             for cmd in hybrid_commands:
                 tree2.add_command(cmd)
 
             await tree2.sync()
 
-            handlers.logging.info("Ready")
-            handlers.logging.info(f"Guilds: {[g.name for g in client2.guilds]}")
+            common.logging.info("Ready")
+            common.logging.info(f"Guilds: {[g.name for g in client2.guilds]}")
     except Exception as e:
-        await handlers.logging.error(exc_info=e)
+        await common.logging.error(exc_info=e)
         await stop()
 
 
 
 @client.event
 async def on_message(message: discord.Message):
-    asyncio.create_task(handlers.commands.commandListener.on_message(message, client))
+    asyncio.create_task(common.commands.commandListener.on_message(message, client))
 
 @client2.event
 async def on_message(message: discord.Message):
-    asyncio.create_task(handlers.commands.commandListener.on_message(message, client2))
+    asyncio.create_task(common.commands.commandListener.on_message(message, client2))
 
 
 def start_workers():
@@ -188,25 +181,25 @@ def main():
         await asyncio.gather(*runners, return_exceptions=True)
 
     try:
-        handlers.logging.info("Booting up...")
+        common.logging.info("Booting up...")
         asyncio.run(main_runner())
     except (KeyboardInterrupt, SystemExit) as e:
-        handlers.logging.info(e.__class__.__name__)
+        common.logging.info(e.__class__.__name__)
     except Exception as e:
-        handlers.logging.error(exc_info=e)
+        common.logging.error(exc_info=e)
     finally:
         asyncio.run(stop())
-        handlers.logging.info("Stopped")
+        common.logging.info("Stopped")
 
 
 async def stop():
-    handlers.logging.info("Shutting down...")
+    common.logging.info("Shutting down...")
     stop_workers()
 
     await client.close()
     await client2.close()
-    await wrappers.api.sessionManager.close()
-    await wrappers.storage.manager.close()
+    await common.wrappers.api.sessionManager.close()
+    await common.wrappers.storage.manager.close()
 
 
 if __name__ == "__main__":

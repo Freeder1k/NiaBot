@@ -3,7 +3,7 @@ from typing import Callable
 
 import discord.utils
 
-import handlers.logging
+import common.logging
 
 _online_players: set[str] = set()
 _players_to_track: asyncio.Queue[str] = asyncio.Queue()
@@ -40,7 +40,7 @@ class QueueWorker:
             except (KeyboardInterrupt, SystemExit, asyncio.CancelledError) as e:
                 raise e
             except Exception as ex:
-                handlers.logging.error(exc_info=ex)
+                common.logging.error(exc_info=ex)
                 if self._error_count < 12:
                     self._error_count += 1
 
