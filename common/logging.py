@@ -1,86 +1,95 @@
-from discord import Embed, Client, TextChannel
+import logging
+import os
+from configparser import ConfigParser
+from typing import Final
 
-from discord.utils import escape_markdown
-import common.logging
-import common.utils.misc
-from common.types.enums import LogEntryType
-from common import botConfig
-from common.storage import guildMemberLogData, serverConfig
+from discord import Client
 
-_client: Client = None
+import common.utils.logutils.discordHandler
+from common.utils.logutils.coloredFormatter import ColoredFormatter
+from common.utils.logutils.standardFormatter import StandardFormatter
 
-async def _upload_to_discord(embed):
-    if _client is None:
-        return
+_config = ConfigParser()
+if os.path.exists('logger_config.ini'):
+    _config.read('logger_config.ini')
+else:
+    _config.add_section('LOGGING')
+    _config.set('LOGGING', 'LOG_FILE', 'bot.log')
+    _config.set('LOGGING', 'ENABLE_DEBUG', 'True')
+    _config.set('LOGGING', 'LOG_CHANNEL', '0')
 
-    channel = _client.get_channel(serverConfig.get_log_channel_id(botConfig.GUILD_DISCORD))
-    if not isinstance(channel, TextChannel):
-        print(channel)
-        common.logging.error("Log channel for guild server is not text channel!")
-        return
+LOG_FILE: Final = _config.get('LOGGING', 'LOG_FILE')
+ENABLE_DEBUG: Final = _config.getboolean('LOGGING', 'ENABLE_DEBUG')
+LOG_CHANNEL: Final = _config.getint('LOGGING', 'LOG_CHANNEL')
 
-    perms = channel.permissions_for(channel.guild.me)
-    if not perms.send_messages and perms.embed_links:
-        print(channel)
-        common.logging.error("Missing perms for info channel for guild server!")
-        return
-
-    await channel.send(embed=embed)
+_logger = logging.getLogger('NiaBot')
+log_lvl = logging.DEBUG if ENABLE_DEBUG else logging.INFO
+_logger.setLevel(log_lvl)
 
 
-async def log_member_join(username: str, uuid: str):
+def debug(*args):
     """
-    Log a member join event.
+    Logs the args at debug level
     """
-    em = Embed(
-        title=f"**{escape_markdown(username)} has joined the guild**",
-        color=botConfig.DEFAULT_COLOR,
-    )
-    em.set_footer(text=f"UUID: {common.utils.misc.format_uuid(uuid)}")
-
-    await guildMemberLogData.log(LogEntryType.MEMBER_JOIN,
-                                 f"{escape_markdown(username)} has joined the guild",
-                                 uuid)
-
-    await _upload_to_discord(em)
+    _logger.debug(msg=' '.join((str(arg) for arg in args)))
 
 
-async def log_member_leave(username: str, uuid: str):
+def info(*args):
     """
-    Log a member leave event.
+    Logs the args at info level
     """
-    em = Embed(
-        title=f"**{escape_markdown(username)} has left the guild**",
-        color=botConfig.DEFAULT_COLOR,
-    )
-    em.set_footer(text=f"UUID: {common.utils.misc.format_uuid(uuid)}")
-
-    await guildMemberLogData.log(LogEntryType.MEMBER_LEAVE,
-                                 f"{escape_markdown(username)} has left the guild",
-                                 uuid)
-
-    await _upload_to_discord(em)
+    _logger.info(msg=' '.join((str(arg) for arg in args)))
 
 
-async def log_member_name_change(uuid: str, prev_name: str, new_name: str):
+def warning(*args):
     """
-    Log a member name change event.
+    Logs the args at warning level
     """
-    em = Embed(
-        title=f"Name changed: **{escape_markdown(prev_name)} -> {escape_markdown(new_name)}**",
-        color=botConfig.DEFAULT_COLOR,
-    )
-    em.set_footer(text=f"UUID: {common.utils.misc.format_uuid(uuid)}")
+    _logger.warning(msg=' '.join((str(arg) for arg in args)))
 
-    await guildMemberLogData.log(LogEntryType.MEMBER_NAME_CHANGE,
-                                 f"Name changed: {prev_name} -> {new_name}",
-                                 uuid)
 
-    await _upload_to_discord(em)
-
-def set_client(client: Client):
+def error(*args, exc_info=None, extra=None):
     """
-    Set the client for the logging module.
+    Logs the args at error level
+
+    :param exc_info: Additional exception info to log
+    :param extra: Mapping of extra objects to log
     """
-    global _client
-    _client = client
+    _logger.error(msg=' '.join((str(arg) for arg in args)), exc_info=exc_info, extra=extra)
+
+
+def _init_base_handlers():
+    console = logging.StreamHandler()
+    console.setFormatter(ColoredFormatter())
+
+    _logger.addHandler(console)
+
+    try:
+        logfile_handler = logging.FileHandler(LOG_FILE)
+        logfile_handler.setFormatter(StandardFormatter())
+
+        _logger.addHandler(logfile_handler)
+    except Exception as e:
+        error("Failed to initialize file logger handler:", e)
+
+
+_init_base_handlers()
+
+
+async def init_discord_handler(client: Client):
+    """
+    Initializes the discord logger handler
+    """
+    try:
+        channel = await client.fetch_channel(LOG_CHANNEL)
+
+        if not channel.permissions_for(channel.guild.me).send_messages:
+            warning("Insufficient permissions to send messages to discord log channel.")
+            return
+
+        discord_handler = common.utils.logutils.discordHandler.DiscordHandler(client, LOG_CHANNEL)
+        discord_handler.setFormatter(ColoredFormatter())
+
+        _logger.addHandler(discord_handler)
+    except Exception as e:
+        error("Failed to initialize discord logger handler:", exc_info=e)

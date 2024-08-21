@@ -3,7 +3,7 @@ from http import HTTPStatus
 from common.types.dataTypes import MinecraftPlayer
 from . import sessionManager, rateLimit
 
-_mojang_rate_limit = rateLimit.RateLimit(40, 1)
+_mojang_rate_limit = rateLimit.RateLimit(200, 1)
 _mc_services_rate_limit = rateLimit.RateLimit(10, 1)
 
 _mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")
@@ -17,10 +17,10 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
 
     :return: A player object if the player exists otherwise None.
     """
-    # TODO deprecated
     if (uuid is None) and (username is not None):
         request = f"/users/profiles/minecraft/{username}"
     elif (uuid is not None) and (username is None):
+        # alternative: https://sessionserver.mojang.com/session/minecraft/profile/{uuid}
         request = f"/user/profile/{uuid}"
     else:
         raise TypeError("Exactly one argument (either uuid or username) must be provided.")

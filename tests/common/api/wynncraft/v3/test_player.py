@@ -33,7 +33,7 @@ class TestPlayer(unittest.IsolatedAsyncioTestCase):
     async def test_abilities(self):
         abilities = await player.abilities("1ed075fc-5aa9-42e0-a29f-640326c1d80c",
                                            "13a4351c-8787-44e8-b3af-20a18d531bda")
-        self.assertIsInstance(abilities, common.types.wynncraft.AbilityMap)
+        self.assertIsInstance(abilities[0], common.types.wynncraft.AbilityNode)
         print(abilities)
 
         with self.assertRaises(player.UnknownPlayerException):

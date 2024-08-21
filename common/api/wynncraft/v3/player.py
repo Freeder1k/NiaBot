@@ -4,9 +4,9 @@ import aiohttp.client_exceptions
 from async_lru import alru_cache
 
 import common.utils.misc
-from common.types.enums import PlayerIdentifier
 from common.api.wynncraft.v3 import session
-from common.types.wynncraft import PlayerStats, CharacterShort, AbilityMap
+from common.types.enums import PlayerIdentifier
+from common.types.wynncraft import PlayerStats, CharacterShort, AbilityNode
 
 
 class UnknownPlayerException(Exception):
@@ -63,7 +63,7 @@ async def characters(uuid: str) -> dict[str, CharacterShort]:
 
 
 @alru_cache(maxsize=None, ttl=600)
-async def abilities(player_uuid: str, character_uuid: str) -> AbilityMap:
+async def abilities(player_uuid: str, character_uuid: str) -> list[AbilityNode]:
     """
     Request the ability map of the specified character.
     :param player_uuid: The uuid of the player to retrieve the ability map of.
@@ -84,7 +84,7 @@ async def abilities(player_uuid: str, character_uuid: str) -> AbilityMap:
         else:
             raise ex
 
-    return AbilityMap.from_json(data)
+    return [AbilityNode.from_json(node) for node in data]
 
 
 @alru_cache(ttl=30)

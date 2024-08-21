@@ -34,11 +34,10 @@ async def init_sessions():
     global _initialized
     if _initialized:
         raise RuntimeWarning("init_sessions() should only be called once")
+    _initialized = True
 
     for s_id, url in _session_urls.items():
         _sessions[s_id] = aiohttp.ClientSession(url)
-
-    _initialized = True
 
 
 async def close():

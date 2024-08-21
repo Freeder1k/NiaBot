@@ -281,6 +281,38 @@ class AbilityMap(JsonableDataclass):
     map: list[AbilityMapPiece]
 
 
+@dataclass(frozen=True)
+class AbilityNode(JsonableDataclass):
+    type: str
+
+    @dataclass(frozen=True)
+    class Coordinates(JsonableDataclass):
+        x: int
+        y: int
+
+    coordinates: Coordinates
+
+    @dataclass(frozen=True)
+    class Meta(JsonableDataclass):
+        @dataclass(frozen=True)
+        class Icon(JsonableDataclass):
+            @dataclass(frozen=True)
+            class IconValue(JsonableDataclass):
+                id: str
+                name: str
+                customModelData: str
+
+            value: IconValue
+            format: str
+
+        icon: Icon
+        page: int
+        id: str  # Internal id of the ability, abilities in AT response are referred by the same id
+
+    meta: Meta
+    family: list[str]
+
+
 class WynncraftGuild(NamedTuple):
     name: str
     tag: str
