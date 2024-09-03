@@ -38,10 +38,7 @@ async def list_guilds() -> list[WynncraftGuild]:
     """
     data: dict = await session.get("/guild/list/guild")
 
-    res = [WynncraftGuild(name, g['prefix']) for name, g in data.items()]
-
-    res = [WynncraftGuild((name if name is not None else ""), (pref if pref is not None else "")) for name, pref in res]
-    return res
+    return [WynncraftGuild(name, g['prefix']) for name, g in data.items() if name != "" and g['prefix'] is not None]
 
 
 @alru_cache(ttl=10)
@@ -54,6 +51,10 @@ async def list_territories() -> dict[str, Territory]:
     return {k: Territory.from_json(v) for k, v in data.items()}
 
 
+def _match(g, s):
+    return g.name.lower() == s or g.tag.lower() == s
+
+
 @alru_cache(ttl=60)
 async def find(s: str) -> tuple[WynncraftGuild]:
     """
@@ -63,7 +64,7 @@ async def find(s: str) -> tuple[WynncraftGuild]:
     """
     s = s.lower()
     guilds: list[WynncraftGuild] = await list_guilds()
-    return tuple(g for g in guilds if g.name.lower() == s or g.tag.lower() == s)
+    return tuple(g for g in guilds if _match(g, s))
 
 
 class UnknownGuildException(Exception):
