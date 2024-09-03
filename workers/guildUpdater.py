@@ -69,7 +69,7 @@ async def _update_guild(name: str):
             return
 
         if _guilds[name] is not None:
-            await _log_member_updates(guild_now)
+            await _log_member_updates(_guilds[name], guild_now)
 
         _guilds[name] = guild_now
     except common.api.rateLimit.RateLimitException:
