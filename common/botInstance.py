@@ -10,6 +10,7 @@ from common.botConfig import BotConfig
 from common.commands.command import Command
 from common.commands.commandListener import CommandListener
 from common.commands.hybridCommand import HybridCommand
+from common.guildLogger import GuildLogger
 
 
 class BotInstance(discord.Client):
@@ -26,6 +27,8 @@ class BotInstance(discord.Client):
         self._hybrid_commands = []
 
         self._command_listener = CommandListener(self)
+
+        self._guild_logger = GuildLogger(self, bot_config)
 
     def register_commands(self, *new_commands: Command):
         """
@@ -53,6 +56,7 @@ class BotInstance(discord.Client):
 
             if not self._initialized:
                 workers.presenceUpdater.add_client(self)
+                workers.guildUpdater.add_guild(self.bot_config.GUILD_NAME, self._guild_logger)
 
                 self._command_listener.register_commands(*self._commands, *self._hybrid_commands)
 

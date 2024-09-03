@@ -147,7 +147,7 @@ async def on_message(message: discord.Message):
 def start_workers():
     workers.playtimeTracker.update_playtimes.start()
     workers.presenceUpdater.update_presence.start(client=client)
-    workers.guildUpdater.update_guild.start()
+    workers.guildUpdater.guild_updater.start()
     workers.guildUpdater2.update_guild.start()
     workers.usernameUpdater.start()
     workers.statTracker.start()
@@ -157,7 +157,7 @@ def stop_workers():
     workers.statTracker.stop()
     workers.usernameUpdater.stop()
     workers.guildUpdater2.update_guild.stop()
-    workers.guildUpdater.update_guild.stop()
+    workers.guildUpdater.guild_updater.stop()
     workers.presenceUpdater.update_presence.stop()
     workers.playtimeTracker.update_playtimes.stop()
 
