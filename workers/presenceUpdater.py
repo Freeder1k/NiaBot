@@ -3,21 +3,28 @@ import discord
 from discord import Client
 from discord.ext import tasks
 
-import common.logging
 import common.api.rateLimit
 import common.api.wynncraft.v3.player
+import common.logging
+
+_clients: list[Client] = []
+
+
+def add_client(client: Client):
+    _clients.append(client)
 
 
 @tasks.loop(seconds=61, reconnect=True)
-async def update_presence(client: Client):
+async def update_presence():
     try:
-        await client.change_presence(
-            status=discord.Status.online,
-            activity=discord.Activity(
-                name=f"{await common.api.wynncraft.v3.player.player_count()} players play Wynncraft",
-                type=discord.ActivityType.watching
+        for client in _clients:
+            await client.change_presence(
+                status=discord.Status.online,
+                activity=discord.Activity(
+                    name=f"{await common.api.wynncraft.v3.player.player_count()} players play Wynncraft",
+                    type=discord.ActivityType.watching
+                )
             )
-        )
     except Exception as ex:
         await common.logging.error(exc_info=ex)
         raise ex

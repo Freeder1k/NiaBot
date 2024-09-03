@@ -11,8 +11,8 @@ import common.storage
 import common.storage.usernameData
 from common.types.constants import time_units_map, seasons
 from common.types.dataTypes import MinecraftPlayer
-from common.types.wynncraft import WynncraftGuild
 from common.types.enums import PlayerStatsIdentifier
+from common.types.wynncraft import WynncraftGuild
 from common.utils.misc import pluralize
 
 GUILD_RE = re.compile(r'[A-Za-z ]{3,30}')

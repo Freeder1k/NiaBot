@@ -7,35 +7,35 @@ import discord
 from discord import TextChannel, Embed, Guild, Member, Permissions
 from matplotlib import pyplot as plt
 
+import common.utils.minecraftPlayer
+from common.types.wynncraft import GuildStats
 from common.utils.misc import split_str
 from common.utils.tableBuilder import TableBuilder
-from common import botConfig
-from common.types.wynncraft import GuildStats
 
 mention_reg = re.compile(r"\\?<(?:#|@[!&]?)(\d+)>")
 
 
 # TODO remove redundant
 
-async def send(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=botConfig.DEFAULT_COLOR, description=message))
+async def send(channel: TextChannel, message: str, color: int = None):
+    await channel.send(embed=Embed(color=color, description=message))
 
 
 async def send_success(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=botConfig.SUCCESS_COLOR, description=f"{chr(0x2705)} {message}"))
+    await channel.send(embed=Embed(color=7844437, description=f"{chr(0x2705)} {message}"))
 
 
 async def send_error(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=botConfig.ERROR_COLOR, description=f"{chr(0x274c)} {message}"))
+    await channel.send(embed=Embed(color=14495300, description=f"{chr(0x274c)} {message}"))
 
 
 async def send_info(channel: TextChannel, message: str):
-    await channel.send(embed=Embed(color=botConfig.INFO_COLOR, description=f":information_source: {message}"))
+    await channel.send(embed=Embed(color=3901635, description=f":information_source: {message}"))
 
 
 async def send_exception(channel: TextChannel, exception: Exception):
     await channel.send(embed=Embed(
-        color=botConfig.ERROR_COLOR,
+        color=14495300,
         title=f"A wild {type(exception)} appeared!",
         description="Please scream at the bot owner to fix it."
     ))
@@ -150,7 +150,7 @@ async def add_guild_member_tables(
         sort_function: typing.Callable[[_T], typing.Any] = None,
         sort_reverse: bool = False):
     uuids = [uuid.replace('-', '') for uuid in guild.members.all.keys()]
-    names = {p.uuid: p.name for p in await common.wrappers.minecraftPlayer.get_players(uuids=uuids)}
+    names = {p.uuid: p.name for p in await common.utils.minecraftPlayer.get_players(uuids=uuids)}
 
     async with asyncio.TaskGroup() as tg:
         data = {
@@ -204,9 +204,9 @@ def create_chart(x, y, xlabel, ylabel):
     plt.savefig(data_stream, format='png', bbox_inches="tight", dpi=80)
     plt.close()
 
-    ## Create file
     # Reset point back to beginning of stream
     data_stream.seek(0)
+    # Create file
     chart = discord.File(data_stream, filename="chart.png")
 
     return chart

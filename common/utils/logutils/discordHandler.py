@@ -3,7 +3,6 @@ import logging
 from discord import Client, Embed
 
 import common.utils.misc
-from common import botConfig
 
 
 class DiscordHandler(logging.Handler):
@@ -24,15 +23,15 @@ class DiscordHandler(logging.Handler):
             msg = self.format(record)
             splits = [f"```ansi\n{s}```" for s in common.utils.misc.split_str(msg, 1950, '\n')]
 
-            if botConfig.DEV_USER_IDS and record.levelno >= logging.ERROR:
-                await channel.send(''.join(f"<@{uid}>" for uid in botConfig.DEV_USER_IDS))
+            if record.levelno >= logging.ERROR:
+                await channel.send("@here")
             for split in splits:
                 await channel.send(split)
 
             if hasattr(record, 'command_event'):
                 event = record.command_event
                 embed = Embed(
-                    color=botConfig.ERROR_COLOR,
+                    color=14495300,
                     title=f"Further Exception Information:",
                     description=f"Server: ``{event.guild}``\n"
                                 f"Channel: ``#{event.channel.name}``\n"

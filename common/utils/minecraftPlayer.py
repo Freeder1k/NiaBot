@@ -2,8 +2,8 @@ import asyncio
 
 from async_lru import alru_cache
 
-import common.api.rateLimit
 import common.api.minecraft
+import common.api.rateLimit
 import common.storage.usernameData
 from common.types.dataTypes import MinecraftPlayer
 

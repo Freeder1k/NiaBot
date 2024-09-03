@@ -38,7 +38,10 @@ async def list_guilds() -> list[WynncraftGuild]:
     """
     data: dict = await session.get("/guild/list/guild")
 
-    return [WynncraftGuild(name, g['prefix']) for name, g in data.items()]
+    res = [WynncraftGuild(name, g['prefix']) for name, g in data.items()]
+
+    res = [WynncraftGuild((name if name is not None else ""), (pref if pref is not None else "")) for name, pref in res]
+    return res
 
 
 @alru_cache(ttl=10)

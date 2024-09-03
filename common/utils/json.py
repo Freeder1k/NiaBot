@@ -1,7 +1,5 @@
-#from niatypes.jsonable import JsonType
-import typing
+from common.types.jsonable import JsonType
 
-JsonType = typing.Any
 
 def _flatten(json: JsonType) -> dict[str, JsonType]:
     if isinstance(json, dict):
@@ -11,11 +9,13 @@ def _flatten(json: JsonType) -> dict[str, JsonType]:
     else:
         return {"": json}
 
+
 def flatten(json: JsonType) -> dict[str, JsonType]:
     if isinstance(json, dict):
         return {f"{k1}{k2}": v for k1, d in json.items() for k2, v in _flatten(d).items()}
     else:
         return _flatten(json)
+
 
 if __name__ == "__main__":
     import json

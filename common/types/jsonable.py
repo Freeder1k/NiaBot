@@ -19,9 +19,8 @@ class Jsonable(ABC):
     @staticmethod
     def json_to_cls(cls: Type[T], json_obj: JsonType) -> T:
         if isinstance(json_obj, JsonBaseType):
-            if (json_obj is None) \
-                    or ((isinstance(cls, types.UnionType) or issubclass(cls, JsonBaseType))
-                        and isinstance(json_obj, cls)):
+            if ((json_obj is None) or (
+                    (isinstance(cls, types.UnionType) or issubclass(cls, JsonBaseType)) and isinstance(json_obj, cls))):
                 return json_obj
 
         elif isinstance(json_obj, dict):

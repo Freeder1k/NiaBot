@@ -5,7 +5,7 @@ from common.types.jsonable import JsonType
 from common.api import sessionManager, reservableRateLimit
 
 _rate_limit = reservableRateLimit.ReservableRateLimit(180, 1)
-_v3_session_id = sessionManager.register_session("https://beta-api.wynncraft.com")
+_v3_session_id = sessionManager.register_session("https://api.wynncraft.com")
 _rl_reset = 0
 _last_req_time = 0
 
