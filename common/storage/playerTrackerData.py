@@ -2,10 +2,11 @@ from datetime import datetime
 
 from async_lru import alru_cache
 
+import common.api.wynncraft.v3.guild
 import common.types.wynncraft
+from common.storage import manager
 from common.types.enums import PlayerStatsIdentifier
 from common.types.wynncraft import PlayerStats, WynncraftGuild
-from common.storage import manager
 
 
 @alru_cache(ttl=600)
@@ -39,10 +40,10 @@ async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = N
     uuids = None
     if guild is not None:
         try:
-            guild_stats: common.types.wynncraft.GuildStats = await common.wrappers.api.wynncraft.v3.guild.stats(
+            guild_stats: common.types.wynncraft.GuildStats = await common.api.wynncraft.v3.guild.stats(
                 name=guild.name)
             uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
-        except common.wrappers.api.wynncraft.v3.guild.UnknownGuildException:
+        except common.api.wynncraft.v3.guild.UnknownGuildException:
             raise ValueError(f"Guild {guild.name} not found.")
 
     params = (after, before) + (uuids if uuids is not None else ())
@@ -76,9 +77,9 @@ async def get_warcount(guild: WynncraftGuild = None) -> list[
     uuids = None
     if guild is not None:
         try:
-            guild_stats = await common.wrappers.api.wynncraft.v3.guild.stats(name=guild.name)
+            guild_stats = await common.api.wynncraft.v3.guild.stats(name=guild.name)
             uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
-        except common.wrappers.api.wynncraft.v3.guild.UnknownGuildException:
+        except common.api.wynncraft.v3.guild.UnknownGuildException:
             raise ValueError(f"Guild {guild.name} not found.")
 
     params = (uuids if uuids is not None else ())
@@ -113,9 +114,9 @@ async def get_warcount_relative(t_from: datetime, t_to: datetime, guild: Wynncra
     uuids = None
     if guild is not None:
         try:
-            guild_stats = await common.wrappers.api.wynncraft.v3.guild.stats(name=guild.name)
+            guild_stats = await common.api.wynncraft.v3.guild.stats(name=guild.name)
             uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
-        except common.wrappers.api.wynncraft.v3.guild.UnknownGuildException:
+        except common.api.wynncraft.v3.guild.UnknownGuildException:
             raise ValueError(f"Guild {guild.name} not found.")
 
     params = (t_from, t_to) + (uuids if uuids is not None else ())

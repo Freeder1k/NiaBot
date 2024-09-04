@@ -5,13 +5,12 @@ from dataclasses import dataclass
 
 import aiofiles
 
-from common import botConfig
 import common.utils.misc
 
 
 @dataclass
 class _ServerConfig:
-    cmd_prefix: str = botConfig.PREFIX
+    cmd_prefix: str = "."  # TODO use botconfig?
     member_role_id: int = 0
     strat_role_id: int = 0
     chief_role_id: int = 0
@@ -29,7 +28,8 @@ async def load_server_configs():
             content = await f.read()
             data = json.loads(content)
             global _server_configs
-            _server_configs = {int(server_id): common.utils.misc.dataclass_from_dict(_ServerConfig, v) for server_id, v in
+            _server_configs = {int(server_id): common.utils.misc.dataclass_from_dict(_ServerConfig, v) for server_id, v
+                               in
                                data.items()}
 
 
