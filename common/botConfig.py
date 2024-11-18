@@ -15,6 +15,7 @@ class BotConfig:
             config.add_section('MAIN')
             config.set('MAIN', 'PREFIX', '.')
             config.set('MAIN', 'DEV_USER_IDS', '[]')
+            config.set('MAIN', 'BOT_NAME', '')
 
             config.add_section('GUILD')
             config.set('GUILD', 'GUILD_NAME', 'Nerfuria')
@@ -32,6 +33,7 @@ class BotConfig:
         # MAIN
         self.PREFIX: Final = config.get('MAIN', 'PREFIX')
         self.DEV_USER_IDS: Final[list[str]] = ast.literal_eval(config.get('MAIN', 'DEV_USER_IDS'))
+        self.BOT_NAME: Final = config.get('MAIN', 'BOT_NAME')
 
         # GUILD
         self.GUILD_NAME: Final = config.get('GUILD', 'GUILD_NAME')
