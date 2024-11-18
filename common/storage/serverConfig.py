@@ -32,6 +32,9 @@ class ServerConfig:
         self._server_configs = {int(server_id): _Options(**v) for server_id, v in data.items()}
 
     async def save(self):
+        if not os.path.isfile(self.path):
+            os.makedirs(os.path.dirname(self.path), exist_ok=True)
+
         async with aiofiles.open(self.path, mode='w') as f:
             await f.write(json.dumps({k: dataclasses.asdict(v) for k, v in self._server_configs.items()}, indent=4))
 
