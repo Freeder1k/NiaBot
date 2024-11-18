@@ -1,15 +1,14 @@
 import dataclasses
 import json
 import os.path
+from collections import defaultdict
 from dataclasses import dataclass
 
 import aiofiles
 
-import common.utils.misc
-
 
 @dataclass
-class _ServerConfig:
+class _Options:
     cmd_prefix: str = "."  # TODO use botconfig?
     member_role_id: int = 0
     strat_role_id: int = 0
@@ -17,86 +16,27 @@ class _ServerConfig:
     log_channel_id: int = 0
 
 
-_server_configs: dict[int, _ServerConfig] = {}
-_default_conf = _ServerConfig()
-_configs_file = "data/server_conf.json"
+class ServerConfig:
+    def __init__(self, path: str):
+        self.path = path
+        self._server_configs = defaultdict(_Options)
 
+    async def load(self):
+        if not os.path.isfile(self.path):
+            return
 
-async def load_server_configs():
-    if os.path.isfile(_configs_file):
-        async with aiofiles.open(_configs_file, mode='r') as f:
+        async with aiofiles.open(self.path, mode='r') as f:
             content = await f.read()
-            data = json.loads(content)
-            global _server_configs
-            _server_configs = {int(server_id): common.utils.misc.dataclass_from_dict(_ServerConfig, v) for server_id, v
-                               in
-                               data.items()}
 
+        data = json.loads(content)
+        self._server_configs = {int(server_id): _Options(**v) for server_id, v in data.items()}
 
-async def _store_server_configs():
-    async with aiofiles.open(_configs_file, mode='w') as f:
-        await f.write(json.dumps({k: dataclasses.asdict(v) for k, v in _server_configs.items()}, indent=4))
+    async def save(self):
+        async with aiofiles.open(self.path, mode='w') as f:
+            await f.write(json.dumps({k: dataclasses.asdict(v) for k, v in self._server_configs.items()}, indent=4))
 
+    def get(self, server_id: int) -> _Options:
+        return self._server_configs.get(server_id)
 
-async def _set(server_id: int, attr: str, value):
-    if server_id not in _server_configs:
-        _server_configs[server_id] = _ServerConfig()
-
-    setattr(_server_configs[server_id], attr, value)
-    await _store_server_configs()
-
-
-def get_cmd_prefix(server_id: int) -> str:
-    return _server_configs.get(server_id, _default_conf).cmd_prefix
-
-
-async def set_cmd_prefix(server_id: int, prefix: str):
-    await _set(server_id, "cmd_prefix", prefix)
-
-
-def get_member_role_id(server_id: int) -> int:
-    """
-    Get the member role ID of the specified server
-    :returns: 0 if no member role is set, otherwise the ID.
-    """
-    return _server_configs.get(server_id, _default_conf).member_role_id
-
-
-async def set_member_role_id(server_id: int, role_id: int):
-    await _set(server_id, "member_role_id", role_id)
-
-
-def get_strat_role_id(server_id: int) -> int:
-    """
-    Get the strat role ID of the specified server
-    :returns: 0 if no strat role is set, otherwise the ID.
-    """
-    return _server_configs.get(server_id, _default_conf).strat_role_id
-
-
-async def set_strat_role_id(server_id: int, role_id: int):
-    await _set(server_id, "strat_role_id", role_id)
-
-
-def get_chief_role_id(server_id: int) -> int:
-    """
-    Get the chief role ID of the specified server
-    :returns: 0 if no chief role is set, otherwise the ID.
-    """
-    return _server_configs.get(server_id, _default_conf).chief_role_id
-
-
-async def set_chief_role_id(server_id: int, role_id: int):
-    await _set(server_id, "chief_role_id", role_id)
-
-
-def get_log_channel_id(server_id: int) -> int:
-    """
-    Get the info channel ID of the specified server
-    :returns: 0 if no info channel is set, otherwise the ID.
-    """
-    return _server_configs.get(server_id, _default_conf).log_channel_id
-
-
-async def set_log_channel_id(server_id: int, channel_id: int):
-    await _set(server_id, "log_channel_id", channel_id)
+    def __getitem__(self, server_id: int) -> _Options:
+        return self.get(server_id)
