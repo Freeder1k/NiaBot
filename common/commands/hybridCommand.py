@@ -11,6 +11,8 @@ from discord.utils import MISSING
 
 import common.logging
 from common.commands.commandEvent import CommandEvent, SlashCommandEvent
+from common.botInstance import BotInstance
+from common.commands import command
 
 _name_reg = re.compile(r"^[-\w]{1,32}$")
 
@@ -61,7 +63,7 @@ class CommandParam(discord.app_commands.transformers.CommandParameter):
         )
 
 
-class HybridCommand(common.handlers._commands.command.Command, discord.app_commands.Command):
+class HybridCommand(command.Command, discord.app_commands.Command):
     """
     Base class for a hybrid command that can be run either through a chat message with a prefix or as a slash command.
     This class should be inherited and the _execute method should be overridden to
@@ -74,11 +76,12 @@ class HybridCommand(common.handlers._commands.command.Command, discord.app_comma
                  params: list[CommandParam],
                  description: str,
                  base_perms: Permissions,
-                 permission_lvl: common.handlers._commands.command.PermissionLevel
+                 permission_lvl: command.PermissionLevel,
+                 bot: BotInstance
                  ):
         usage = f"{name} {' '.join([f'<{p.display_name}>' if p.required else f'[{p.display_name}]' for p in params])}"
 
-        common.handlers._commands.command.Command.__init__(self, name, aliases, usage, description, base_perms, permission_lvl)
+        command.Command.__init__(self, name, aliases, usage, description, base_perms, permission_lvl)
 
         async def empty_callback(interaction: discord.Interaction) -> typing.Any:
             pass
@@ -91,7 +94,7 @@ class HybridCommand(common.handlers._commands.command.Command, discord.app_comma
         )
 
         async def app_callback(interaction: discord.Interaction, **kwargs):
-            event = SlashCommandEvent(interaction, kwargs)
+            event = SlashCommandEvent(interaction, bot, kwargs)
             try:
                 await self.run(event)
             except (KeyboardInterrupt, SystemExit) as e:
