@@ -24,7 +24,7 @@ class BotInstance(discord.Client):
         intents.members = True
         super().__init__(intents=intents)
 
-        self.bot_config = bot_config
+        self.config = bot_config
         self.server_configs = ServerConfigs(f'data/server_configs/{bot_config.BOT_NAME}.json')
 
         self._tree = app_commands.CommandTree(self)
@@ -65,7 +65,7 @@ class BotInstance(discord.Client):
 
         common.logging.info("Starting workers...")
         workers.presenceUpdater.add_client(self)
-        workers.guildUpdater.add_guild(self.bot_config.GUILD_NAME, self._guild_logger)
+        workers.guildUpdater.add_guild(self.config.GUILD_NAME, self._guild_logger)
 
         common.logging.info("Syncing commands...")
         await self.sync_commands()

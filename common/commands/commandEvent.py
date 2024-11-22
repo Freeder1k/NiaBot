@@ -29,32 +29,32 @@ class CommandEvent:
         """
         Normal reply message.
         """
-        await self.reply(embed=Embed(color=botConfig.DEFAULT_COLOR, description=message))
+        await self.reply(embed=Embed(color=self.bot.config.DEFAULT_COLOR, description=message))
 
     async def reply_success(self, message: str):
         """
         Reply with a message that indicates success.
         """
-        await self.reply(embed=Embed(color=botConfig.SUCCESS_COLOR, description=f"{chr(0x2705)} {message}"))
+        await self.reply(embed=Embed(color=self.bot.config.SUCCESS_COLOR, description=f"{chr(0x2705)} {message}"))
 
     async def reply_error(self, message: str):
         """
         Reply with an error message.
         """
-        await self.reply(embed=Embed(color=botConfig.ERROR_COLOR, description=f"{chr(0x274c)} {message}"))
+        await self.reply(embed=Embed(color=self.bot.config.ERROR_COLOR, description=f"{chr(0x274c)} {message}"))
 
     async def reply_info(self, message: str):
         """
         Reply with an info message.
         """
-        await self.reply(embed=Embed(color=botConfig.INFO_COLOR, description=f":information_source: {message}"))
+        await self.reply(embed=Embed(color=self.bot.config.INFO_COLOR, description=f":information_source: {message}"))
 
     async def reply_exception(self, exception: Exception):
         """
         Reply, indicating that an exception occurred.
         """
         await self.reply(embed=Embed(
-            color=botConfig.ERROR_COLOR,
+            color=self.bot.config.ERROR_COLOR,
             title=f"A wild {type(exception)} appeared!",
             description="Please scream at the bot owner to fix it."
         ))
