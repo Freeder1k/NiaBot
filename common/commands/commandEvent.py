@@ -6,6 +6,7 @@ from discord import Embed
 from discord.context_managers import Typing
 
 from common import botConfig
+from common.botInstance import BotInstance
 
 
 @dataclass()
@@ -16,7 +17,7 @@ class CommandEvent:
     sender: discord.Member
     channel: discord.TextChannel
     guild: discord.Guild
-    client: discord.Client
+    bot: BotInstance
 
     async def reply(self, content: str = None, **kwargs):
         """
@@ -73,7 +74,7 @@ class PrefixedCommandEvent(CommandEvent):
     message: discord.Message
     args: list[str]
 
-    def __init__(self, message: discord.Message, args: list[str], client: discord.Client):
+    def __init__(self, message: discord.Message, args: list[str], client: BotInstance):
         super().__init__(message.author, message.channel, message.guild, client)
         self.message = message
         self.args = args
@@ -103,8 +104,8 @@ class SlashCommandEvent(CommandEvent):
     interaction: discord.Interaction
     args: dict
 
-    def __init__(self, interaction: discord.Interaction, args: dict):
-        super().__init__(interaction.user, interaction.channel, interaction.guild, interaction.client)
+    def __init__(self, interaction: discord.Interaction, bot: BotInstance, args: dict):
+        super().__init__(interaction.user, interaction.channel, interaction.guild, bot)
         self.interaction = interaction
         self.args = args
         self._not_replied = threading.Lock()
