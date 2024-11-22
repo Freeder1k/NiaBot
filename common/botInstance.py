@@ -7,8 +7,7 @@ import common.logging
 import workers.guildUpdater
 import workers.presenceUpdater
 from common.botConfig import BotConfig
-from common.commands import command
-from common.commands.commandListener import CommandListener
+from common.commands import command, messageParser
 from common.guildLogger import GuildLogger
 from common.storage.serverConfigs import ServerConfigs
 
@@ -32,8 +31,7 @@ class BotInstance(discord.Client):
         self._initialized = False
 
         self._commands = []
-
-        self._command_listener = CommandListener(self)
+        self._command_map: dict[str, command.Command] = {}
 
         self._guild_logger = GuildLogger(self, bot_config)
 
@@ -41,39 +39,38 @@ class BotInstance(discord.Client):
         """
         Registers new commands to the command listener.
         """
-        for cmd in new_commands:
-            self._commands.append(cmd)
-
         if self._initialized:
-            self._command_listener.register_commands(*new_commands)
+            raise Exception("Cannot add commands after initialization")
 
-            for cmd in new_commands:
-                if isinstance(cmd, app_commands.Command):
-                    self._tree.add_command(cmd)
+        self._commands += new_commands
+
+        for cmd in new_commands:
+            if isinstance(cmd, discord.app_commands.Command):
+                self._tree.add_command(cmd)
 
     async def sync_commands(self):
         """
-        Syncs the command tree with the discord API.
+        Syncs the commands with the bot.
         """
+        self._command_map = {cmd.name: cmd for cmd in self._commands}
+        self._command_map.update({alias: cmd for cmd in self._commands for alias in cmd.aliases})
+
         await self._tree.sync()
 
     async def _initialize(self):
         common.logging.info("Initializing...")
 
+        common.logging.info("Loading server configs...")
         await self.server_configs.load()
 
+        common.logging.info("Starting workers...")
         workers.presenceUpdater.add_client(self)
         workers.guildUpdater.add_guild(self.bot_config.GUILD_NAME, self._guild_logger)
 
-        self._command_listener.register_commands(*self._commands)
+        common.logging.info("Syncing commands...")
+        await self.sync_commands()
 
-        common.logging.info("Syncing command tree...")
-        for cmd in self._commands:
-            if isinstance(cmd, discord.app_commands.Command):
-                self._tree.add_command(cmd)
-
-        await self._tree.sync()
-
+        common.logging.info("Finished initialization")
         self._initialized = True
 
     async def on_ready(self):
@@ -83,11 +80,29 @@ class BotInstance(discord.Client):
             if not self._initialized:
                 await self._initialize()
 
-            common.logging.info("Ready")
             common.logging.info(f"Guilds: {[g.name for g in self.guilds]}")
         except Exception as e:
             await common.logging.error(exc_info=e)
             raise e
 
     async def on_message(self, message: discord.Message):
-        await asyncio.create_task(self._command_listener.on_message(message))
+        event = messageParser.parse_message(message, self)
+
+        if event is None:
+            return
+
+        cmd = self._command_map.get(event.args[0], None)
+
+        if cmd is None:
+            return
+
+        async def run_command():
+            try:
+                await cmd.run(event)
+            except (KeyboardInterrupt, SystemExit) as e:
+                raise e
+            except Exception as e:
+                common.logging.error(exc_info=e, extra={"command_event": event})
+                await event.reply_exception(e)
+
+        await asyncio.create_task(run_command())
