@@ -5,7 +5,6 @@ from discord.ext import tasks
 
 import common.logging
 import common.logging
-import common.logging2
 import common.api.rateLimit
 import common.api
 import common.api.minecraft

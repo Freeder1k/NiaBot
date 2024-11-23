@@ -1,4 +1,6 @@
 import asyncio
+from types import TracebackType
+from typing import Optional, Type
 
 import discord
 from discord import app_commands
@@ -33,7 +35,7 @@ class BotInstance(discord.Client):
         self._commands = []
         self._command_map: dict[str, command.Command] = {}
 
-        self._guild_logger = GuildLogger(self, self.config)
+        self._guild_logger = GuildLogger(self)
 
     def add_commands(self, *new_commands: command.Command):
         """
@@ -73,11 +75,11 @@ class BotInstance(discord.Client):
         common.logging.info("Initializing...")
 
         common.logging.info("Loading server configs...")
-        await self.server_configs.load()
+        self.server_configs.load()
 
         common.logging.info("Starting workers...")
         workers.presenceUpdater.add_client(self)
-        workers.guildUpdater.add_guild(self.config.GUILD_NAME, self._guild_logger)
+        # workers.guildUpdater.add_guild(self.config.GUILD_NAME, self._guild_logger)
 
         common.logging.info("Syncing commands...")
         await self.sync_commands()
@@ -118,3 +120,11 @@ class BotInstance(discord.Client):
                 await event.reply_exception(e)
 
         await asyncio.create_task(run_command())
+
+    async def launch(self):
+        async with self:
+            await self.start(self.config.BOT_TOKEN)
+
+    async def stop(self):
+        # TODO
+        await self.close()

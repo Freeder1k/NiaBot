@@ -8,7 +8,7 @@ import common.logging
 import common.api
 import common.api.wynncraft.v3.guild
 import common.api.wynncraft.v3.player
-from common.storage import set_playtime
+from common.storage.playtimeData import set_playtime
 
 
 async def _update_playtime(uuid: str):

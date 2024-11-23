@@ -1,24 +1,24 @@
-from discord import Client
+from __future__ import annotations
+
 from discord import Embed, TextChannel
 from discord.utils import escape_markdown
 
 import common.logging
 import common.utils.misc
-from common.botConfig import BotConfig
-from common.storage import guildMemberLogData, serverConfig
+from common import botInstance
+from common.storage import guildMemberLogData
 from common.types.enums import LogEntryType
 
 
 class GuildLogger:
-    def __init__(self, client: Client, bot_config: BotConfig):
-        self.client = client
-        self.bot_config = bot_config
+    def __init__(self, bot: botInstance.BotInstance):
+        self.bot = bot
 
     async def _upload_to_discord(self, embed):
-        channel_id = serverConfig.get_log_channel_id(self.bot_config.GUILD_DISCORD)
+        channel_id = self.bot.server_configs.get(self.bot.config.GUILD_DISCORD).log_channel_id
         if channel_id == 0:
             return
-        channel = self.client.get_channel(channel_id)
+        channel = self.bot.get_channel(channel_id)
         if not isinstance(channel, TextChannel):
             print(channel)
             common.logging.error("Log channel for guild server is not text channel!")
@@ -38,7 +38,7 @@ class GuildLogger:
         """
         em = Embed(
             title=f"**{escape_markdown(username)} has joined the guild**",
-            color=self.bot_config.DEFAULT_COLOR,
+            color=self.bot.config.DEFAULT_COLOR,
         )
         em.set_footer(text=f"UUID: {common.utils.misc.format_uuid(uuid)}")
 
@@ -54,7 +54,7 @@ class GuildLogger:
         """
         em = Embed(
             title=f"**{escape_markdown(username)} has left the guild**",
-            color=self.bot_config.DEFAULT_COLOR,
+            color=self.bot.config.DEFAULT_COLOR,
         )
         em.set_footer(text=f"UUID: {common.utils.misc.format_uuid(uuid)}")
 
@@ -70,7 +70,7 @@ class GuildLogger:
         """
         em = Embed(
             title=f"Name changed: **{escape_markdown(prev_name)} -> {escape_markdown(new_name)}**",
-            color=self.bot_config.DEFAULT_COLOR,
+            color=self.bot.config.DEFAULT_COLOR,
         )
         em.set_footer(text=f"UUID: {common.utils.misc.format_uuid(uuid)}")
 

@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import re
 
 from discord import Message, TextChannel
 
-from common.botInstance import BotInstance
+from common import botInstance
 from common.commands.commandEvent import PrefixedCommandEvent
 
 
-def parse_message(message: Message, bot: BotInstance) -> PrefixedCommandEvent | None:
+def parse_message(message: Message, bot: botInstance.BotInstance) -> PrefixedCommandEvent | None:
     """
     Parses a message for commands. Returns a PrefixedCommandEvent if a command was found, otherwise None.
     """

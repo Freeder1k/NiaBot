@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from enum import IntEnum
 from typing import Collection
@@ -5,7 +7,7 @@ from typing import Collection
 from discord import Permissions, Member, Embed
 
 import common.utils.discord
-from common.botInstance import BotInstance
+from common import botInstance
 from common.commands.commandEvent import CommandEvent
 
 
@@ -79,7 +81,7 @@ class Command(ABC):
 
         await event.reply(embed=embed)
 
-    def _allowed_user(self, member: Member, bot: BotInstance) -> bool:
+    def _allowed_user(self, member: Member, bot: botInstance.BotInstance) -> bool:
         if member.id in bot.config.DEV_USER_IDS:
             return True
 

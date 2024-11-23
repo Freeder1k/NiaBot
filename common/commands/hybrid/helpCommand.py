@@ -3,7 +3,7 @@ from discord import Permissions, Embed
 
 from common.botInstance import BotInstance
 from common.commands import command
-from common.commands.commandEvent import PrefixedCommandEvent
+from common.commands.commandEvent import PrefixedCommandEvent, CommandEvent, SlashCommandEvent
 from common.commands.hybridCommand import HybridCommand, CommandParam
 
 
@@ -13,16 +13,21 @@ class HelpCommand(HybridCommand):
             name="help",
             aliases=("?", "h"),
             params=[CommandParam("cmd", "The name of a command.",
-                                 required=False, ptype=discord.AppCommandOptionType.string)],
+                                 required=False, ptype=discord.AppCommandOptionType.string, default=None)],
             description="Displays the command list or info on a command if one is specified.",
             base_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE,
             bot=bot
         )
 
-    async def _execute(self, event: PrefixedCommandEvent):
-        if len(event.args) > 1:
+    async def _execute(self, event: CommandEvent):
+        cmd = None
+        if isinstance(event, PrefixedCommandEvent) and len(event.args) > 1:
             cmd = event.args[1]
+        elif isinstance(event, SlashCommandEvent):
+            cmd = event.args["cmd"]
+
+        if cmd is not None:
             cmd_map = event.bot.get_command_map()
             if cmd in cmd_map:
                 await cmd_map[cmd].man(event)

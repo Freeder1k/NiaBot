@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import threading
 from dataclasses import dataclass
 
@@ -5,7 +7,7 @@ import discord
 from discord import Embed
 from discord.context_managers import Typing
 
-from common.botInstance import BotInstance
+from common import botInstance
 
 
 @dataclass()
@@ -16,7 +18,7 @@ class CommandEvent:
     sender: discord.Member
     channel: discord.TextChannel
     guild: discord.Guild
-    bot: BotInstance
+    bot: botInstance.BotInstance
 
     async def reply(self, content: str = None, **kwargs):
         """
@@ -70,7 +72,7 @@ class PrefixedCommandEvent(CommandEvent):
     message: discord.Message
     args: list[str]
 
-    def __init__(self, message: discord.Message, args: list[str], client: BotInstance):
+    def __init__(self, message: discord.Message, args: list[str], client: botInstance.BotInstance):
         super().__init__(message.author, message.channel, message.guild, client)
         self.message = message
         self.args = args
@@ -100,7 +102,7 @@ class SlashCommandEvent(CommandEvent):
     interaction: discord.Interaction
     args: dict
 
-    def __init__(self, interaction: discord.Interaction, bot: BotInstance, args: dict):
+    def __init__(self, interaction: discord.Interaction, bot: botInstance.BotInstance, args: dict):
         super().__init__(interaction.user, interaction.channel, interaction.guild, bot)
         self.interaction = interaction
         self.args = args
@@ -109,6 +111,7 @@ class SlashCommandEvent(CommandEvent):
     async def reply(self, content: str = None, **kwargs):
         if self._not_replied.acquire(blocking=False):
             await self.interaction.response.send_message(content, **kwargs)
+            return
         await self.interaction.followup.send(content, **kwargs)
 
     def waiting(self) -> Typing | Defer:
