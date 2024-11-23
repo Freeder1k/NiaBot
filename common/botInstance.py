@@ -57,6 +57,12 @@ class BotInstance(discord.Client):
 
         await self._tree.sync()
 
+    def get_command_map(self) -> dict[str, command.Command]:
+        """
+        Gets the command map.
+        """
+        return self._command_map
+
     async def _initialize(self):
         common.logging.info("Initializing...")
 
