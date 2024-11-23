@@ -1,6 +1,4 @@
 import asyncio
-from types import TracebackType
-from typing import Optional, Type
 
 import discord
 from discord import app_commands

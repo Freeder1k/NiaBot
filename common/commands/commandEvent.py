@@ -55,7 +55,7 @@ class CommandEvent:
         Reply, indicating that an exception occurred.
         """
         await self.reply(embed=Embed(color=self.bot.config.ERROR_COLOR, title=f"A wild {type(exception)} appeared!",
-            description="Please scream at the bot owner to fix it."))
+                                     description="Please scream at the bot owner to fix it."))
 
     def waiting(self) -> Typing:
         """
