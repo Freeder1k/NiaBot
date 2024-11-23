@@ -30,7 +30,6 @@ def _load_guilds():
 
 
 def _store_guilds():
-    print(_guilds['Nerfuria'].members.chief)
     with open(f"data/guilds.json", "w") as f:
         json.dump({name: dataclasses.asdict(data) for name, data in _guilds.items()}, f, indent=4)
 

@@ -33,7 +33,7 @@ def stop_workers():
     common.logging.info("Stopping workers...")
     # workers.statTracker.stop()
     # workers.usernameUpdater.stop()
-    # workers.guildUpdater.guild_updater.stop()
+    workers.guildUpdater.guild_updater.stop()
     workers.presenceUpdater.update_presence.stop()
     # workers.playtimeTracker.update_playtimes.stop()
 
