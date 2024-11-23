@@ -56,8 +56,6 @@ async def main():
 
             await niabot.wait_until_ready()
 
-            await asyncio.sleep(1)
-
             start_workers()
 
             # today = datetime.now(timezone.utc).date()
