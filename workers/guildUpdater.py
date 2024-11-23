@@ -30,6 +30,7 @@ def _load_guilds():
 
 
 def _store_guilds():
+    print(_guilds['Nerfuria'].members.chief)
     with open(f"data/guilds.json", "w") as f:
         json.dump({name: dataclasses.asdict(data) for name, data in _guilds.items()}, f, indent=4)
 
@@ -98,10 +99,10 @@ async def _update_guild(name: str):
 
             guild_logger = _guild_loggers[guild_now.name]
 
-            for uuid, name in joined.items():
-                await guild_logger.log_member_join(name, uuid)
-            for uuid, name in left.items():
-                await guild_logger.log_member_leave(name, uuid)
+            for uuid, pname in joined.items():
+                await guild_logger.log_member_join(pname, uuid)
+            for uuid, pname in left.items():
+                await guild_logger.log_member_leave(pname, uuid)
 
         _guilds[name] = guild_now
     except common.api.rateLimit.RateLimitException:
