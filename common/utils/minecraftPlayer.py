@@ -45,7 +45,7 @@ async def get_players(*, uuids: list[str] = None, usernames: list[str] = None) -
     unkown_uuids = set(uuids) - known_uuids
     unknown_names = set(usernames) - known_names
 
-    if len(unkown_uuids) + len(unknown_names) > common.api.minecraft._mojang_rate_limit.calculate_remaining_calls():
+    if len(unkown_uuids) + len(unknown_names) > common.api.minecraft.calculate_remaining_calls():
         raise common.api.rateLimit.RateLimitException("API usage would exceed ratelimit!")
 
     if len(unkown_uuids) > 0:

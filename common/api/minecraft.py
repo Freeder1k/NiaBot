@@ -38,6 +38,12 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
             json = await resp.json()
             return MinecraftPlayer(json["id"], json["name"])
 
+def calculate_remaining_calls() -> int:
+    """
+    Calculate the remaining calls to the mojang api.
+    """
+    return _mojang_rate_limit.calculate_remaining_calls()
+
 
 async def get_players(usernames: list[str]) -> dict[str, MinecraftPlayer]:
     """
