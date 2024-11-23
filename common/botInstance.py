@@ -63,6 +63,12 @@ class BotInstance(discord.Client):
         """
         return self._command_map
 
+    def get_commands(self) -> list[command.Command]:
+        """
+        Gets the command list.
+        """
+        return self._commands
+
     async def _initialize(self):
         common.logging.info("Initializing...")
 
