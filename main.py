@@ -20,6 +20,7 @@ class Niabot(BotInstance):
 
 
 def start_workers():
+    common.logging.info("Starting workers...")
     # workers.playtimeTracker.update_playtimes.start()
     workers.presenceUpdater.update_presence.start()
     # workers.guildUpdater.guild_updater.start()
@@ -28,6 +29,7 @@ def start_workers():
 
 
 def stop_workers():
+    common.logging.info("Stopping workers...")
     # workers.statTracker.stop()
     # workers.usernameUpdater.stop()
     # workers.guildUpdater.guild_updater.stop()

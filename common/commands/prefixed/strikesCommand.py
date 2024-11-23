@@ -42,7 +42,7 @@ class StrikesCommand(command.Command):
         if user is not None:
             name = user.display_name
         else:
-            user = event.client.get_user(user_id)
+            user = event.bot.get_user(user_id)
             if user is not None:
                 name = user.name
 
