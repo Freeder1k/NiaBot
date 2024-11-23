@@ -24,6 +24,8 @@ class BotInstance(discord.Client):
         intents.members = True
         super().__init__(intents=intents)
 
+        self.bot_id = bot_id
+
         self.config = BotConfig(f'data/bot_configs/{bot_id}.ini')
         self.server_configs = ServerConfigs(f'data/server_configs/{bot_id}.json')
 
@@ -69,33 +71,30 @@ class BotInstance(discord.Client):
         """
         return self._commands
 
-    async def _initialize(self):
-        common.logging.info("Initializing...")
-
-        common.logging.info("Loading server configs...")
-        self.server_configs.load()
-
-        common.logging.info("Starting workers...")
-        workers.presenceUpdater.add_client(self)
-        # workers.guildUpdater.add_guild(self.config.GUILD_NAME, self._guild_logger)
-
-        common.logging.info("Syncing commands...")
-        await self.sync_commands()
-
-        common.logging.info("Finished initialization")
-        self._initialized = True
-
-    async def on_ready(self):
+    async def setup_hook(self):
         try:
             common.logging.info(f"Logged in as {self.user}")
 
-            if not self._initialized:
-                await self._initialize()
+            common.logging.info("Initializing...")
 
-            common.logging.info(f"Guilds: {[g.name for g in self.guilds]}")
+            common.logging.info("Loading server configs...")
+            self.server_configs.load()
+
+            common.logging.info("Subscribing to workers...")
+            workers.presenceUpdater.add_client(self)
+            workers.guildUpdater.add_guild(self.config.GUILD_NAME, self._guild_logger)
+
+            common.logging.info("Syncing commands...")
+            await self.sync_commands()
+
+            common.logging.info("Finished initialization")
+            self._initialized = True
         except Exception as e:
             await common.logging.error(exc_info=e)
             raise e
+
+    async def on_ready(self):
+        common.logging.info(f"Guilds for {self.bot_id}: {[g.name for g in self.guilds]}")
 
     async def on_message(self, message: discord.Message):
         event = messageParser.parse_message(message, self)

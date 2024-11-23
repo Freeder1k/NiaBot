@@ -1,13 +1,14 @@
 import asyncio
 
+from common.botInstance import BotInstance
+
 import common.api.sessionManager
 import common.logging
 import common.storage.manager
 # import common.storage.playtimeData
-# import workers.guildUpdater
+import workers.guildUpdater
 # import workers.playtimeTracker
 import workers.presenceUpdater
-from common.botInstance import BotInstance
 # import workers.statTracker
 # import workers.usernameUpdater
 from common.commands.hybrid import HelpCommand
@@ -23,7 +24,7 @@ def start_workers():
     common.logging.info("Starting workers...")
     # workers.playtimeTracker.update_playtimes.start()
     workers.presenceUpdater.update_presence.start()
-    # workers.guildUpdater.guild_updater.start()
+    workers.guildUpdater.guild_updater.start()
     # workers.usernameUpdater.start()
     # workers.statTracker.start()
 
@@ -49,7 +50,14 @@ async def main():
         await common.api.sessionManager.init_sessions()
 
         async with asyncio.TaskGroup() as tg:
-            tg.create_task(niabot.launch())
+            await niabot.login(niabot.config.BOT_TOKEN)
+            tg.create_task(niabot.connect())
+
+
+            await niabot.wait_until_ready()
+
+            await asyncio.sleep(1)
+
             start_workers()
 
             # today = datetime.now(timezone.utc).date()
