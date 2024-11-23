@@ -25,7 +25,7 @@ class HelpCommand(command.Command):
             cmd = event.args[1]
             cmd_map = commandListener.get_command_map()
             if cmd in cmd_map:
-                await cmd_map[cmd].send_help(event.channel)
+                await cmd_map[cmd].man(event)
             else:
                 await common.utils.discord.send_error(event.channel, f"Unknown command: ``{cmd}``")
             return

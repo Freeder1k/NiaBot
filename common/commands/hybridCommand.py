@@ -104,5 +104,5 @@ class HybridCommand(command.Command, discord.app_commands.Command):
         self.guild_only = True
 
     @abstractmethod
-    async def _execute(self, command_event: CommandEvent):
+    async def _execute(self, event: CommandEvent):
         pass
