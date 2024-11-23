@@ -1,40 +1,40 @@
+import discord
 from discord import Permissions, Embed
 
-import common.utils.discord
-from common.commands import commandListener
+from common.botInstance import BotInstance
 from common.commands import command
 from common.commands.commandEvent import PrefixedCommandEvent
-from common import botConfig
-from common.storage import serverConfig
+from common.commands.hybridCommand import HybridCommand, CommandParam
 
 
-class HelpCommand(command.Command):
-
-    def __init__(self):
+class HelpCommand(HybridCommand):
+    def __init__(self, bot: BotInstance):
         super().__init__(
-            "help",
-            ("?", "h"),
-            f"help [command]",
-            "Displays the command list or info on a command if one is specified.",
-            Permissions().none(),
-            command.PermissionLevel.ANYONE
+            name="help",
+            aliases=("?", "h"),
+            params=[CommandParam("cmd", "The name of a command.",
+                                 required=False, ptype=discord.AppCommandOptionType.string)],
+            description="Displays the command list or info on a command if one is specified.",
+            base_perms=Permissions().none(),
+            permission_lvl=command.PermissionLevel.ANYONE,
+            bot=bot
         )
 
     async def _execute(self, event: PrefixedCommandEvent):
         if len(event.args) > 1:
             cmd = event.args[1]
-            cmd_map = commandListener.get_command_map()
+            cmd_map = event.bot.get_command_map()
             if cmd in cmd_map:
                 await cmd_map[cmd].man(event)
             else:
-                await common.utils.discord.send_error(event.channel, f"Unknown command: ``{cmd}``")
+                await event.reply_error(f"Unknown command: ``{cmd}``")
             return
 
-        commands = commandListener.get_commands()
-        cmd_prefix = serverConfig.get_cmd_prefix(event.guild.id)
+        commands = event.bot.get_commands()
+        cmd_prefix = event.bot.server_configs.get(event.guild.id).cmd_prefix
 
         help_embed = Embed(
-            color=botConfig.DEFAULT_COLOR,
+            color=event.bot.config.DEFAULT_COLOR,
             title="**Help:**",
             description=f"Bot prefix: ``{cmd_prefix}``\n"
                         f"See: ``{cmd_prefix}help <command>`` for help on individual commands.\n"
@@ -53,7 +53,7 @@ class HelpCommand(command.Command):
             help_embed.add_field(name="**Strat+ Commands:**", value='\n'.join(mod), inline=False)
         if len(admin) > 0:
             help_embed.add_field(name="**Chief Commands:**", value='\n'.join(admin), inline=False)
-        if len(dev) > 0 and event.sender.id in botConfig.DEV_USER_IDS:
+        if len(dev) > 0 and event.sender.id in event.bot.config.DEV_USER_IDS:
             help_embed.add_field(name="**Dev Commands:**", value='\n'.join(dev), inline=False)
 
-        await event.channel.send(embed=help_embed)
+        await event.reply(embed=help_embed)
