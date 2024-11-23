@@ -13,6 +13,12 @@ _clients: list[Client] = []
 def add_client(client: Client):
     _clients.append(client)
 
+def remove_client(client: Client):
+    for i, c in enumerate(_clients):
+        if c.user.id == client.user.id:
+            _clients.pop(i)
+            return
+
 
 @tasks.loop(seconds=61, reconnect=True)
 async def update_presence():

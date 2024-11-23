@@ -123,6 +123,7 @@ class BotInstance(discord.Client):
         async with self:
             await self.start(self.config.BOT_TOKEN)
 
-    async def stop(self):
-        # TODO
-        await self.close()
+    async def close(self) -> None:
+        workers.presenceUpdater.remove_client(self)
+
+        await super().close()
