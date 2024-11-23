@@ -13,19 +13,19 @@ from common.storage.serverConfigs import ServerConfigs
 
 
 class BotInstance(discord.Client):
-    def __init__(self, bot_config: BotConfig):
+    def __init__(self, bot_id: str):
         """
         Crate a new bot instance. This is the main class that handles the bot's functionality.
 
-        :param bot_config: The bot's configuration.
+        :param bot_id: The bot's name id.
         """
         intents = discord.Intents.default()
         intents.message_content = True
         intents.members = True
         super().__init__(intents=intents)
 
-        self.config = bot_config
-        self.server_configs = ServerConfigs(f'data/server_configs/{bot_config.BOT_NAME}.json')
+        self.config = BotConfig(f'data/bot_configs/{bot_id}.ini')
+        self.server_configs = ServerConfigs(f'data/server_configs/{bot_id}.json')
 
         self._tree = app_commands.CommandTree(self)
         self._initialized = False
@@ -33,7 +33,7 @@ class BotInstance(discord.Client):
         self._commands = []
         self._command_map: dict[str, command.Command] = {}
 
-        self._guild_logger = GuildLogger(self, bot_config)
+        self._guild_logger = GuildLogger(self, self.config)
 
     def add_commands(self, *new_commands: command.Command):
         """
