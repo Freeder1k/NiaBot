@@ -1,7 +1,6 @@
 import re
-import typing
 from abc import abstractmethod
-from typing import Collection
+from typing import Collection, Any, Union, List, Optional, Callable, Coroutine
 
 import discord.app_commands
 import discord.ext.commands
@@ -10,9 +9,9 @@ from discord.app_commands import Choice, locale_str
 from discord.utils import MISSING
 
 import common.logging
-from common.commands.commandEvent import CommandEvent, SlashCommandEvent
 from common.botInstance import BotInstance
 from common.commands import command
+from common.commands.commandEvent import CommandEvent, SlashCommandEvent
 
 _name_reg = re.compile(r"^[-\w]{1,32}$")
 
@@ -22,20 +21,20 @@ class CommandParam(discord.app_commands.transformers.CommandParameter):
     Describes a parameter for a slash command.
     """
 
-    def __init__(
-            self, name: str,
-            description: str,
-            required: bool = False,
-            default: typing.Any = MISSING,
-            display_name: typing.Union[str, locale_str] = MISSING,
-            choices: typing.List[Choice[typing.Union[str, int, float]]] = MISSING,
-            ptype: discord.AppCommandOptionType = MISSING,
-            channel_types: typing.List[ChannelType] = MISSING,
-            min_value: typing.Optional[typing.Union[int, float]] = None,
-            max_value: typing.Optional[typing.Union[int, float]] = None,
-            autocomplete: typing.Optional[
-                typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, typing.Any]]] = None,
-    ):
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 required: bool = False,
+                 default: Any = MISSING,
+                 display_name: Union[str,
+                 locale_str] = MISSING,
+                 choices: List[Choice[Union[str, int, float]]] = MISSING,
+                 ptype: discord.AppCommandOptionType = MISSING,
+                 channel_types: List[ChannelType] = MISSING,
+                 min_value: Optional[Union[int, float]] = None,
+                 max_value: Optional[Union[int, float]] = None,
+                 autocomplete: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None
+                 ):
         if not re.match(_name_reg, name) or len(name) > 32:
             raise TypeError(f"Name {name!r} is not a valid name.")
 
@@ -83,15 +82,11 @@ class HybridCommand(command.Command, discord.app_commands.Command):
 
         command.Command.__init__(self, name, aliases, usage, description, base_perms, permission_lvl)
 
-        async def empty_callback(interaction: discord.Interaction) -> typing.Any:
+        async def empty_callback(interaction: discord.Interaction) -> Any:
             pass
 
-        discord.app_commands.Command.__init__(
-            self,
-            name=self.name,
-            description=self.description,
-            callback=empty_callback
-        )
+        discord.app_commands.Command.__init__(self, name=self.name, description=self.description,
+                                              callback=empty_callback)
 
         async def app_callback(interaction: discord.Interaction, **kwargs):
             event = SlashCommandEvent(interaction, bot, kwargs)
