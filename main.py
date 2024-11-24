@@ -10,7 +10,7 @@ import workers.guildUpdater
 # import workers.playtimeTracker
 import workers.presenceUpdater
 # import workers.statTracker
-# import workers.usernameUpdater
+import workers.usernameUpdater
 from common.commands.hybrid import HelpCommand
 
 
@@ -25,14 +25,14 @@ def start_workers():
     # workers.playtimeTracker.update_playtimes.start()
     workers.presenceUpdater.update_presence.start()
     workers.guildUpdater.guild_updater.start()
-    # workers.usernameUpdater.start()
+    workers.usernameUpdater.start()
     # workers.statTracker.start()
 
 
 def stop_workers():
     common.logging.info("Stopping workers...")
     # workers.statTracker.stop()
-    # workers.usernameUpdater.stop()
+    workers.usernameUpdater.stop()
     workers.guildUpdater.guild_updater.stop()
     workers.presenceUpdater.update_presence.stop()
     # workers.playtimeTracker.update_playtimes.stop()

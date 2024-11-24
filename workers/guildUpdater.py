@@ -13,10 +13,29 @@ from common.api.wynncraft.v3 import guild
 from common.guildLogger import GuildLogger
 from common.types.wynncraft import GuildStats
 from common.utils import minecraftPlayer
+from workers import usernameUpdater
+from common.utils.misc import format_uuid
 
 _guilds: dict[str, GuildStats | None] = {}
 _active_guilds: list[str] = []
 _guild_loggers: dict[str, GuildLogger] = {}
+
+
+class NameChangeLogger(usernameUpdater.NameChangeSubscriber):
+    def __init__(self, guild_name: str):
+        self.guild_name = guild_name
+
+    async def name_changed(self, uuid: str, prev_name: str, new_name: str):
+        try:
+            g = await guild.stats(name=self.guild_name)
+        except Exception as e:
+            common.logging.error(f"Name change logger failed to fetch guild data for bot guild {self.guild_name}!", e)
+            return
+
+        if format_uuid(uuid, dashed=True) not in g.members.all:
+            return
+
+        await _guild_loggers[self.guild_name].log_member_name_change(uuid, prev_name, new_name)
 
 
 def _load_guilds():
@@ -66,6 +85,8 @@ def add_guild(name: str, guild_logger: GuildLogger):
     """
     _active_guilds.append(name)
     _guild_loggers[name] = guild_logger
+
+    usernameUpdater.subscribe(NameChangeLogger(name))
 
     if _guilds == {}:
         _load_guilds()

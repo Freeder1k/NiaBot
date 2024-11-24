@@ -1,9 +1,10 @@
+import asyncio
 from http import HTTPStatus
 
 from common.types.dataTypes import MinecraftPlayer
 from . import sessionManager, rateLimit
 
-_mojang_rate_limit = rateLimit.RateLimit(200, 1)
+_mojang_rate_limit = rateLimit.RateLimit(30, 1)
 _mc_services_rate_limit = rateLimit.RateLimit(10, 1)
 
 _mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")
@@ -43,6 +44,10 @@ def calculate_remaining_calls() -> int:
     Calculate the remaining calls to the mojang api.
     """
     return _mojang_rate_limit.calculate_remaining_calls()
+
+async def wait_on_rate_limit():
+    wait_time = _mojang_rate_limit.get_time_until_next_free()
+    await asyncio.sleep(wait_time + 1)
 
 
 async def get_players(usernames: list[str]) -> dict[str, MinecraftPlayer]:

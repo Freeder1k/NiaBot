@@ -1,96 +1,72 @@
 import asyncio
+from abc import ABC, abstractmethod
 
 import aiohttp.client_exceptions
 from discord.ext import tasks
 
-import common.logging
-import common.logging
-import common.api.rateLimit
-import common.api
 import common.api.minecraft
+import common.api.rateLimit
 import common.api.wynncraft.v3.guild
 import common.api.wynncraft.v3.player
 import common.api.wynncraft.v3.session
+import common.logging
 import common.storage.playerTrackerData
 import common.storage.usernameData
 from common.types.dataTypes import MinecraftPlayer
 from common.types.enums import PlayerIdentifier
 from workers.queueWorker import QueueWorker
-from common import botConfig
 
 _online_players: set[str] = set()
 _updated_players: list[tuple[MinecraftPlayer, MinecraftPlayer]] = []
 _worker = QueueWorker(delay=0.5)
 
 
-async def _log_name_changes():
-    await _worker.join()
-
-    if len(_updated_players) == 0:
-        return
-
-    try:
-        guild = await common.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME)
-    except Exception as e:
-        common.logging.error("Failed to fetch guild data for bot guild!", e)
-        return
+class NameChangeSubscriber(ABC):
+    @abstractmethod
+    async def name_changed(self, uuid: str, prev_name: str, new_name: str):
+        pass
 
 
-    prev_names, updated_names = zip(*_updated_players)
-    _updated_players.clear()
+_subscribers: list[NameChangeSubscriber] = []
 
-    prev_names_dict = {p.uuid: p.name for p in prev_names if p is not None}
 
-    guild_members = {uuid.replace("-", "") for uuid in guild.members.all.keys()}
-    updated_guild_members = [p for p in updated_names if p.uuid in guild_members]
+def subscribe(subscriber: NameChangeSubscriber):
+    """
+    Subscribe to name change updates.
+    """
+    _subscribers.append(subscriber)
 
-    for player in updated_guild_members:
-        await common.logging.log_member_name_change(player.uuid,
-                                                    prev_names_dict.get(player.uuid, "*unknown*"),
-                                                    player.name)
+
+async def _fetch_and_update_username(username: str, tries: int = 1):
+    if common.api.minecraft.calculate_remaining_calls() < 1:
+        await common.api.minecraft.wait_on_rate_limit()
 
     try:
-        guild2 = await common.api.wynncraft.v3.guild.stats(name=botConfig.GUILD_NAME2)
-    except Exception as e:
-        common.logging.error("Failed to fetch guild data for bot guild2!", e)
-        return
-
-    guild_members = {uuid.replace("-", "") for uuid in guild2.members.all.keys()}
-    updated_guild_members = [p for p in updated_names if p.uuid in guild_members]
-
-    for player in updated_guild_members:
-        await common.logging2.log_member_name_change(player.uuid,
-                                                     prev_names_dict.get(player.uuid, "*unknown*"),
-                                                     player.name)
-
-
-async def _fetch_and_update_usernames(usernames: list[str]):
-    if common.api.minecraft._mc_services_rate_limit.calculate_remaining_calls() < 2:
-        wait_time = common.api.minecraft._mc_services_rate_limit.get_time_until_next_free()
-        await asyncio.sleep(wait_time + 1)
-
-    try:
-        players = await common.api.minecraft.get_players(usernames=usernames)
+        player = await common.api.minecraft.get_player(username=username)
     except common.api.rateLimit.RateLimitException as e:
         common.logging.error("Rate limit reached for mojang api!", e)
-        wait_time = common.api.minecraft._mc_services_rate_limit.get_time_until_next_free()
-        print(wait_time)
-        await asyncio.sleep(wait_time + 1)
-        _worker.put(_fetch_and_update_usernames, usernames)
+        await common.api.minecraft.wait_on_rate_limit()
+        _worker.put(_fetch_and_update_username, username)
         return
     except aiohttp.client_exceptions.ClientError as e:
-        await asyncio.sleep(60)
-        _worker.put(_fetch_and_update_usernames, usernames)
-        common.logging.error("Failed usernames: ", usernames)
+        common.logging.error(f"Failed to update username ({tries}/3): ", username)
+        if tries <= 3:
+            await asyncio.sleep(60)
+            _worker.put(_fetch_and_update_username, username, tries + 1)
         raise e
 
-    for name in usernames:
-        if name not in players:
-            common.logging.debug(f"{name} is not a minecraft name but online on wynncraft!")
+    if player is None:
+        common.logging.debug(f"{username} is not a minecraft name but online on wynncraft ({tries}/3)!")
+        if tries <= 3:
+            await asyncio.sleep(60)
+            _worker.put(_fetch_and_update_username, username, tries + 1)
+        return
 
-    for p in players.values():
-        prev_p = await common.storage.usernameData.update(p.uuid, p.name)
-        _updated_players.append((prev_p, p))
+    prev_p = await common.storage.usernameData.update(player.uuid, player.name)
+
+    if prev_p is not None and prev_p.name != player.name:
+        for subscriber in _subscribers:
+            await subscriber.name_changed(player.uuid, prev_p.name, player.name)
 
 
 @tasks.loop(seconds=61, reconnect=True)
@@ -98,21 +74,19 @@ async def _update_usernames():
     try:
         global _online_players
         prev_online_players = _online_players
-        _online_players = (
-            await common.api.wynncraft.v3.player.player_list(identifier=PlayerIdentifier.USERNAME)).keys()
+        _online_players = set((await common.api.wynncraft.v3.player.player_list(PlayerIdentifier.USERNAME)).keys())
 
         joined_players = _online_players - prev_online_players
 
         known_names = {p.name for p in await common.storage.usernameData.get_players(usernames=list(joined_players))}
         unknown_names = [name for name in joined_players if name not in known_names]
 
-        for i in range(0, len(unknown_names), 10):
-            _worker.put(_fetch_and_update_usernames, unknown_names[i:i + 10])
+        for username in unknown_names:
+            _worker.put(_fetch_and_update_username, username)
 
-        if len(unknown_names) >= 10:
-            common.logging.debug(f"Updating {len(unknown_names)} minecraft usernames.")
+        if len(unknown_names) >= 0:
+            common.logging.debug(f"Updating {len(unknown_names)}({_worker.qsize()}) minecraft usernames.")
 
-        asyncio.create_task(_log_name_changes())
     except common.api.rateLimit.RateLimitException:
         pass
     except Exception as ex:
@@ -120,10 +94,7 @@ async def _update_usernames():
         raise ex
 
 
-_update_usernames.add_exception_type(
-    aiohttp.client_exceptions.ClientError,
-    Exception
-)
+_update_usernames.add_exception_type(aiohttp.client_exceptions.ClientError, Exception)
 
 
 def start():
