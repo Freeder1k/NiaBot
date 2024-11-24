@@ -37,7 +37,7 @@ class ServerConfigs:
         self._server_configs = {int(server_id): _Config(**v) for server_id, v in data.items()}
         self.loaded = True
 
-    async def save(self):
+    def save(self):
         """
         Saves the server configurations to the json file.
         """
