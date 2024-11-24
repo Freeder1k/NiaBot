@@ -84,7 +84,7 @@ async def _update_usernames():
         for username in unknown_names:
             _worker.put(_fetch_and_update_username, username)
 
-        if len(unknown_names) >= 0:
+        if len(unknown_names) >= 20:
             common.logging.debug(f"Updating {len(unknown_names)}({_worker.qsize()}) minecraft usernames.")
 
     except common.api.rateLimit.RateLimitException:
