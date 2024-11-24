@@ -1,7 +1,6 @@
 import dataclasses
 import json
 import os.path
-from collections import defaultdict
 from dataclasses import dataclass
 
 
@@ -21,7 +20,7 @@ class ServerConfigs:
         :param path: The path to the json file where the configurations are stored.
         """
         self.path = path
-        self._server_configs = defaultdict(_Config)
+        self._server_configs = {}
         self.loaded = False
 
     def load(self):
@@ -54,6 +53,10 @@ class ServerConfigs:
         """
         if not self.loaded:
             self.load()
+
+        if server_id not in self._server_configs:
+            self._server_configs[server_id] = _Config()
+            self.save()
 
         return self._server_configs.get(server_id)
 
