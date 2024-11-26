@@ -56,7 +56,7 @@ async def _update_online():
         for uuid in left_players:
             _worker.put(_record_stats, uuid)
 
-        if _worker.qsize() >= 0:
+        if _worker.qsize() >= 50:
             common.logging.debug(f"Tracking {len(left_players)}({_worker.qsize()}) player's stats.")
     except common.api.rateLimit.RateLimitException:
         pass
