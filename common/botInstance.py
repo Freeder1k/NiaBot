@@ -119,5 +119,6 @@ class BotInstance(discord.Client):
 
     async def close(self) -> None:
         workers.presenceUpdater.remove_client(self)
+        workers.guildUpdater.remove_guild(self.config.GUILD_NAME)
 
         await super().close()
