@@ -1,4 +1,3 @@
-import asyncio
 from abc import ABC, abstractmethod
 
 import aiohttp.client_exceptions
@@ -51,15 +50,13 @@ async def _fetch_and_update_username(username: str, tries: int = 1):
     except aiohttp.client_exceptions.ClientError as e:
         common.logging.error(f"Failed to update username ({tries}/3): ", username)
         if tries <= 3:
-            await asyncio.sleep(60)
-            _worker.put(_fetch_and_update_username, username, tries + 1)
+            _worker.put_delayed(_fetch_and_update_username, 60, username, tries + 1)
         raise e
 
     if player is None:
         common.logging.debug(f"{username} is not a minecraft name but online on wynncraft ({tries}/3)!")
         if tries <= 3:
-            await asyncio.sleep(60)
-            _worker.put(_fetch_and_update_username, username, tries + 1)
+            _worker.put_delayed(_fetch_and_update_username, 60, username, tries + 1)
         return
 
     prev_p = await common.storage.usernameData.update(player.uuid, player.name)
