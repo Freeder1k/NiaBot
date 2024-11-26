@@ -11,7 +11,7 @@ import workers.guildUpdater
 import workers.presenceUpdater
 import workers.statTracker
 import workers.usernameUpdater
-from common.commands.hybrid import HelpCommand
+from common.commands.hybrid import *
 
 
 class Niabot(BotInstance):
