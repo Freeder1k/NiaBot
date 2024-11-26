@@ -21,6 +21,7 @@ class QueueWorker:
         self._error_count = 0
         self._delay = delay
         self._task: asyncio.Task = None
+        self._delayed_tasks = set()
 
     async def _worker(self):
         while True:
@@ -53,6 +54,25 @@ class QueueWorker:
         :param kwargs: The keyword arguments to pass to the function.
         """
         self._queue.put_nowait((f, args, kwargs))
+
+    async def _put_delayed(self, f: Callable, delay: float, *args, **kwargs):
+        await asyncio.sleep(delay)
+        self.put(f, *args, **kwargs)
+
+    def put_delayed(self, f: Callable, delay: float, *args, **kwargs):
+        """
+        Add a task to the queue for execution after a delay.
+
+        :param f: The function to call. If the function is a coroutine, it will be awaited.
+        :param delay: The time in seconds to wait before executing the task.
+        :param args: The arguments to pass to the function.
+        :param kwargs: The keyword arguments to pass to the function.
+        """
+        task = asyncio.create_task(self._put_delayed(f, delay, *args, **kwargs))
+
+        # Keep a reference to the task to prevent it from being garbage collected
+        self._delayed_tasks.add(task)
+        task.add_done_callback(self._delayed_tasks.discard)
 
     async def join(self):
         """
