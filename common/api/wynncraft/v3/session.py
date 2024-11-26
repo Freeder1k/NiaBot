@@ -12,9 +12,8 @@ _last_req_time = 0
 
 async def get(url: str, **params: str) -> JsonType:
     """
-    Send a GET request to the wynncraft API V3. This has a ratelimit of 300 requests per minute.
+    Send a GET request to the wynncraft API V3. This has a ratelimit of 180 requests per minute.
     :param url: The url of the request. Must start with '/'.
-    :param retry: Whether to retry the request on "internal server error (500)".
     :param params: Additional request parameters.
     :return: the response in json format.
     """
