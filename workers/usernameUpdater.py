@@ -97,7 +97,7 @@ _update_usernames.add_exception_type(aiohttp.client_exceptions.ClientError, Exce
 def start():
     _update_usernames.start()
     _worker.start()
-    common.logging.info("Username updater workers started.")
+    common.logging.info("Username updater worker started.")
 
 
 def stop():
