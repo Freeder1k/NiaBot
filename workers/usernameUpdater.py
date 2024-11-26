@@ -49,13 +49,13 @@ async def _fetch_and_update_username(username: str, tries: int = 1):
         return
     except aiohttp.client_exceptions.ClientError as e:
         common.logging.error(f"Failed to update username ({tries}/3): ", username)
-        if tries <= 3:
+        if tries < 3:
             _worker.put_delayed(_fetch_and_update_username, 60, username, tries + 1)
         raise e
 
     if player is None:
         common.logging.debug(f"{username} is not a minecraft name but online on wynncraft ({tries}/3)!")
-        if tries <= 3:
+        if tries < 3:
             _worker.put_delayed(_fetch_and_update_username, 60, username, tries + 1)
         return
 
