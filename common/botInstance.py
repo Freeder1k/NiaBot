@@ -1,5 +1,3 @@
-import asyncio
-
 import discord
 from discord import app_commands
 
@@ -107,16 +105,13 @@ class BotInstance(discord.Client):
         if cmd is None:
             return
 
-        async def run_command():
-            try:
-                await cmd.run(event)
-            except (KeyboardInterrupt, SystemExit) as e:
-                raise e
-            except Exception as e:
-                common.logging.error(exc_info=e, extra={"command_event": event})
-                await event.reply_exception(e)
-
-        await asyncio.create_task(run_command())
+        try:
+            await cmd.run(event)
+        except (KeyboardInterrupt, SystemExit) as e:
+            raise e
+        except Exception as e:
+            common.logging.error(exc_info=e, extra={"command_event": event})
+            await event.reply_exception(e)
 
     async def launch(self):
         async with self:
