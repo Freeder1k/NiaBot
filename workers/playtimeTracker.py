@@ -4,10 +4,10 @@ from datetime import datetime, timezone, time
 import aiohttp.client_exceptions
 from discord.ext import tasks
 
-import common.logging
 import common.api
 import common.api.wynncraft.v3.guild
 import common.api.wynncraft.v3.player
+import common.logging
 from common.storage.playtimeData import set_playtime
 
 
@@ -22,13 +22,13 @@ async def _update_playtime(uuid: str):
 @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc), reconnect=True)
 async def update_playtimes():
     try:
-        guild = await common.api.wynncraft.v3.guild.stats(name=common.wrappers.botConfig.GUILD_NAME)
+        guild = await common.api.wynncraft.v3.guild.stats(name="Nerfuria")
 
         await asyncio.gather(*(_update_playtime(uuid) for uuid in guild.members.all.keys()))
 
         await asyncio.sleep(120)
 
-        guild2 = await common.api.wynncraft.v3.guild.stats(name=common.wrappers.botConfig.GUILD_NAME2)
+        guild2 = await common.api.wynncraft.v3.guild.stats(name="Cat Cafe")
 
         await asyncio.gather(*(_update_playtime(uuid) for uuid in guild2.members.all.keys()))
     except Exception as ex:

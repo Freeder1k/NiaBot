@@ -1,18 +1,20 @@
 import asyncio
+from datetime import datetime, timezone
 
 from common.botInstance import BotInstance
 
 import common.api.sessionManager
 import common.logging
 import common.storage.manager
-# import common.storage.playtimeData
+import common.storage.playtimeData
 import workers.guildUpdater
-# import workers.playtimeTracker
+import workers.playtimeTracker
 import workers.presenceUpdater
 import workers.statTracker
 import workers.usernameUpdater
 import workers.guildIndexer
 from common.commands.hybrid import *
+from common.commands.prefixed import *
 
 
 class Niabot(BotInstance):
@@ -24,11 +26,14 @@ class Niabot(BotInstance):
             PlayerCommand(self),
             HistoryCommand(self),
         )
+        self.add_commands(
+            ActivityCommand(),
+        )
 
 
 def start_workers():
     common.logging.info("Starting workers...")
-    # workers.playtimeTracker.update_playtimes.start()
+    workers.playtimeTracker.update_playtimes.start()
     workers.presenceUpdater.update_presence.start()
     workers.guildUpdater.guild_updater.start()
     workers.usernameUpdater.start()
@@ -44,7 +49,7 @@ def stop_workers():
     workers.usernameUpdater.stop()
     workers.guildUpdater.guild_updater.stop()
     workers.presenceUpdater.update_presence.stop()
-    # workers.playtimeTracker.update_playtimes.stop()
+    workers.playtimeTracker.update_playtimes.stop()
 
 
 async def main():
@@ -66,9 +71,9 @@ async def main():
 
             start_workers()
 
-            # today = datetime.now(timezone.utc).date()
-            # if (await common.storage.playtimeData.get_first_date_after(today)) is None:
-            #     await workers.playtimeTracker.update_playtimes()
+            today = datetime.now(timezone.utc).date()
+            if (await common.storage.playtimeData.get_first_date_after(today)) is None:
+                await workers.playtimeTracker.update_playtimes()
 
     except (KeyboardInterrupt, SystemExit, asyncio.CancelledError) as e:
         common.logging.info("Stopped:", e.__class__.__name__)
