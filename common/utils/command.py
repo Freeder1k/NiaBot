@@ -15,6 +15,7 @@ from common.types.dataTypes import MinecraftPlayer
 from common.types.enums import PlayerStatsIdentifier
 from common.types.wynncraft import WynncraftGuild
 from common.utils.misc import pluralize
+import common.utils.minecraftPlayer
 
 GUILD_RE = re.compile(r'[A-Za-z ]{1,30}')
 
@@ -77,7 +78,7 @@ async def parse_player(player_str: str) -> MinecraftPlayer:
     :raises ValueError: If the player string is invalid or the specified player doesn't exist.
     """
     if USERNAME_RE.fullmatch(player_str):
-        p = await common.wrappers.minecraftPlayer.get_player(username=player_str)
+        p = await common.utils.minecraftPlayer.get_player(username=player_str)
     elif UUID_RE.fullmatch(player_str):
         p = await common.storage.usernameData.get_player(uuid=player_str)
     else:

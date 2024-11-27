@@ -22,6 +22,7 @@ class Niabot(BotInstance):
             HelpCommand(self),
             GuildCommand(self),
             PlayerCommand(self),
+            HistoryCommand(self),
         )
 
 

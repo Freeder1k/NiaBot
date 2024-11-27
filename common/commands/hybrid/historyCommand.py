@@ -8,17 +8,17 @@ from async_lru import alru_cache
 from discord import Permissions, Embed
 from discord.utils import escape_markdown
 
-import common.utils.command
 import common.api.wynncraft.v3.guild
 import common.api.wynncraft.v3.player
-import common.api.wynncraft.v3.types
+import common.botInstance
 import common.storage.playerTrackerData
 import common.storage.usernameData
+import common.utils.command
+import common.utils.minecraftPlayer
 from common.commands import hybridCommand, command
 from common.commands.commandEvent import PrefixedCommandEvent, SlashCommandEvent, CommandEvent
 from common.types.enums import PlayerStatsIdentifier
-from common.utils import create_chart
-from common import botConfig
+from common.utils.discord import create_chart
 
 
 async def _generate_history_graph(history: list[tuple[str, int | float, str]]):
@@ -92,8 +92,8 @@ async def _generate_relative_history_graph(history: list[tuple[str, int, str]], 
             break
 
         # skip issue with playtimes around that time
-        d = datetime.fromisoformat(rec_t)
-        if not (playtime and d.date() >= date(2023, 12, 5) >= prev_d.date()):
+        d = TimeframeDate.fromisoformat(rec_t)
+        if not (playtime and d >= date(2023, 12, 5) >= prev_d):
             values[i] += stat - prev_val
 
         prev_val = stat
@@ -103,11 +103,11 @@ async def _generate_relative_history_graph(history: list[tuple[str, int, str]], 
 
 
 @alru_cache(ttl=60)
-async def _create_history_embed(stat: PlayerStatsIdentifier, player: common.wrappers.minecraftPlayer.MinecraftPlayer,
-                                relative: str = None):
+async def _create_history_embed(stat: PlayerStatsIdentifier, player: common.utils.minecraftPlayer.MinecraftPlayer,
+                                color: int, relative: str = None):
     embed = Embed(
         description=f"# {stat} history of {escape_markdown(player.name)}",
-        color=botConfig.DEFAULT_COLOR
+        color=color
     )
 
     t = time.time()
@@ -135,7 +135,7 @@ async def _create_history_embed(stat: PlayerStatsIdentifier, player: common.wrap
 
 
 class HistoryCommand(hybridCommand.HybridCommand):
-    def __init__(self):
+    def __init__(self, bot: common.botInstance.BotInstance):
         super().__init__(
             name="history",
             aliases=(),
@@ -167,7 +167,8 @@ class HistoryCommand(hybridCommand.HybridCommand):
             ],
             description="Get the history of a specified stat for a player.",
             base_perms=Permissions().none(),
-            permission_lvl=command.PermissionLevel.ANYONE
+            permission_lvl=command.PermissionLevel.ANYONE,
+            bot=bot
         )
 
     async def _execute(self, event: CommandEvent):
@@ -195,7 +196,9 @@ class HistoryCommand(hybridCommand.HybridCommand):
                 await event.reply_error("Invalid relative timeframe!")
                 return
 
-            embed, chart = await _create_history_embed(stat, player, relative_str)
+            color = event.bot.config.DEFAULT_COLOR
+
+            embed, chart = await _create_history_embed(stat, player, color, relative_str)
             if chart is None:
                 await event.reply(embed=embed)
             else:
