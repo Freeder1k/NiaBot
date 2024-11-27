@@ -6,20 +6,20 @@ from PIL import Image
 from async_lru import alru_cache
 from discord import Permissions, Embed
 
+import common.api.wynncraft.v3.guild
+import common.api.wynncraft.v3.player
+import common.api.wynntils
+import common.botInstance
 import common.logging
+import common.storage.usernameData
 import common.types.wynncraft
 import common.utils.command
 import common.utils.misc
-import common.api.wynncraft.v3.guild
-import common.api.wynncraft.v3.player
-import common.api.wynncraft.v3.types
-import common.storage.usernameData
 from common.commands import hybridCommand, command
-from common.commands.commandEvent import PrefixedCommandEvent, SlashCommandEvent
-from common.types.wynncraft import WynncraftGuild
+from common.commands.commandEvent import PrefixedCommandEvent, SlashCommandEvent, CommandEvent
 from common.types.enums import PlayerIdentifier
+from common.types.wynncraft import WynncraftGuild
 from common.utils import banner, tableBuilder
-from common import botConfig
 
 _star = "★"
 
@@ -32,18 +32,22 @@ def _get_curr_sr(guild_stats: common.types.wynncraft.GuildStats) -> int:
 
 
 @alru_cache(ttl=60)
-async def _create_guild_embed(guild: WynncraftGuild):
+async def _create_guild_embed(guild: WynncraftGuild, color: int):
     guild_stats: common.types.wynncraft.GuildStats
     try:
         guild_stats = await common.api.wynncraft.v3.guild.stats(name=guild.name)
     except (common.api.wynncraft.v3.guild.UnknownGuildException, aiohttp.client_exceptions.ClientResponseError):
         return None, None
 
+    guild_color = await common.api.wynntils.get_guild_color(guild_stats.name)
+    if guild_color is not None:
+        color = int(guild_color[1:], 16)
+
     embed = Embed(
         description=f"# [{guild_stats.prefix}] {guild_stats.name}\n"
                     f"Created: {guild_stats.created}\n"
                     f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
-        color=botConfig.DEFAULT_COLOR
+        color=color
     )
 
     try:
@@ -52,7 +56,7 @@ async def _create_guild_embed(guild: WynncraftGuild):
         else:
             banner_img = banner.create_banner(guild_stats.banner["base"],
                                               [(l["colour"], l["pattern"]) for l in guild_stats.banner["layers"]])
-            banner_img = banner_img.resize((200, 400), resample=Image.BOX)
+            banner_img = banner_img.resize((200, 400), resample=Image.Resampling.BOX)
     except Exception as e:
         common.logging.error(f"Failed to create guild banner for guild {guild.name}!", exc_info=e)
         banner_img = None
@@ -97,18 +101,23 @@ async def _create_guild_embed(guild: WynncraftGuild):
 
 
 class GuildCommand(hybridCommand.HybridCommand):
-    def __init__(self):
+    def __init__(self, bot: common.botInstance.BotInstance):
         super().__init__(
             name="guild",
             aliases=("g",),
-            params=[hybridCommand.CommandParam("guild", "The name or tag of the guild.", required=True,
-                                               ptype=discord.AppCommandOptionType.string)],
+            params=[hybridCommand.CommandParam("guild",
+                                               "The name or tag of the guild.",
+                                               required=True,
+                                               ptype=discord.AppCommandOptionType.string,
+                                               autocomplete=common.utils.command.guild_autocomplete
+                                               )],
             description="Get a wynncraft guild by its name or tag.",
             base_perms=Permissions().none(),
-            permission_lvl=command.PermissionLevel.ANYONE
+            permission_lvl=command.PermissionLevel.ANYONE,
+            bot=bot
         )
 
-    async def _execute(self, event: PrefixedCommandEvent):
+    async def _execute(self, event: CommandEvent):
         async with event.waiting():
             if isinstance(event, PrefixedCommandEvent):
                 if len(event.args) < 2:
@@ -128,7 +137,10 @@ class GuildCommand(hybridCommand.HybridCommand):
                 await event.reply_error(str(e))
                 return
 
-            embed, banner_img = await _create_guild_embed(guild)
+            color = event.bot.config.DEFAULT_COLOR
+
+            embed, banner_img = await _create_guild_embed(guild, color)
+
             if embed is None:
                 await event.reply_error(f"Failed to retrieve stats for guild ``{guild_str}``")
                 return

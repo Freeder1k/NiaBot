@@ -11,13 +11,17 @@ import workers.guildUpdater
 import workers.presenceUpdater
 import workers.statTracker
 import workers.usernameUpdater
+import workers.guildIndexer
 from common.commands.hybrid import *
 
 
 class Niabot(BotInstance):
     def __init__(self):
         super().__init__("niabot")
-        self.add_commands(HelpCommand(self))
+        self.add_commands(
+            HelpCommand(self),
+            GuildCommand(self),
+        )
 
 
 def start_workers():
@@ -27,10 +31,13 @@ def start_workers():
     workers.guildUpdater.guild_updater.start()
     workers.usernameUpdater.start()
     workers.statTracker.start()
+    workers.guildIndexer.update_index.start()
+    common.logging.info("Guild indexer started.")
 
 
 def stop_workers():
     common.logging.info("Stopping workers...")
+    workers.guildIndexer.update_index.stop()
     workers.statTracker.stop()
     workers.usernameUpdater.stop()
     workers.guildUpdater.guild_updater.stop()
@@ -52,7 +59,6 @@ async def main():
         async with asyncio.TaskGroup() as tg:
             await niabot.login(niabot.config.BOT_TOKEN)
             tg.create_task(niabot.connect())
-
 
             await niabot.wait_until_ready()
 

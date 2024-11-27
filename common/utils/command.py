@@ -9,13 +9,14 @@ from discord.app_commands import Choice
 import common.api.wynncraft.v3.guild
 import common.storage
 import common.storage.usernameData
+import workers.guildIndexer
 from common.types.constants import time_units_map, seasons
 from common.types.dataTypes import MinecraftPlayer
 from common.types.enums import PlayerStatsIdentifier
 from common.types.wynncraft import WynncraftGuild
 from common.utils.misc import pluralize
 
-GUILD_RE = re.compile(r'[A-Za-z ]{3,30}')
+GUILD_RE = re.compile(r'[A-Za-z ]{1,30}')
 
 
 class AmbiguousGuildError(ValueError):
@@ -45,7 +46,7 @@ async def parse_guild(guild_str: str) -> WynncraftGuild:
     :raises ValueError: If the guild string is invalid or the specified guild doesn't exist.
     :raises AmbiguousGuildError: If the guild string is ambiguous.
     """
-    if not GUILD_RE.fullmatch(guild_str):
+    if not GUILD_RE.fullmatch(guild_str) or len(guild_str) < 3:
         raise ValueError(f"Invalid guild name or tag ``{guild_str}``")
 
     possible_guilds: tuple[WynncraftGuild] = await common.api.wynncraft.v3.guild.find(guild_str)
@@ -187,3 +188,14 @@ async def player_autocomplete(
                Choice(name=p.name, value=p.name)
                for p in await common.storage.usernameData.find_players(current)
            ][0:25]
+
+
+async def guild_autocomplete(
+        interaction: discord.Interaction,
+        current: str,
+) -> list[Choice[str]]:
+    if not GUILD_RE.fullmatch(current):
+        return []
+
+    matches = workers.guildIndexer.get_index().get(current.lower(), [])
+    return [Choice(name=name, value=name) for name in matches][:25]
