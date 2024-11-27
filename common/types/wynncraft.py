@@ -132,7 +132,7 @@ class CharacterStats(JsonableDataclass):
     blocksWalked: int
     itemsIdentified: int
     logins: int
-    death: int
+    deaths: int
     discoveries: int
 
     @dataclass(frozen=True)
