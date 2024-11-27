@@ -42,7 +42,7 @@ async def _create_player_embed(p: MinecraftPlayer, color: int) -> Embed | None:
     else:
         guild = f"{stats.guild.rank.capitalize()} of **[{stats.guild.name}](https://wynncraft.com/stats/guild/{stats.guild.name.replace(' ', '%20')})**"
 
-    deaths = sum(c.deaths for c in stats.characters.values())
+    deaths = sum(c.deaths for c in stats.characters.values() if c.deaths is not None)
 
     description = f"## [{rank}] {escape_markdown(p.name)}\n" \
                   f"``{stats.uuid}``\n" \
