@@ -29,6 +29,7 @@ class Niabot(BotInstance):
         self.add_commands(
             ActivityCommand(),
             ConfigCommand(),
+            EvalCommand(),
         )
 
 

@@ -3,7 +3,6 @@ from discord import Permissions, Embed
 import common.utils.discord
 from common.commands import command
 from common.commands.commandEvent import PrefixedCommandEvent
-from common import botConfig
 
 
 class EvalCommand(command.Command):
@@ -34,14 +33,14 @@ class EvalCommand(command.Command):
         lines[-1] = "return " + lines[-1]
         lines = ["    " + l for l in lines]
 
-        async with event.channel.typing():
+        async with event.waiting():
             try:
                 exec("async def f():\n" + '\n'.join(lines), context)
                 res = await eval("f()", context)
                 if res is not None:
-                    await event.channel.send(embed=Embed(
+                    await event.reply(embed=Embed(
                         description=f"```{res}```",
-                        color=botConfig.DEFAULT_COLOR
+                        color=event.bot.config.DEFAULT_COLOR
                     ))
             except Exception as e:
-                await common.utils.discord.send_exception(event.channel, e)
+                await event.reply_exception(e)
