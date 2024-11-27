@@ -30,6 +30,7 @@ class Niabot(BotInstance):
             ActivityCommand(),
             ConfigCommand(),
             EvalCommand(),
+            PlaytimeCommand(),
         )
 
 

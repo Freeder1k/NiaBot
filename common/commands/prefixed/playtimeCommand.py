@@ -6,8 +6,8 @@ import discord
 import matplotlib.pyplot as plt
 from discord import Permissions, Embed
 
+import common.storage.playtimeData
 import common.utils.discord
-from common import botConfig
 from common.commands import command
 from common.commands.commandEvent import PrefixedCommandEvent
 from common.utils import minecraftPlayer
@@ -49,7 +49,7 @@ class PlaytimeCommand(command.Command):
                 await common.utils.discord.send_error(event.channel, f"Couldn't parse user ``{event.args[1]}``")
                 return
 
-            playtimes = await common.wrappers.storage.playtimeData.get_all_playtimes(p.uuid)
+            playtimes = await common.storage.playtimeData.get_all_playtimes(p.uuid)
 
             if len(playtimes) == 0:
                 await common.utils.discord.send_error(event.channel, f"No data found for ``{p.name}``")
@@ -64,7 +64,7 @@ class PlaytimeCommand(command.Command):
             # Create plot
             fig, ax = plt.subplots()
 
-            plt.plot(dates, values, marker='x')
+            plt.plot(dates, values)
 
             plt.xlabel("Date")
             plt.ylabel("Playtime (hours)")
@@ -81,7 +81,7 @@ class PlaytimeCommand(command.Command):
             data_stream.seek(0)
             chart = discord.File(data_stream, filename="playtime.png")
 
-            embed = Embed(title=f"Playtime for {p.name}", color=botConfig.DEFAULT_COLOR)
+            embed = Embed(title=f"Playtime for {p.name}", color=event.bot.config.DEFAULT_COLOR)
             embed.set_image(
                 url="attachment://playtime.png"
             )
