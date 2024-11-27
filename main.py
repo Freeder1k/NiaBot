@@ -28,6 +28,7 @@ class Niabot(BotInstance):
         )
         self.add_commands(
             ActivityCommand(),
+            ConfigCommand(),
         )
 
 
@@ -68,6 +69,8 @@ async def main():
             tg.create_task(niabot.connect())
 
             await niabot.wait_until_ready()
+
+            await common.logging.init_discord_handler(niabot)
 
             start_workers()
 
