@@ -28,7 +28,7 @@ class PlaytimeCommand(command.Command):
         )
 
     async def _execute(self, event: PrefixedCommandEvent):
-        async with event.channel.typing():
+        async with event.waiting():
             if len(event.args) < 2:
                 await common.utils.discord.send_error(event.channel, "Please specify a username or uuid!")
                 return
@@ -86,4 +86,4 @@ class PlaytimeCommand(command.Command):
                 url="attachment://playtime.png"
             )
 
-        await event.channel.send(embed=embed, file=chart)
+            await event.reply(embed=embed, file=chart)
