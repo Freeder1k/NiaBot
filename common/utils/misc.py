@@ -158,6 +158,7 @@ def ansi_format(*formatting: AnsiFormat):
     """
     return f"\u001b[{';'.join((str(f.value) for f in formatting))}m"
 
+
 def pluralize(num, s) -> str:
     """
     Pluralize a string if num is not 1.
@@ -165,3 +166,39 @@ def pluralize(num, s) -> str:
     if num == 1:
         return s
     return s + "s"
+
+
+def create_inverted_index(strings, ignore_case=False, max_key_len=None, max_bucket_len=None) -> dict[str, list[str]]:
+    """
+    Create an inverted index for the specified strings.
+    :param strings: The strings to index.
+    :param ignore_case: If True, ignore case when indexing.
+    :param max_key_len: The maximum length of the substring keys in the index.
+    :param max_bucket_len: The maximum length of the list of strings for each key. Additional strings will be ignored.
+     If None, all strings will be included.
+    :return: A dictionary with substrings as keys and the strings containing them as values sorted by how early the
+     substring appeared in the string.
+    """
+    index = {}
+    max_str_len = max(len(string) for string in strings)
+
+    if max_key_len is None:
+        max_key_len = max_str_len
+
+    for i in range(max_str_len):
+        for string in strings:
+            for j in range(i, i + max_key_len):
+                if j >= len(string):
+                    break
+
+                sub_str = string[i:j]
+                if ignore_case:
+                    sub_str = sub_str.lower()
+
+                if sub_str not in index:
+                    index[sub_str] = [string]
+                elif max_bucket_len is not None and len(index[sub_str]) >= max_bucket_len:
+                    pass
+                else:
+                    index[sub_str].append(string)
+    return index
