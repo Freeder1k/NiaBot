@@ -101,8 +101,10 @@ def remove_guild(name: str):
 
     :param name: The name of the guild.
     """
-    _active_guilds.remove(name)
-    _guild_loggers.pop(name)
+    if name in _active_guilds:
+        _active_guilds.remove(name)
+    if name in _guild_loggers:
+        _guild_loggers.pop(name)
 
 
 async def _update_guild(name: str):
