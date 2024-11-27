@@ -17,4 +17,4 @@ class ShutdownCommand(command.Command):
 
     async def _execute(self, event: PrefixedCommandEvent):
         await event.channel.send(f":warning: **System shutting down...** :warning:")
-        exit(1)
+        exit("Manual shutdown.")
