@@ -15,6 +15,9 @@ import workers.usernameUpdater
 import workers.guildIndexer
 from common.commands.hybrid import *
 from common.commands.prefixed import *
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Niabot(BotInstance):
@@ -25,6 +28,7 @@ class Niabot(BotInstance):
             GuildCommand(self),
             PlayerCommand(self),
             HistoryCommand(self),
+            SpaceCommand(self),
         )
         self.add_commands(
             ActivityCommand(),

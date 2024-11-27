@@ -37,4 +37,9 @@ async def get_random_apod() -> APOD:
             json = json[0]
             if "copyright" not in json:
                 json["copyright"] = ""
+            else:
+                c = json["copyright"]
+                if c[0] == '\n':
+                    c = c[1:]
+                json["copyright"] = c
             return common.utils.misc.dataclass_from_dict(APOD, json)
