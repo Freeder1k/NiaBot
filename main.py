@@ -19,25 +19,32 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def add_commands(bot):
+    bot.add_commands(
+        HelpCommand(bot),
+        GuildCommand(bot),
+        PlayerCommand(bot),
+        HistoryCommand(bot),
+        SpaceCommand(bot),
+    )
+    bot.add_commands(
+        ActivityCommand(),
+        ConfigCommand(),
+        EvalCommand(),
+        PlaytimeCommand(),
+        SeenCommand(),
+        ShutdownCommand(),
+    )
 
 class Niabot(BotInstance):
     def __init__(self):
         super().__init__("niabot")
-        self.add_commands(
-            HelpCommand(self),
-            GuildCommand(self),
-            PlayerCommand(self),
-            HistoryCommand(self),
-            SpaceCommand(self),
-        )
-        self.add_commands(
-            ActivityCommand(),
-            ConfigCommand(),
-            EvalCommand(),
-            PlaytimeCommand(),
-            SeenCommand(),
-            ShutdownCommand(),
-        )
+        add_commands(self)
+
+class MewoBot(BotInstance):
+    def __init__(self):
+        super().__init__("mewobot")
+        add_commands(self)
 
 
 def start_workers():
@@ -65,6 +72,7 @@ async def main():
     print("\n  *:･ﾟ✧(=^･ω･^=)*:･ﾟ✧\n")
 
     niabot = Niabot()
+    mewobot = MewoBot()
 
     try:
         common.logging.info("Booting up...")
@@ -74,11 +82,14 @@ async def main():
 
         async with asyncio.TaskGroup() as tg:
             await niabot.login(niabot.config.BOT_TOKEN)
+            await mewobot.login(mewobot.config.BOT_TOKEN)
             tg.create_task(niabot.connect())
+            tg.create_task(mewobot.connect())
 
             await niabot.wait_until_ready()
-
             await common.logging.init_discord_handler(niabot)
+
+            await mewobot.wait_until_ready()
 
             start_workers()
 
@@ -94,6 +105,7 @@ async def main():
         common.logging.info("Shutting down...")
         stop_workers()
 
+        await mewobot.close()
         await niabot.close()
         await common.api.sessionManager.close()
         await common.storage.manager.close()
