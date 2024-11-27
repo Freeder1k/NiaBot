@@ -9,7 +9,8 @@ import common.api.wynncraft.v3.guild
 import common.api.wynncraft.v3.player
 from common.commands import command
 from common.commands.commandEvent import PrefixedCommandEvent
-from common.utils import format_uuid, minecraftPlayer
+from common.utils import minecraftPlayer
+from common.utils.misc import format_uuid
 from common import botConfig
 from common.types.wynncraft import GuildStats
 
@@ -49,17 +50,12 @@ def _get_seen_display_value(val):
 
 
 @alru_cache(ttl=600)
-async def _create_seen_embed(server_id):
-    if server_id == botConfig.GUILD_DISCORD2:
-        guild_name = botConfig.GUILD_NAME2
-    else:
-        guild_name = botConfig.GUILD_NAME
-
+async def _create_seen_embed(guild_name, color):
     guild: GuildStats = await common.api.wynncraft.v3.guild.stats(name=guild_name)
 
     embed = Embed(
-        color=botConfig.DEFAULT_COLOR,
-        title="**Last Sightings of Nia Members**",
+        color=color,
+        title=f"**Last Sightings of {guild_name} Members**",
         description='⎯' * 32,
         timestamp=datetime.now(timezone.utc)
     )
@@ -88,6 +84,6 @@ class SeenCommand(command.Command):
         )
 
     async def _execute(self, event: PrefixedCommandEvent):
-        async with event.channel.typing():
-            embed = await _create_seen_embed(event.guild.id)
-            await event.channel.send(embed=embed)
+        async with event.waiting():
+            embed = await _create_seen_embed(event.bot.config.GUILD_NAME, event.bot.config.DEFAULT_COLOR)
+            await event.reply(embed=embed)
