@@ -49,13 +49,13 @@ class StrikeCommand(command.Command):
         await strikeData.add_strike(member.id, event.guild.id, date_today, reason)
 
         strike_amount = len(await strikeData.get_unpardoned_strikes_after(member.id, event.guild.id,
-                                                                          date_today + relativedelta(months=-2)))
+                                                                          date_today + relativedelta(months=-6)))
 
         embed = Embed(
             title=f"You were striked in {event.guild.name}!",
             color=event.bot.config.DEFAULT_COLOR,
             description=f"Reason: ``{reason}``\n"
-                        f"This is your {strike_amount}{_get_num_ending(strike_amount)} strike in 2 months!\n"
+                        f"This is your {strike_amount}{_get_num_ending(strike_amount)} strike in 6 months!\n"
                         f"{'**At 3 strikes you will be banned.**' if strike_amount < 3 else '**As this is your 3rd strike you will be banned!**'}",
             timestamp=datetime.now(timezone.utc)
         )
@@ -67,5 +67,5 @@ class StrikeCommand(command.Command):
             failed_str = "\n Note: couldn't DM the user."
 
         await event.reply_success(f"Striked {member.mention} for ``{reason}``.\n"
-                                  f"This is their {strike_amount}{_get_num_ending(strike_amount)} strike in 2 months.\n"
+                                  f"This is their {strike_amount}{_get_num_ending(strike_amount)} strike in 6 months.\n"
                                   f"{failed_str}")

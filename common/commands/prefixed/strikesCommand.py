@@ -52,7 +52,7 @@ class StrikesCommand(command.Command):
             timestamp=datetime.now(timezone.utc)
         )
 
-        two_months_ago = (datetime.now(timezone.utc).date() + relativedelta(months=-2)).strftime('%Y-%m-%d')
+        two_months_ago = (datetime.now(timezone.utc).date() + relativedelta(months=-6)).strftime('%Y-%m-%d')
 
         for strike in strikes[:19]:
             expired = two_months_ago > strike.strike_date
