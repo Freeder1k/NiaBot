@@ -40,6 +40,11 @@ class Niabot(BotInstance):
     def __init__(self):
         super().__init__("niabot")
         add_commands(self)
+        self.add_commands(
+            StrikeCommand(),
+            StrikesCommand(),
+            UnstrikeCommand(),
+        )
 
 class MewoBot(BotInstance):
     def __init__(self):

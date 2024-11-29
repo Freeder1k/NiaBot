@@ -6,7 +6,6 @@ from discord import Permissions, Embed, Forbidden
 import common.utils.discord
 from common.commands import command
 from common.commands.commandEvent import PrefixedCommandEvent
-from common import botConfig
 from common.storage import strikeData
 
 
@@ -33,12 +32,12 @@ class StrikeCommand(command.Command):
 
     async def _execute(self, event: PrefixedCommandEvent):
         if len(event.args) < 2:
-            await common.utils.discord.send_error(event.channel, "Please specify a user!")
+            await event.reply_error("Please specify a user!")
             return
 
         member = event.guild.get_member(common.utils.discord.parse_id(event.args[1]))
         if member is None:
-            await common.utils.discord.send_error(event.channel, f"Unknown user: {event.args[1]}")
+            await event.reply_error(f"Unknown user: {event.args[1]}")
             return
 
         reason = "None"
@@ -54,7 +53,7 @@ class StrikeCommand(command.Command):
 
         embed = Embed(
             title=f"You were striked in {event.guild.name}!",
-            color=botConfig.DEFAULT_COLOR,
+            color=event.bot.config.DEFAULT_COLOR,
             description=f"Reason: ``{reason}``\n"
                         f"This is your {strike_amount}{_get_num_ending(strike_amount)} strike in 2 months!\n"
                         f"{'**At 3 strikes you will be banned.**' if strike_amount < 3 else '**As this is your 3rd strike you will be banned!**'}",
@@ -67,6 +66,6 @@ class StrikeCommand(command.Command):
         except Forbidden:
             failed_str = "\n Note: couldn't DM the user."
 
-        await common.utils.discord.send_success(event.channel, f"Striked {member.mention} for ``{reason}``.\n"
-                                                        f"This is their {strike_amount}{_get_num_ending(strike_amount)} strike in 2 months.\n"
-                                                        f"{failed_str}")
+        await event.reply_success(f"Striked {member.mention} for ``{reason}``.\n"
+                                  f"This is their {strike_amount}{_get_num_ending(strike_amount)} strike in 2 months.\n"
+                                  f"{failed_str}")

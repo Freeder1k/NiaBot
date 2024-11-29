@@ -4,3 +4,6 @@ from .evalCommand import EvalCommand
 from .playtimeCommand import PlaytimeCommand
 from .seenCommand import SeenCommand
 from .shutdownCommand import ShutdownCommand
+from .strikeCommand import StrikeCommand
+from .strikesCommand import StrikesCommand
+from .unstrikeCommand import UnstrikeCommand

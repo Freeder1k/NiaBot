@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from discord import Permissions, Embed
 
+import common.storage.strikeData
 import common.utils.discord
-from common import botConfig
 from common.commands import command
 from common.commands.commandEvent import PrefixedCommandEvent
 
@@ -22,19 +22,19 @@ class StrikesCommand(command.Command):
 
     async def _execute(self, event: PrefixedCommandEvent):
         if len(event.args) < 2:
-            await common.utils.discord.send_error(event.channel, "Please specify a user!")
+            await event.reply_error("Please specify a user!")
             return
 
         user_id = common.utils.discord.parse_id(event.args[1])
         if user_id == 0:
-            await common.utils.discord.send_error(event.channel, f"Couldn't parse user: ``{event.args[1]}``.\n"
-                                                          f"Please specify a user ID or mention them with the command.")
+            await event.reply_error(f"Couldn't parse user: ``{event.args[1]}``.\n"
+                                    f"Please specify a user ID or mention them with the command.")
             return
 
-        strikes = await common.wrappers.storage.strikeData.get_strikes(user_id, event.guild.id)
+        strikes = await common.storage.strikeData.get_strikes(user_id, event.guild.id)
 
         if len(strikes) == 0:
-            await common.utils.discord.send_info(event.channel, f"<@{user_id}> has no strikes.")
+            await event.reply_info(f"<@{user_id}> has no strikes.")
             return
 
         name = str(user_id)
@@ -48,7 +48,7 @@ class StrikesCommand(command.Command):
 
         embed = Embed(
             title=f"Strikes for {name}",
-            color=botConfig.DEFAULT_COLOR,
+            color=event.bot.config.DEFAULT_COLOR,
             timestamp=datetime.now(timezone.utc)
         )
 
@@ -68,4 +68,4 @@ class StrikesCommand(command.Command):
         if len(strikes) > 19:
             embed.add_field(name=f"And {len(strikes) - 19} more...", value="", inline=False)
 
-        await event.channel.send(embed=embed)
+        await event.reply(embed=embed)
