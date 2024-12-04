@@ -2,7 +2,7 @@ from datetime import datetime
 
 from async_lru import alru_cache
 
-import common.api.wynncraft.v3.guild
+from common.api.wynncraft.v3 import guild as guild_api
 import common.types.wynncraft
 from common.storage import manager
 from common.types.enums import PlayerStatsIdentifier
@@ -28,6 +28,39 @@ async def get_stats(uuid: str, stat: PlayerStatsIdentifier, after: datetime = No
 
     return tuple(row['stat'] for row in await res.fetchall())
 
+@alru_cache(ttl=600)
+async def get_stats_for_guild(guild_name: str, stat: PlayerStatsIdentifier, after: datetime = None, before: datetime = None) -> dict:
+    if after is None:
+        after = datetime.min
+    if before is None:
+        before = datetime.max
+
+    uuids = None
+    try:
+        guild_stats = await guild_api.stats(name=guild_name)
+        uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
+    except guild_api.UnknownGuildException:
+        raise ValueError(f"Guild {guild_name} not found.")
+
+    params = (after, before) +  (uuids if uuids is not None else ())
+
+    cur = await manager.get_cursor()
+    res = await cur.execute(f"""
+                SELECT a.uuid, {stat} as stat FROM
+                player_tracking as a
+                JOIN (
+                    SELECT uuid, max(record_time) as t
+                    FROM player_tracking
+                    WHERE record_time >= ?
+                    AND record_time <= ?
+                    {f"AND uuid IN ({', '.join('?' for _ in uuids)})" if uuids is not None else ""}
+                    GROUP BY uuid
+                ) as b
+                ON a.uuid = b.uuid AND a.record_time = b.t
+            """, params)
+
+    return {row['uuid']: row['stat'] for row in await res.fetchall()}
+
 
 @alru_cache(ttl=600)
 async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = None, after: datetime = None,
@@ -40,10 +73,10 @@ async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = N
     uuids = None
     if guild is not None:
         try:
-            guild_stats: common.types.wynncraft.GuildStats = await common.api.wynncraft.v3.guild.stats(
+            guild_stats: common.types.wynncraft.GuildStats = await guild_api.stats(
                 name=guild.name)
             uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
-        except common.api.wynncraft.v3.guild.UnknownGuildException:
+        except guild_api.UnknownGuildException:
             raise ValueError(f"Guild {guild.name} not found.")
 
     params = (after, before) + (uuids if uuids is not None else ())
@@ -77,9 +110,9 @@ async def get_warcount(guild: WynncraftGuild = None) -> list[
     uuids = None
     if guild is not None:
         try:
-            guild_stats = await common.api.wynncraft.v3.guild.stats(name=guild.name)
+            guild_stats = await guild_api.stats(name=guild.name)
             uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
-        except common.api.wynncraft.v3.guild.UnknownGuildException:
+        except guild_api.UnknownGuildException:
             raise ValueError(f"Guild {guild.name} not found.")
 
     params = (uuids if uuids is not None else ())
@@ -114,9 +147,9 @@ async def get_warcount_relative(t_from: datetime, t_to: datetime, guild: Wynncra
     uuids = None
     if guild is not None:
         try:
-            guild_stats = await common.api.wynncraft.v3.guild.stats(name=guild.name)
+            guild_stats = await guild_api.stats(name=guild.name)
             uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
-        except common.api.wynncraft.v3.guild.UnknownGuildException:
+        except guild_api.UnknownGuildException:
             raise ValueError(f"Guild {guild.name} not found.")
 
     params = (t_from, t_to) + (uuids if uuids is not None else ())

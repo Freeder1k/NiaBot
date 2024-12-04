@@ -3,16 +3,17 @@ from datetime import datetime, timezone
 from async_lru import alru_cache
 from discord import Permissions, Embed
 
-import common.utils.discord
-import common.utils.misc
 import common.api.wynncraft.v3.guild
 import common.api.wynncraft.v3.player
+import common.storage.playerTrackerData
+import common.utils.discord
+import common.utils.misc
 from common.commands import command
 from common.commands.commandEvent import PrefixedCommandEvent
+from common.types.enums import PlayerStatsIdentifier, PlayerIdentifier
+from common.types.wynncraft import GuildStats
 from common.utils import minecraftPlayer
 from common.utils.misc import format_uuid
-from common import botConfig
-from common.types.wynncraft import GuildStats
 
 
 async def _get_last_seen(uuid: str, _):
@@ -53,6 +54,18 @@ def _get_seen_display_value(val):
 async def _create_seen_embed(guild_name, color):
     guild: GuildStats = await common.api.wynncraft.v3.guild.stats(name=guild_name)
 
+    data = await common.storage.playerTrackerData.get_stats_for_guild(guild_name, PlayerStatsIdentifier.LAST_LEAVE)
+
+    online = await common.api.wynncraft.v3.player.player_list(PlayerIdentifier.UUID)
+
+    async def data_function(p_uuid, _):
+        if p_uuid in online:
+            return f"Online({online[p_uuid]})"
+        p_uuid = p_uuid.replace('-', '')
+        if p_uuid not in data:
+            return "ERROR"
+        return datetime.fromisoformat(data[p_uuid]).astimezone(timezone.utc)
+
     embed = Embed(
         color=color,
         title=f"**Last Sightings of {guild_name} Members**",
@@ -63,7 +76,7 @@ async def _create_seen_embed(guild_name, color):
     await common.utils.discord.add_guild_member_tables(
         base_embed=embed,
         guild=guild,
-        data_function=_get_last_seen,
+        data_function=data_function,
         display_function=_get_seen_display_value,
         sort_function=_last_seen_sort_key,
         sort_reverse=True

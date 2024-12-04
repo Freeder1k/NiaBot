@@ -85,6 +85,7 @@ class PlayerStatsIdentifier(StrEnum):
     SUPPORT_RANK = "support_rank",
     FIRST_JOIN = "first_join",
     LAST_JOIN = "last_join",
+    LAST_LEAVE = "record_time"
     PLAYTIME = "playtime",
     GUILD_UUID = "guild_uuid",
     GUILD_NAME = "guild_name",
