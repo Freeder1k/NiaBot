@@ -4,7 +4,7 @@ from http import HTTPStatus
 from common.types.dataTypes import MinecraftPlayer
 from . import sessionManager, rateLimit
 
-_mojang_rate_limit = rateLimit.RateLimit(1, 1)
+_mojang_rate_limit = rateLimit.RateLimit(1, 2)
 _mc_services_rate_limit = rateLimit.RateLimit(10, 1)
 
 _mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")

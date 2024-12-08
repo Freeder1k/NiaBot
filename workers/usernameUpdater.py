@@ -11,13 +11,12 @@ import common.api.wynncraft.v3.session
 import common.logging
 import common.storage.playerTrackerData
 import common.storage.usernameData
-from common.types.dataTypes import MinecraftPlayer
 from common.types.enums import PlayerIdentifier
 from workers.queueWorker import QueueWorker
 
 _online_players: set[str] = set()
-_updated_players: list[tuple[MinecraftPlayer, MinecraftPlayer]] = []
 _worker = QueueWorker(delay=0.5)
+_queued_names: set[str] = set()
 
 
 class NameChangeSubscriber(ABC):
@@ -60,6 +59,7 @@ async def _fetch_and_update_username(username: str, tries: int = 1):
         return
 
     prev_p = await common.storage.usernameData.update(player.uuid, player.name)
+    _queued_names.discard(username)
 
     if prev_p is not None and prev_p.name != player.name:
         for subscriber in _subscribers:
@@ -79,7 +79,8 @@ async def _update_usernames():
         unknown_names = [name for name in joined_players if name not in known_names]
 
         for username in unknown_names:
-            _worker.put(_fetch_and_update_username, username)
+            if username not in _queued_names:
+                _worker.put(_fetch_and_update_username, username)
 
         if _worker.qsize() >= 20:
             common.logging.debug(f"Updating {len(unknown_names)}({_worker.qsize()}) minecraft usernames.")
