@@ -1,3 +1,4 @@
+import asyncio
 from abc import ABC, abstractmethod
 
 import aiohttp.client_exceptions
@@ -11,6 +12,7 @@ import common.api.wynncraft.v3.session
 import common.logging
 import common.storage.playerTrackerData
 import common.storage.usernameData
+from common.types.dataTypes import MinecraftPlayer
 from common.types.enums import PlayerIdentifier
 from workers.queueWorker import QueueWorker
 
@@ -35,15 +37,46 @@ def subscribe(subscriber: NameChangeSubscriber):
     _subscribers.append(subscriber)
 
 
-async def _fetch_and_update_username(username: str, tries: int = 1):
-    if common.api.minecraft.calculate_remaining_calls() < 1:
-        await common.api.minecraft.wait_on_rate_limit()
+async def _update_username(player: MinecraftPlayer):
+    prev_p = await common.storage.usernameData.update(player.uuid, player.name)
 
+    if prev_p is not None and prev_p.name != player.name:
+        for subscriber in _subscribers:
+            await subscriber.name_changed(player.uuid, prev_p.name, player.name)
+
+
+async def _fetch_and_update_username_mojang(username: str, tries: int = 1):
+    if common.api.minecraft.calculate_remaining_calls() < 1:
+        _worker.put_delayed(_fetch_and_update_username_mojang, 61, username, tries)
+        return
+    try:
+        player = await common.api.minecraft.get_player(username=username, use_mojang=True)
+    except common.api.rateLimit.RateLimitException as e:
+        common.logging.error("Rate limited by mojang api!", e)
+        _worker.put_delayed(_fetch_and_update_username_mojang, 61, username, tries)
+        return
+    except aiohttp.client_exceptions.ClientError as e:
+        common.logging.error(f"Failed to update username ({tries}/3): ", username)
+        if tries < 3:
+            _worker.put_delayed(_fetch_and_update_username_mojang, 61, username, tries + 1)
+        raise e
+
+    if player is None:
+        common.logging.debug(f"{username} is not a minecraft name but online on wynncraft ({tries}/3)!")
+        if tries < 3:
+            _worker.put_delayed(_fetch_and_update_username_mojang, 300, username, tries + 1)
+        return
+
+    _queued_names.discard(username)
+    await _update_username(player)
+
+
+async def _fetch_and_update_username(username: str, tries: int = 1):
     try:
         player = await common.api.minecraft.get_player(username=username)
     except common.api.rateLimit.RateLimitException as e:
-        common.logging.error("Rate limit reached for mojang api!", e)
-        await common.api.minecraft.wait_on_rate_limit()
+        common.logging.error("Rate limited!", e)
+        await asyncio.sleep(60)
         _worker.put(_fetch_and_update_username, username)
         return
     except aiohttp.client_exceptions.ClientError as e:
@@ -53,17 +86,11 @@ async def _fetch_and_update_username(username: str, tries: int = 1):
         raise e
 
     if player is None:
-        common.logging.debug(f"{username} is not a minecraft name but online on wynncraft ({tries}/3)!")
-        if tries < 3:
-            _worker.put_delayed(_fetch_and_update_username, 60, username, tries + 1)
+        await _fetch_and_update_username_mojang(username, tries)
         return
 
-    prev_p = await common.storage.usernameData.update(player.uuid, player.name)
     _queued_names.discard(username)
-
-    if prev_p is not None and prev_p.name != player.name:
-        for subscriber in _subscribers:
-            await subscriber.name_changed(player.uuid, prev_p.name, player.name)
+    await _update_username(player)
 
 
 @tasks.loop(seconds=61, reconnect=True)

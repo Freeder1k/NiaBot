@@ -4,15 +4,16 @@ from http import HTTPStatus
 from common.types.dataTypes import MinecraftPlayer
 from . import sessionManager, rateLimit
 
-_mojang_rate_limit = rateLimit.RateLimit(1, 2)
+_mojang_rate_limit = rateLimit.RateLimit(30, 1)
 _mc_services_rate_limit = rateLimit.RateLimit(10, 1)
+_ashcon_rate_limit = rateLimit.RateLimit(1000, 1)
 
 _mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")
 _mc_services_api_session_id = sessionManager.register_session("https://api.minecraftservices.com")
 _ashcon_api = sessionManager.register_session("https://api.ashcon.app")
 
 
-async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
+async def get_player(*, uuid: str = None, username: str = None, use_mojang: bool = False) -> MinecraftPlayer | None:
     """
     Get a player via either their uuid or their username. Exactly one argument must be provided.
     May raise a RatelimitException or ClientResponseError.
@@ -20,27 +21,44 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
     :return: A player object if the player exists otherwise None.
     """
     if (uuid is None) and (username is not None):
-        # request = f"/users/profiles/minecraft/{username}"
-        request = f"/mojang/v2/user/{username}"
+        if use_mojang:
+            request = f"/users/profiles/minecraft/{username}"
+        else:
+            request = f"/mojang/v2/user/{username}"
     elif (uuid is not None) and (username is None):
-        # alternative: https://sessionserver.mojang.com/session/minecraft/profile/{uuid}
-        # request = f"/user/profile/{uuid}"
-        request = f"/mojang/v2/user/{uuid}"
+        # alternative: https://sessionserver.mojang.com/session/minecraft/profile/{uuid}\
+        if use_mojang:
+            request = f"/users/profile/{uuid}"
+        else:
+            request = f"/mojang/v2/user/{uuid}"
     else:
         raise TypeError("Exactly one argument (either uuid or username) must be provided.")
 
-    session = sessionManager.get_session(_ashcon_api)
+    if use_mojang:
+        session = sessionManager.get_session(_mojang_api_session_id)
+    else:
+        session = sessionManager.get_session(_ashcon_api)
 
-    async with session.get(request) as resp:
-        if resp.status == HTTPStatus.NOT_FOUND:
-            return None
+    if use_mojang:
+        rate_limiter = _mojang_rate_limit
+    else:
+        rate_limiter = _ashcon_rate_limit
 
-        resp.raise_for_status()
+    with rate_limiter:
+        async with session.get(request) as resp:
+            if resp.status == HTTPStatus.NOT_FOUND:
+                return None
 
-        if resp.status == HTTPStatus.NO_CONTENT:
-            return None
-        json = await resp.json()
-        return MinecraftPlayer(json["uuid"], json["username"])
+            resp.raise_for_status()
+
+            if resp.status == HTTPStatus.NO_CONTENT:
+                return None
+            json = await resp.json()
+
+            if use_mojang:
+                return MinecraftPlayer(json["id"], json["name"])
+            else:
+                return MinecraftPlayer(json["uuid"], json["username"])
 
 def calculate_remaining_calls() -> int:
     """
