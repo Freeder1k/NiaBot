@@ -9,6 +9,7 @@ _mc_services_rate_limit = rateLimit.RateLimit(10, 1)
 
 _mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")
 _mc_services_api_session_id = sessionManager.register_session("https://api.minecraftservices.com")
+_ashcon_api = sessionManager.register_session("https://api.ashcon.app")
 
 
 async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlayer | None:
@@ -19,25 +20,27 @@ async def get_player(*, uuid: str = None, username: str = None) -> MinecraftPlay
     :return: A player object if the player exists otherwise None.
     """
     if (uuid is None) and (username is not None):
-        request = f"/users/profiles/minecraft/{username}"
+        # request = f"/users/profiles/minecraft/{username}"
+        request = f"/mojang/v2/user/{username}"
     elif (uuid is not None) and (username is None):
         # alternative: https://sessionserver.mojang.com/session/minecraft/profile/{uuid}
-        request = f"/user/profile/{uuid}"
+        # request = f"/user/profile/{uuid}"
+        request = f"/mojang/v2/user/{uuid}"
     else:
         raise TypeError("Exactly one argument (either uuid or username) must be provided.")
 
-    session = sessionManager.get_session(_mojang_api_session_id)
-    with _mojang_rate_limit:
-        async with session.get(request) as resp:
-            if resp.status == HTTPStatus.NOT_FOUND:
-                return None
+    session = sessionManager.get_session(_ashcon_api)
 
-            resp.raise_for_status()
+    async with session.get(request) as resp:
+        if resp.status == HTTPStatus.NOT_FOUND:
+            return None
 
-            if resp.status == HTTPStatus.NO_CONTENT:
-                return None
-            json = await resp.json()
-            return MinecraftPlayer(json["id"], json["name"])
+        resp.raise_for_status()
+
+        if resp.status == HTTPStatus.NO_CONTENT:
+            return None
+        json = await resp.json()
+        return MinecraftPlayer(json["uuid"], json["username"])
 
 def calculate_remaining_calls() -> int:
     """
