@@ -1,4 +1,5 @@
 import asyncio
+import os
 from http import HTTPStatus
 
 from common.types.dataTypes import MinecraftPlayer
@@ -10,7 +11,7 @@ _ashcon_rate_limit = rateLimit.RateLimit(1000, 1)
 
 _mojang_api_session_id = sessionManager.register_session("https://api.mojang.com")
 _mc_services_api_session_id = sessionManager.register_session("https://api.minecraftservices.com")
-_ashcon_api = sessionManager.register_session("https://api.ashcon.app")
+_player_api = sessionManager.register_session("https://playerdb.co")
 
 
 async def get_player(*, uuid: str = None, username: str = None, use_mojang: bool = False) -> MinecraftPlayer | None:
@@ -24,28 +25,29 @@ async def get_player(*, uuid: str = None, username: str = None, use_mojang: bool
         if use_mojang:
             request = f"/users/profiles/minecraft/{username}"
         else:
-            request = f"/mojang/v2/user/{username}"
+            request = f"/api/player/minecraft/{username}"
     elif (uuid is not None) and (username is None):
         # alternative: https://sessionserver.mojang.com/session/minecraft/profile/{uuid}\
         if use_mojang:
             request = f"/users/profile/{uuid}"
         else:
-            request = f"/mojang/v2/user/{uuid}"
+            request = f"/api/player/minecraft/{uuid}"
     else:
         raise TypeError("Exactly one argument (either uuid or username) must be provided.")
 
+    headers = {}
+
     if use_mojang:
         session = sessionManager.get_session(_mojang_api_session_id)
-    else:
-        session = sessionManager.get_session(_ashcon_api)
-
-    if use_mojang:
         rate_limiter = _mojang_rate_limit
     else:
+        session = sessionManager.get_session(_player_api)
         rate_limiter = _ashcon_rate_limit
+        # add a user-agent header
+        headers["User-Agent"] = f"Email({os.getenv('EMAIL')})"
 
     with rate_limiter:
-        async with session.get(request) as resp:
+        async with session.get(request, headers=headers) as resp:
             if resp.status == HTTPStatus.NOT_FOUND:
                 return None
 
@@ -58,7 +60,8 @@ async def get_player(*, uuid: str = None, username: str = None, use_mojang: bool
             if use_mojang:
                 return MinecraftPlayer(json["id"], json["name"])
             else:
-                return MinecraftPlayer(json["uuid"], json["username"])
+                data = json["data"]["player"]
+                return MinecraftPlayer(data["id"], data["username"])
 
 def calculate_remaining_calls() -> int:
     """
