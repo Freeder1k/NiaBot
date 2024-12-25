@@ -9,6 +9,9 @@ import common.api.wynncraft.v3.guild
 import common.api.wynncraft.v3.player
 import common.logging
 from common.storage.playtimeData import set_playtime
+from workers.queueWorker import QueueWorker
+
+_worker = QueueWorker(delay=0.5)
 
 
 async def _update_playtime(uuid: str):
@@ -19,18 +22,21 @@ async def _update_playtime(uuid: str):
         common.logging.error(f'Failed to fetch stats for guild member with uuid {uuid}')
 
 
+async def _update_guild(guild_name: str):
+    guild = await common.api.wynncraft.v3.guild.stats(name=guild_name)
+
+    for i, uuid in enumerate(guild.members.all.keys()):
+        if (i - 1) % 50 == 0:
+            await asyncio.sleep(60)
+        _worker.put(_update_playtime, uuid)
+
+
 @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc), reconnect=True)
 async def update_playtimes():
     try:
-        guild = await common.api.wynncraft.v3.guild.stats(name="Nerfuria")
-
-        await asyncio.gather(*(_update_playtime(uuid) for uuid in guild.members.all.keys()))
-
-        await asyncio.sleep(120)
-
-        guild2 = await common.api.wynncraft.v3.guild.stats(name="Cat Cafe")
-
-        await asyncio.gather(*(_update_playtime(uuid) for uuid in guild2.members.all.keys()))
+        await _update_guild('Nerfuria')
+        await asyncio.sleep(60)
+        await _update_guild('Cat Cafe')
     except Exception as ex:
         await common.logging.error(exc_info=ex)
         raise ex
