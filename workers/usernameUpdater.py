@@ -14,6 +14,7 @@ import common.storage.playerTrackerData
 import common.storage.usernameData
 from common.types.dataTypes import MinecraftPlayer
 from common.types.enums import PlayerIdentifier
+from common.utils import minecraftPlayer
 from workers.queueWorker import QueueWorker
 
 _online_players: set[str] = set()
@@ -68,6 +69,8 @@ async def _fetch_and_update_username_mojang(username: str, tries: int = 1):
         return
 
     _queued_names.discard(username)
+    # Fix for api having outdated usernames
+    player = minecraftPlayer.MinecraftPlayer(uuid=player.uuid, name=username)
     await _update_username(player)
 
 
