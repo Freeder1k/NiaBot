@@ -1,7 +1,6 @@
 import common.api.sessionManager
 import common.storage.manager
 
-
 async def start():
     await common.storage.manager.init_database()
     await common.api.sessionManager.init_sessions()

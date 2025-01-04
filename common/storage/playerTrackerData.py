@@ -61,6 +61,55 @@ async def get_stats_for_guild(guild_name: str, stat: PlayerStatsIdentifier, afte
 
     return {row['uuid']: row['stat'] for row in await res.fetchall()}
 
+@alru_cache(ttl=600)
+async def get_playtimes_for_guild(guild_name: str, after: datetime = None) -> dict:
+    if after is None:
+        after = datetime.min
+
+    try:
+        guild_stats = await guild_api.stats(name=guild_name)
+        uuids = tuple(uuid.replace("-", "").lower() for uuid in guild_stats.members.all.keys())
+    except guild_api.UnknownGuildException:
+        raise ValueError(f"Guild {guild_name} not found.")
+
+    if uuids is None:
+        return {}
+
+    params = uuids + (after, ) + uuids
+
+    cur = await manager.get_cursor()
+    res = await cur.execute(f"""
+                SELECT 
+                    a.uuid, 
+                    a.playtime - COALESCE(b.playtime, 0) AS playtime 
+                FROM
+                    (SELECT a1.uuid, a1.playtime
+                     FROM player_tracking as a1
+                     JOIN (
+                         SELECT uuid, MAX(record_time) AS t
+                         FROM player_tracking
+                         WHERE uuid IN {f"({', '.join('?' for _ in uuids)})"}
+                         GROUP BY uuid
+                     ) as a2
+                     ON a1.uuid = a2.uuid AND a1.record_time = a2.t
+                    ) AS a
+                LEFT JOIN 
+                    (SELECT b1.uuid, b1.playtime
+                     FROM player_tracking as b1
+                     INNER JOIN (
+                         SELECT uuid, MAX(record_time) AS t
+                         FROM player_tracking
+                         WHERE record_time <= ?
+                         AND uuid IN {f"({', '.join('?' for _ in uuids)})"}
+                         GROUP BY uuid
+                     ) as b2
+                     ON b1.uuid = b2.uuid AND b1.record_time = b2.t
+                    ) AS b
+                ON a.uuid = b.uuid;
+            """, params)
+
+    return {row['uuid']: row['playtime'] for row in await res.fetchall()}
+
 
 @alru_cache(ttl=600)
 async def get_leaderboard(stat: PlayerStatsIdentifier, guild: WynncraftGuild = None, after: datetime = None,
