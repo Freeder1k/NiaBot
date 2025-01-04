@@ -95,6 +95,13 @@ class QueueWorker:
         """
         return self._queue.empty()
 
+    @property
+    def started(self):
+        """
+        Return True if the worker is running, False otherwise.
+        """
+        return self._task is not None
+
     def start(self):
         """
         Start the worker.

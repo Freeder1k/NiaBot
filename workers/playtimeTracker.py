@@ -34,6 +34,8 @@ async def _update_guild(guild_name: str):
 @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc), reconnect=True)
 async def update_playtimes():
     try:
+        if not _worker.started:
+            _worker.start()
         await _update_guild('Nerfuria')
         await asyncio.sleep(60)
         await _update_guild('Cat Cafe')
