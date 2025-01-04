@@ -26,8 +26,8 @@ async def _create_activity_embed(bot_config, weeks):
     async def get_playtime(uuid, _):
         uuid = uuid.lower().replace("-", "")
         if uuid not in playtime_data:
-            return '0.0 min'
-        return f"{playtime_data[uuid]:.1f} min"
+            return '0 min'
+        return f"{int(playtime_data[uuid] * 60)} min"
 
     embed = Embed(
         color=bot_config.DEFAULT_COLOR,
@@ -41,7 +41,7 @@ async def _create_activity_embed(bot_config, weeks):
         base_embed=embed,
         guild=guild,
         data_function=get_playtime,
-        sort_function=lambda t: float(t[:-4]),
+        sort_function=lambda t: int(t[:-4]),
         sort_reverse=True
     )
 
