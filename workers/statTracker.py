@@ -12,6 +12,8 @@ import common.api.wynncraft.v3.session
 import common.logging
 import common.storage.playerTrackerData
 import common.storage.usernameData
+import workers.usernameUpdater
+from common.types.dataTypes import MinecraftPlayer
 from common.types.enums import PlayerIdentifier
 
 
@@ -34,7 +36,8 @@ class PlayerQueueWorker:
         stats = None
         try:
             stats = await common.api.wynncraft.v3.player.stats(uuid=uuid)
-            # TODO track name changes
+            player = MinecraftPlayer(uuid=stats.uuid, name=stats.username)
+            await workers.usernameUpdater.update_username(player)
             await common.storage.playerTrackerData.add_record(stats)
         except common.api.wynncraft.v3.player.UnknownPlayerException:
             common.logging.debug(f"Couldn't get stats of player with uuid {uuid}: Unknown player.")

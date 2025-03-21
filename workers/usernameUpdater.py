@@ -38,7 +38,7 @@ def subscribe(subscriber: NameChangeSubscriber):
     _subscribers.append(subscriber)
 
 
-async def _update_username(player: MinecraftPlayer):
+async def update_username(player: MinecraftPlayer):
     prev_p = await common.storage.usernameData.update(player.uuid, player.name)
 
     if prev_p is not None and prev_p.name != player.name:
@@ -71,7 +71,7 @@ async def _fetch_and_update_username_mojang(username: str, tries: int = 1):
     _queued_names.discard(username)
     # Fix for api having outdated usernames
     player = minecraftPlayer.MinecraftPlayer(uuid=player.uuid, name=username)
-    await _update_username(player)
+    await update_username(player)
 
 
 async def _fetch_and_update_username(username: str, tries: int = 1):
@@ -93,7 +93,7 @@ async def _fetch_and_update_username(username: str, tries: int = 1):
         return
 
     _queued_names.discard(username)
-    await _update_username(player)
+    await update_username(player)
 
 
 @tasks.loop(seconds=61, reconnect=True)
@@ -126,11 +126,13 @@ _update_usernames.add_exception_type(aiohttp.client_exceptions.ClientError, Exce
 
 
 def start():
-    _update_usernames.start()
-    _worker.start()
-    common.logging.info("Username updater worker started.")
+    # _update_usernames.start()
+    # _worker.start()
+    # common.logging.info("Username updater worker started.")
+    pass
 
 
 def stop():
-    _worker.stop()
-    _update_usernames.stop()
+    # _worker.stop()
+    # _update_usernames.stop()
+    pass
