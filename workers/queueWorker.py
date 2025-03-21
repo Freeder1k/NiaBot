@@ -5,9 +5,6 @@ import discord.utils
 
 import common.logging
 
-_online_players: set[str] = set()
-_players_to_track: asyncio.Queue[str] = asyncio.Queue()
-
 
 class QueueWorker:
     def __init__(self, delay: float = 0.0):
