@@ -5,6 +5,7 @@ import aiohttp.client_exceptions
 from discord.ext import tasks
 
 import common.api
+import common.api.wynncraft.v3.session
 import common.api.wynncraft.v3.guild
 import common.api.wynncraft.v3.player
 import common.logging
@@ -16,6 +17,10 @@ _worker = QueueWorker(delay=0.5)
 
 async def _update_playtime(uuid: str):
     try:
+        if common.api.wynncraft.v3.session.calculate_remaining_requests() < 10:
+            wait_time = common.api.wynncraft.v3.session.ratelimit_reset_time()
+            await asyncio.sleep(wait_time + 1)
+
         stats = await common.api.wynncraft.v3.player.stats(uuid)
         await set_playtime(stats.uuid, datetime.now(timezone.utc).date(), int(stats.playtime * 60))
     except common.api.wynncraft.v3.player.UnknownPlayerException:
