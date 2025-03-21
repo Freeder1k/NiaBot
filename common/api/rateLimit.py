@@ -43,6 +43,7 @@ class RateLimit:
                 self._set_full()
                 raise RateLimitException(
                     f"Rate limited by server! (Request amount: {usage}/{self._max_calls} per {self._period}min)")
+        return False  # re-raise any exceptions
 
     def _clear_expired_calls(self):
         curr_time = time.time()
@@ -52,13 +53,6 @@ class RateLimit:
     def _set_full(self):
         curr_time = time.time()
         self._calls.extend([curr_time] * self.calculate_remaining_calls())
-
-    def update_remaining(self, amount):
-        with self._lock:
-            remaining = self.calculate_remaining_calls()
-            if amount < remaining:
-                curr_time = time.time()
-                self._calls.extend([curr_time] * (remaining - amount))
 
     def calculate_usage(self) -> int:
         """
