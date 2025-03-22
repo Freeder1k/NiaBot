@@ -33,4 +33,4 @@ def calculate_remaining_requests():
 
 
 def ratelimit_reset_time():
-    return _rate_limit.get_time_until_next_free()
+    return _rate_limit.get_time_until_reset()
