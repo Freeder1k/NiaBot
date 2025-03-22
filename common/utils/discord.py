@@ -195,10 +195,11 @@ def create_chart(x, y, xlabel, ylabel):
     data_stream = io.BytesIO()
 
     plt.plot(x, y)
-
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(True)
+
+    plt.gcf().autofmt_xdate()
 
     # Save content into the data stream
     plt.savefig(data_stream, format='png', bbox_inches="tight", dpi=80)
