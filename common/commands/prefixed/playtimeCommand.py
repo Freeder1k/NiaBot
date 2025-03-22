@@ -57,29 +57,6 @@ class PlaytimeCommand(command.Command):
 
             chart = common.utils.discord.create_chart(dates, values, "Date", "Playtime (hours)")
 
-            # Initialize IO
-            # data_stream = io.BytesIO()
-            #
-            # # Create plot
-            # fig, ax = plt.subplots()
-            #
-            # plt.plot(dates, values)
-            #
-            # plt.xlabel("Date")
-            # plt.ylabel("Playtime (hours)")
-            # plt.xticks(dates[::7], rotation=45)
-            # ax.set_xticks(dates, minor=True)
-            # plt.grid(True)
-            #
-            # # Save content into the data stream
-            # plt.savefig(data_stream, format='png', bbox_inches="tight", dpi=80)
-            # plt.close()
-            #
-            # ## Create file
-            # # Reset point back to beginning of stream
-            # data_stream.seek(0)
-            # chart = discord.File(data_stream, filename="playtime.png")
-
             embed = Embed(title=f"Playtime for {p.name}", color=event.bot.config.DEFAULT_COLOR)
             embed.set_image(
                 url="attachment://chart.png"
