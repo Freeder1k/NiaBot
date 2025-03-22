@@ -67,7 +67,7 @@ class Command(ABC):
         """
         Runs the command and checks if the user has the required permissions to run the command.
         """
-        if not self.check_permissions(event):
+        if not await self.check_permissions(event):
             return
 
         await self._execute(event)
