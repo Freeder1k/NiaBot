@@ -47,7 +47,7 @@ async def _record_stats(uuid: str, tries: int):
         raise e
 
 
-@tasks.loop(seconds=30, reconnect=True)
+@tasks.loop(seconds=31, reconnect=True)
 async def _update_online():
     try:
         global _online_players
@@ -65,7 +65,7 @@ async def _update_online():
         for uuid in left_players:
             _worker.put(_record_stats, uuid, 0)
 
-        if _worker.qsize() >= 100:
+        if _worker.qsize() >= 10:
             common.logging.debug(f"Tracking {len(joined_players) + len(left_players)}({_worker.qsize()}) player's stats.")
     except common.api.rateLimit.RateLimitException:
         pass

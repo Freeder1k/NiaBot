@@ -10,9 +10,10 @@ from discord.utils import MISSING
 
 import common.logging
 import common.utils.command
+import common.utils.discord
 from common.botInstance import BotInstance
 from common.commands import command
-from common.commands.commandEvent import CommandEvent, SlashCommandEvent
+from common.commands.commandEvent import CommandEvent, SlashCommandEvent, PrefixedCommandEvent
 
 _name_reg = re.compile(r"^[-\w]{1,32}$")
 
@@ -33,7 +34,8 @@ class CommandParam(discord.app_commands.transformers.CommandParameter):
                  channel_types: List[ChannelType] = MISSING,
                  min_value: Optional[Union[int, float]] = None,
                  max_value: Optional[Union[int, float]] = None,
-                 autocomplete: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None
+                 autocomplete: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None,
+                 parser: Optional[Union[Callable[[str], Any], Callable[[str], Coroutine[Any, Any, Any]]]] = None,
                  ):
         if not re.match(_name_reg, name) or len(name) > 32:
             raise TypeError(f"Name {name!r} is not a valid name.")
@@ -61,15 +63,19 @@ class CommandParam(discord.app_commands.transformers.CommandParameter):
             _rename=display_name,
         )
 
+        self.parser = parser
+
 
 class PlayerParam(CommandParam):
-    def __init__(self, required=True):
+    def __init__(self, required=True, default: Any = MISSING):
         super().__init__(
             "player",
             "The username or uuid of a player.",
             required=required,
+            default=default,
             ptype=discord.AppCommandOptionType.string,
             autocomplete=common.utils.command.player_autocomplete,
+            parser=common.utils.command.parse_player
         )
 
 
@@ -80,8 +86,20 @@ class GuildParam(CommandParam):
             "The name or tag of a guild.",
             required=required,
             ptype=discord.AppCommandOptionType.string,
-            autocomplete=common.utils.command.guild_autocomplete
+            autocomplete=common.utils.command.guild_autocomplete,
+            parser=common.utils.command.parse_guild
         )
+
+
+# class DateParam(CommandParam):
+#     def __init__(self, required=True):
+#         super().__init__(
+#             "date",
+#             "The date in the format YYYY-MM-DD.",
+#             required=required,
+#             ptype=discord.AppCommandOptionType.string,
+#             autocomplete=common.utils.command.date_autocomplete,
+#         )
 
 
 class HybridCommand(command.Command, discord.app_commands.Command):
@@ -128,3 +146,38 @@ class HybridCommand(command.Command, discord.app_commands.Command):
     @abstractmethod
     async def _execute(self, event: CommandEvent):
         pass
+
+    async def run(self, event: CommandEvent):
+        """
+        Runs the command and checks if the user has the required permissions to run the command and parses the arguments if it's a slash command.
+        """
+        if not await self.check_permissions(event):
+            return
+
+        if isinstance(event, PrefixedCommandEvent):
+            await self._execute(event)
+            return
+
+        if not isinstance(event, SlashCommandEvent):
+            raise TypeError(f"Unknown event type. {type(event)}")
+
+        for param in self._params.values():
+            if param.parser is None:
+                continue
+            value = event.args[param.name]
+            if not param.required and value == param.default:
+                continue
+
+            if type(value) is str:
+                try:
+                    value = await discord.utils.maybe_coroutine(param.parser, value)
+                    event.args[param.name] = value
+                except ValueError as e:
+                    await event.reply_error(f"{str(e)}")
+                    return
+            else:
+                common.logging.error(f"Invalid type for param {param.name}: {type(value)}",
+                                     extra={"slash_command_event": event})
+                continue
+
+        await self._execute(event)

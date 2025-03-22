@@ -120,17 +120,13 @@ class GuildCommand(hybridCommand.HybridCommand):
                     return
 
                 guild_str = event.message.content.split(" ", 1)[1]
+                try:
+                    guild = await common.utils.command.parse_guild(guild_str)
+                except ValueError as e:
+                    await event.reply_error(f"{str(e)}")
+                    return
             elif isinstance(event, SlashCommandEvent):
-                guild_str = event.args["guild"]
-
-            try:
-                guild = await common.utils.command.parse_guild(guild_str)
-            except common.utils.command.AmbiguousGuildError as e:
-                await event.reply_info(str(e))
-                return
-            except (ValueError, common.utils.command.UnknownGuildError) as e:
-                await event.reply_error(str(e))
-                return
+                guild = event.args["guild"]
 
             color = event.bot.config.DEFAULT_COLOR
 

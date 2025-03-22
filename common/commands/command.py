@@ -41,27 +41,33 @@ class Command(ABC):
         """
         pass
 
-    async def run(self, event: CommandEvent):
-        """
-        Runs the command and checks if the user has the required permissions to run the command.
-        """
+    async def check_permissions(self, event: CommandEvent):
         if not event.channel.permissions_for(event.guild.me).send_messages:
-            return
+            return False
 
         if not event.channel.permissions_for(event.guild.me).embed_links:
             await event.reply("Please give me the Embed Links permission to run commands.")
-            return
+            return False
 
         if not self._allowed_user(event.sender, event.bot):
             await event.reply_error(f"This command is only available for {self.permission_lvl.name}s.")
-            return
+            return False
 
         m_perms = common.utils.discord.get_missing_perms(event.channel, self.req_perms)
         if m_perms != Permissions.none():
             embed = Embed(color=event.bot.config.ERROR_COLOR,
-                title="**To use this command please give me the following permission(s):**",
-                description=[p for p in Permissions.VALID_FLAGS if getattr(m_perms, p)])
+                          title="**To use this command please give me the following permission(s):**",
+                          description=[p for p in Permissions.VALID_FLAGS if getattr(m_perms, p)])
             await event.reply(embed=embed)
+            return False
+
+        return True
+
+    async def run(self, event: CommandEvent):
+        """
+        Runs the command and checks if the user has the required permissions to run the command.
+        """
+        if not self.check_permissions(event):
             return
 
         await self._execute(event)

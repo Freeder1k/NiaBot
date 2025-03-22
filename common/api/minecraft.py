@@ -50,6 +50,8 @@ async def get_player(*, uuid: str = None, username: str = None, use_mojang: bool
         async with session.get(request, headers=headers) as resp:
             if resp.status == HTTPStatus.NOT_FOUND:
                 return None
+            if resp.status == HTTPStatus.BAD_REQUEST:
+                return None
 
             resp.raise_for_status()
 

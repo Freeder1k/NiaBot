@@ -1,7 +1,5 @@
-import re
 from datetime import datetime
 
-import discord
 from async_lru import alru_cache
 from discord import Permissions, Embed
 from discord.utils import escape_markdown
@@ -16,10 +14,7 @@ from common.commands import command, hybridCommand
 from common.commands.commandEvent import PrefixedCommandEvent, SlashCommandEvent, CommandEvent
 from common.types.dataTypes import MinecraftPlayer
 from common.types.wynncraft import PlayerStats
-from common.utils import minecraftPlayer
-
-_USERNAME_RE = re.compile(r'[0-9A-Za-z_]+')
-_UUID_RE = re.compile(r'[0-9a-f]+')
+from common.utils.command import parse_player
 
 
 @alru_cache(ttl=60)
@@ -121,23 +116,13 @@ class PlayerCommand(hybridCommand.HybridCommand):
                     return
 
                 player_str = event.args[1]
-            elif isinstance(event, SlashCommandEvent):
-                player_str = event.args["player"]
-
-            if len(player_str) <= 16 and _USERNAME_RE.fullmatch(player_str):
-                p = await minecraftPlayer.get_player(username=player_str)
-            else:
-                uuid = player_str.replace("-", "").lower()
-
-                if len(uuid) == 32 and _UUID_RE.fullmatch(uuid):
-                    p = await minecraftPlayer.get_player(uuid=uuid)
-                else:
-                    await event.reply_error(f"Couldn't parse player ``{escape_markdown(player_str)}``.")
+                try:
+                    p = await parse_player(player_str)
+                except ValueError as e:
+                    await event.reply_error(f"{str(e)}")
                     return
-
-            if p is None:
-                await event.reply_error(f"Couldn't find player ``{escape_markdown(player_str)}``.")
-                return
+            elif isinstance(event, SlashCommandEvent):
+                p = event.args["player"]
 
             color = event.bot.config.DEFAULT_COLOR
 

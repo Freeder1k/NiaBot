@@ -172,19 +172,13 @@ class HistoryCommand(hybridCommand.HybridCommand):
                 return  # TODO
             elif isinstance(event, SlashCommandEvent):
                 stat_str = event.args["stat"]
-                player_str = event.args["player"]
+                player = event.args["player"]
                 relative_str = event.args["relative"]
 
             try:
                 stat = PlayerStatsIdentifier(stat_str.lower())
             except ValueError:
                 await event.reply_error("Invalid stat!")
-                return
-
-            try:
-                player = await common.utils.command.parse_player(player_str)
-            except ValueError as e:
-                await event.reply_error(str(e))
                 return
 
             if relative_str is not None and relative_str not in ["day", "week", "month"]:

@@ -14,9 +14,12 @@ from common.types.constants import time_units_map, seasons
 from common.types.dataTypes import MinecraftPlayer
 from common.types.enums import PlayerStatsIdentifier
 from common.types.wynncraft import WynncraftGuild
+from common.utils import minecraftPlayer
 from common.utils.misc import pluralize
 import common.utils.minecraftPlayer
 
+USERNAME_RE = re.compile(r'[0-9A-Za-z_]+')
+UUID_RE = re.compile(r'[0-9a-f]+')
 GUILD_RE = re.compile(r'[A-Za-z ]{1,30}')
 
 
@@ -64,10 +67,6 @@ async def parse_guild(guild_str: str) -> WynncraftGuild:
             return exact_matches[0]
         else:
             raise AmbiguousGuildError(guild_str, exact_matches)
-
-
-USERNAME_RE = re.compile(r'[0-9A-Za-z_]{1,16}')
-UUID_RE = re.compile(r'[a-fA-F0-9]{8}-?([a-fA-F0-9]{4}-?){3}[a-fA-F0-9]{12}')
 
 
 async def parse_player(player_str: str) -> MinecraftPlayer:
@@ -200,3 +199,5 @@ async def guild_autocomplete(
 
     matches = workers.guildIndexer.get_index().get(current.lower(), [])
     return [Choice(name=name, value=name) for name in matches][:25]
+
+
