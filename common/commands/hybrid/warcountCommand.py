@@ -101,7 +101,7 @@ class WarcountCommand(hybridCommand.HybridCommand):
                 end = event.args.get("end")
                 season = event.args.get("season")
 
-                if start is None and end is None:
+                if start is None and end is None and season is None:
                     season = len(seasons) - 1  # latest season
 
                 if season is not None:
