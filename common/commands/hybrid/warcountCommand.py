@@ -31,7 +31,7 @@ async def _create_warcount_embed(timeframe: Timeframe = None, guild: WynncraftGu
     guild_str = f'## Guild: {guild.name}\n' if guild else ''
     timeframe_str = ' (all time)' if timeframe is None else f' ({timeframe.comment})' if timeframe.comment else f'\n## {timeframe}'
     embed = Embed(
-        description=f"# Top 100 warrers\n{timeframe_str}\n{guild_str}"
+        description=f"# Top 100 warrers\n## {timeframe_str}\n{guild_str}"
                     f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
         color=color,
         timestamp=discord.utils.utcnow()
@@ -100,6 +100,9 @@ class WarcountCommand(hybridCommand.HybridCommand):
                 start = event.args.get("start")
                 end = event.args.get("end")
                 season = event.args.get("season")
+
+                if start is None and end is None:
+                    season = len(seasons) - 1  # latest season
 
                 if season is not None:
                     try:
