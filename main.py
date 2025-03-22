@@ -26,6 +26,7 @@ def add_commands(bot):
         PlayerCommand(bot),
         HistoryCommand(bot),
         SpaceCommand(bot),
+        WarcountCommand(bot),
     )
     bot.add_commands(
         ActivityCommand(),

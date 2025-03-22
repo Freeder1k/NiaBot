@@ -68,4 +68,9 @@ seasons = [(_parse_date(d1), _parse_date(d2)) for d1, d2 in [
     ("January 5th, 2024", "February 19th, 2024"),  # 16
     ("February 23rd, 2024", "April 22nd, 2024"),  # 17
     ("April 26th, 2024", "June 17th, 2024"),  # 18
+    ("June 24th, 2024", "August 26th, 2024"),  # 19
+    ("September 1st, 2024", "October 28th, 2024"),  # 20
+    ("November 1st, 2024", "December 23rd, 2024"),  # 21
+    ("January 3rd, 2025", "February 9th, 2025"),  # 22
+    ("February 15th, 2025", "April 13th, 2025"),  # 23
 ]]

@@ -2,6 +2,8 @@ import re
 from datetime import datetime, timedelta
 from typing import Iterable
 
+import dateparser
+
 import discord
 import discord.utils
 from discord.app_commands import Choice
@@ -21,6 +23,9 @@ import common.utils.minecraftPlayer
 USERNAME_RE = re.compile(r'[0-9A-Za-z_]+')
 UUID_RE = re.compile(r'[0-9a-f]+')
 GUILD_RE = re.compile(r'[A-Za-z ]{1,30}')
+
+_REL_TIME_RE = re.compile(r"^(\d+)(.*)")
+_SEASON_RE = re.compile(r"^s(\d+)")
 
 
 class AmbiguousGuildError(ValueError):
@@ -87,9 +92,17 @@ async def parse_player(player_str: str) -> MinecraftPlayer:
         raise ValueError(f"Couldn't find player ``{player_str}``.")
     return p
 
-
-_REL_TIME_RE = re.compile(r"^(\d+)(.*)")
-_SEASON_RE = re.compile(r"^s(\d+)")
+def parse_datetime(date_str: str) -> datetime:
+    """
+    Parse a date string into a datetime object.
+    :param date_str: The date string to parse.
+    :return: The datetime object.
+    :raises ValueError: If the date string is invalid.
+    """
+    value = dateparser.parse(date_str, settings={'TIMEZONE': 'UTC'})
+    if value is None:
+        raise ValueError(f"Invalid datetime: ``{date_str}``")
+    return value
 
 
 class Timeframe:

@@ -49,6 +49,9 @@ class CommandParam(discord.app_commands.transformers.CommandParameter):
         if choices is not MISSING and len(choices) > 25:
             raise TypeError("Choices must be less than 25.")
 
+        if ptype is not MISSING and not ptype == discord.AppCommandOptionType.string and parser is not None:
+            raise TypeError("Parser can only be used with string type parameters.")
+
         super().__init__(
             default=default,
             required=required,
@@ -80,26 +83,33 @@ class PlayerParam(CommandParam):
 
 
 class GuildParam(CommandParam):
-    def __init__(self, required=True):
+    def __init__(self, required=True, default: Any = MISSING):
         super().__init__(
             "guild",
             "The name or tag of a guild.",
             required=required,
+            default=default,
             ptype=discord.AppCommandOptionType.string,
             autocomplete=common.utils.command.guild_autocomplete,
             parser=common.utils.command.parse_guild
         )
 
 
-# class DateParam(CommandParam):
-#     def __init__(self, required=True):
-#         super().__init__(
-#             "date",
-#             "The date in the format YYYY-MM-DD.",
-#             required=required,
-#             ptype=discord.AppCommandOptionType.string,
-#             autocomplete=common.utils.command.date_autocomplete,
-#         )
+class DateParam(CommandParam):
+    def __init__(self, name=None, description=None, required=True, default: Any = MISSING):
+        if name is None:
+            name = "date"
+        if description is None:
+            description = "Anything that represents a date and/or time."
+
+        super().__init__(
+            name,
+            description,
+            required=required,
+            default=default,
+            ptype=discord.AppCommandOptionType.string,
+            parser=common.utils.command.parse_datetime,
+        )
 
 
 class HybridCommand(command.Command, discord.app_commands.Command):

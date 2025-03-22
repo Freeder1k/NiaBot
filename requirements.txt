@@ -9,3 +9,4 @@ matplotlib
 yarl
 async_lru
 Pillow
+dateparser
