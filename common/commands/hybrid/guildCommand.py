@@ -105,12 +105,7 @@ class GuildCommand(hybridCommand.HybridCommand):
         super().__init__(
             name="guild",
             aliases=("g",),
-            params=[hybridCommand.CommandParam("guild",
-                                               "The name or tag of the guild.",
-                                               required=True,
-                                               ptype=discord.AppCommandOptionType.string,
-                                               autocomplete=common.utils.command.guild_autocomplete
-                                               )],
+            params=[hybridCommand.GuildParam()],
             description="Get a wynncraft guild by its name or tag.",
             base_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE,

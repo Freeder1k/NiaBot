@@ -105,12 +105,7 @@ class PlayerCommand(hybridCommand.HybridCommand):
         super().__init__(
             name="player",
             aliases=("p", "stats"),
-            params=[hybridCommand.CommandParam("player",
-                                               "The name or uuid of the player.",
-                                               required=True,
-                                               ptype=discord.AppCommandOptionType.string,
-                                               autocomplete=common.utils.command.player_autocomplete
-                                               )],
+            params=[hybridCommand.PlayerParam()],
             description="See the wynncraft stats of the provided player.",
             base_perms=Permissions().none(),
             permission_lvl=command.PermissionLevel.ANYONE,

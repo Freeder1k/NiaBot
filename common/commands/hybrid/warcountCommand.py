@@ -115,13 +115,7 @@ class WarcountCommand(hybridCommand.HybridCommand):
             name="warcount",
             aliases=("wc",),
             params=[
-                hybridCommand.CommandParam(
-                    "guild", "[optional] guild.",
-                    required=False,
-                    default=None,
-                    ptype=discord.AppCommandOptionType.string,
-                    autocomplete=_guild_autocomplete,
-                ),
+                hybridCommand.GuildParam(),
                 hybridCommand.CommandParam(
                     "start", "[optional] start date.",
                     required=False,

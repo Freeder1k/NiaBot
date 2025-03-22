@@ -140,12 +140,7 @@ class HistoryCommand(hybridCommand.HybridCommand):
             name="history",
             aliases=(),
             params=[
-                hybridCommand.CommandParam(
-                    "player", "The player, specified by username or uuid",
-                    required=True,
-                    ptype=discord.AppCommandOptionType.string,
-                    autocomplete=common.utils.command.player_autocomplete,
-                ),
+                hybridCommand.PlayerParam(),
                 hybridCommand.CommandParam(
                     "stat", "The stat to retrieve.",
                     required=True,

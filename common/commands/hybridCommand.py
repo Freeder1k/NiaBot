@@ -9,6 +9,7 @@ from discord.app_commands import Choice, locale_str
 from discord.utils import MISSING
 
 import common.logging
+import common.utils.command
 from common.botInstance import BotInstance
 from common.commands import command
 from common.commands.commandEvent import CommandEvent, SlashCommandEvent
@@ -26,8 +27,7 @@ class CommandParam(discord.app_commands.transformers.CommandParameter):
                  description: str,
                  required: bool = False,
                  default: Any = MISSING,
-                 display_name: Union[str,
-                 locale_str] = MISSING,
+                 display_name: Union[str, locale_str] = MISSING,
                  choices: List[Choice[Union[str, int, float]]] = MISSING,
                  ptype: discord.AppCommandOptionType = MISSING,
                  channel_types: List[ChannelType] = MISSING,
@@ -59,6 +59,28 @@ class CommandParam(discord.app_commands.transformers.CommandParameter):
             max_value=max_value,
             autocomplete=autocomplete,
             _rename=display_name,
+        )
+
+
+class PlayerParam(CommandParam):
+    def __init__(self, required=True):
+        super().__init__(
+            "player",
+            "The username or uuid of a player.",
+            required=required,
+            ptype=discord.AppCommandOptionType.string,
+            autocomplete=common.utils.command.player_autocomplete,
+        )
+
+
+class GuildParam(CommandParam):
+    def __init__(self, required=True):
+        super().__init__(
+            "guild",
+            "The name or tag of a guild.",
+            required=required,
+            ptype=discord.AppCommandOptionType.string,
+            autocomplete=common.utils.command.guild_autocomplete
         )
 
 
