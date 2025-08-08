@@ -1,10 +1,18 @@
+import os
+
 from common.api import sessionManager
 from common.api.wynncraft.v3.wynnRateLimit import WynnRateLimit
 from common.types.jsonable import JsonType
 
+from dotenv import load_dotenv
+load_dotenv()
+
 _rate_limit = WynnRateLimit()
 _v3_session_id = sessionManager.register_session("https://api.wynncraft.com")
 
+headers = {
+    "Authorization": f"Bearer {os.getenv('WYNN_API_KEY')}"
+}
 
 async def get(url: str, **params: str) -> JsonType:
     """
@@ -15,7 +23,7 @@ async def get(url: str, **params: str) -> JsonType:
     """
     with _rate_limit:
         session = sessionManager.get_session(_v3_session_id)
-        async with session.get(f"/v3{url}", params=params, raise_for_status=True) as resp:
+        async with session.get(f"/v3{url}", params=params, raise_for_status=True, headers=headers) as resp:
             _rl_reset = resp.headers.get("ratelimit-reset")
             _rl_reset = int(_rl_reset) if _rl_reset else 0
             if _rl_reset > 0:

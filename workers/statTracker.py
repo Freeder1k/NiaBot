@@ -29,6 +29,8 @@ async def _record_stats(uuid: str, tries: int):
     stats = None
     try:
         stats = await common.api.wynncraft.v3.player.stats(uuid=uuid)
+        if stats is None:
+            return # Player hid stats
         player = MinecraftPlayer(uuid=stats.uuid, name=stats.username)
         await workers.usernameUpdater.update_username(player)
         await common.storage.playerTrackerData.add_record(stats)
