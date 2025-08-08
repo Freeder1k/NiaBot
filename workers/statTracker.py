@@ -31,6 +31,8 @@ async def _record_stats(uuid: str, tries: int):
         stats = await common.api.wynncraft.v3.player.stats(uuid=uuid)
         player = MinecraftPlayer(uuid=stats.uuid, name=stats.username)
         await workers.usernameUpdater.update_username(player)
+        if stats.globalData is None:
+            return # Hidden profile, no stats available
         await common.storage.playerTrackerData.add_record(stats)
     except common.api.wynncraft.v3.player.UnknownPlayerException:
         common.logging.debug(f"Couldn't get stats of player with uuid {uuid}: Unknown player.")
