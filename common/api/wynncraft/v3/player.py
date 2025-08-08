@@ -5,9 +5,12 @@ from async_lru import alru_cache
 
 import common.utils.misc
 from common.api.wynncraft.v3 import session
+from common.api.wynncraft.v3.wynnRateLimit import WynnRateLimit
 from common.types.enums import PlayerIdentifier
 from common.types.wynncraft import PlayerStats, CharacterShort, AbilityNode
 
+
+_player_rate_limit = WynnRateLimit()
 
 class UnknownPlayerException(Exception):
     pass
@@ -30,7 +33,7 @@ async def stats(uuid: str, full_result: bool = False) -> PlayerStats:
     uuid = common.utils.misc.format_uuid(uuid, dashed=True)
 
     try:
-        data = await session.get(f"/player/{uuid}", fullResult=str(full_result))
+        data = await session.get(f"/player/{uuid}", fullResult="", rate_limit=_player_rate_limit)
     except aiohttp.client_exceptions.ClientResponseError as ex:
         if ex.status == 404:
             raise UnknownPlayerException(f'Player {uuid} not found.')
@@ -52,7 +55,7 @@ async def characters(uuid: str) -> dict[str, CharacterShort]:
     uuid = common.utils.misc.format_uuid(uuid, dashed=True)
 
     try:
-        data = await session.get(f"/player/{uuid}/characters")
+        data = await session.get(f"/player/{uuid}/characters", rate_limit=_player_rate_limit)
     except aiohttp.client_exceptions.ClientResponseError as ex:
         if ex.status == 404:
             raise UnknownPlayerException(f'Player {uuid} not found.')
@@ -75,7 +78,7 @@ async def abilities(player_uuid: str, character_uuid: str) -> list[AbilityNode]:
     """
     player_uuid = common.utils.misc.format_uuid(player_uuid, dashed=True)
     try:
-        data = await session.get(f"/player/{player_uuid}/characters/{character_uuid}/abilities")
+        data = await session.get(f"/player/{player_uuid}/characters/{character_uuid}/abilities", rate_limit=_player_rate_limit)
     except aiohttp.client_exceptions.ClientResponseError as ex:
         if ex.status == 400 or ex.status == 404:
             raise UnknownPlayerException(f'Player {player_uuid} or character with uuid {character_uuid} not found.')
@@ -90,11 +93,11 @@ async def abilities(player_uuid: str, character_uuid: str) -> list[AbilityNode]:
 @alru_cache(ttl=30)
 async def _online_players(identifier: PlayerIdentifier = PlayerIdentifier.USERNAME) -> dict:
     try:
-        return await session.get(f"/player", identifier=identifier)
+        return await session.get(f"/player", identifier=identifier, rate_limit=_player_rate_limit)
     except aiohttp.client_exceptions.ClientResponseError as ex:
         if ex.status == 524:
             time.sleep(1)
-            return await session.get(f"/player", identifier=identifier)
+            return await session.get(f"/player", identifier=identifier, rate_limit=_player_rate_limit)
         else:
             raise ex
 
@@ -112,3 +115,11 @@ async def player_count() -> int:
     Return the number of players online.
     """
     return (await _online_players())['total']
+
+
+def calculate_remaining_requests():
+    return _player_rate_limit.calculate_remaining_calls()
+
+
+def ratelimit_reset_time():
+    return _player_rate_limit.get_time_until_reset()

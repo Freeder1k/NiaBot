@@ -17,8 +17,8 @@ _worker = QueueWorker(delay=0.5)
 
 async def _update_playtime(uuid: str):
     try:
-        if common.api.wynncraft.v3.session.calculate_remaining_requests() < 10:
-            wait_time = common.api.wynncraft.v3.session.ratelimit_reset_time()
+        if common.api.wynncraft.v3.player.calculate_remaining_requests() < 10:
+            wait_time = common.api.wynncraft.v3.player.ratelimit_reset_time()
             await asyncio.sleep(wait_time + 1)
 
         stats = await common.api.wynncraft.v3.player.stats(uuid)

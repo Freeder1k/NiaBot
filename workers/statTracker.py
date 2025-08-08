@@ -18,19 +18,17 @@ from common.types.enums import PlayerIdentifier
 from workers.queueWorker import QueueWorker
 
 _online_players: set[str] = set()
-_worker = QueueWorker()
+_worker = QueueWorker(delay=0.01)
 
 
 async def _record_stats(uuid: str, tries: int):
-    if common.api.wynncraft.v3.session.calculate_remaining_requests() < 10:
-        wait_time = common.api.wynncraft.v3.session.ratelimit_reset_time()
+    if common.api.wynncraft.v3.player.calculate_remaining_requests() < 10:
+        wait_time = common.api.wynncraft.v3.player.ratelimit_reset_time()
         await asyncio.sleep(wait_time + 1)
 
     stats = None
     try:
         stats = await common.api.wynncraft.v3.player.stats(uuid=uuid)
-        if stats is None:
-            return # Player hid stats
         player = MinecraftPlayer(uuid=stats.uuid, name=stats.username)
         await workers.usernameUpdater.update_username(player)
         await common.storage.playerTrackerData.add_record(stats)

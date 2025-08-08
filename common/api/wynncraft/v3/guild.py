@@ -2,7 +2,26 @@ import aiohttp
 from async_lru import alru_cache
 
 from common.api.wynncraft.v3 import session
+from common.api.wynncraft.v3.wynnRateLimit import WynnRateLimit
 from common.types.wynncraft import GuildStats, Territory, WynncraftGuild
+
+_guild_rate_limit = WynnRateLimit()
+
+
+def _switch_uuid_and_name(data):
+    new_members_dict = {}
+    for rank, rank_members in data["members"].items():
+        if not isinstance(rank_members, dict):
+            new_members_dict[rank] = rank_members
+            continue
+        new_members_dict[rank] = {}
+        for name, member_stats in rank_members.items():
+            uuid = member_stats["uuid"]
+            if isinstance(member_stats, dict) and "uuid" in member_stats:
+                new_members_dict[rank][uuid] = member_stats
+                new_members_dict[rank][uuid]["username"] = name
+
+    data["members"] = new_members_dict
 
 
 @alru_cache(maxsize=None, ttl=600)
@@ -23,7 +42,8 @@ async def stats(*, name: str = None, tag: str = None) -> GuildStats:
         raise TypeError("Exactly one argument (either name or tag) must be provided.")
 
     try:
-        data = await session.get(guild_url, identifier='uuid')
+        data = await session.get(guild_url, rate_limit=_guild_rate_limit)
+        _switch_uuid_and_name(data)
         return GuildStats.from_json(data)
     except aiohttp.ClientResponseError as e:
         if e.status == 404:
@@ -36,7 +56,7 @@ async def list_guilds() -> list[WynncraftGuild]:
     """
     Request a list of all wynncraft guilds.
     """
-    data: dict = await session.get("/guild/list/guild")
+    data: dict = await session.get("/guild/list/guild", rate_limit=_guild_rate_limit)
 
     return [WynncraftGuild(name, g['prefix']) for name, g in data.items() if name != "" and g['prefix'] is not None]
 
@@ -46,7 +66,7 @@ async def list_territories() -> dict[str, Territory]:
     """
     Request a dictionary of information on all territories.
     """
-    data: dict = await session.get("/guild/list/territory")
+    data: dict = await session.get("/guild/list/territory", rate_limit=_guild_rate_limit)
 
     return {k: Territory.from_json(v) for k, v in data.items()}
 
@@ -69,3 +89,10 @@ async def find(s: str) -> tuple[WynncraftGuild]:
 
 class UnknownGuildException(Exception):
     pass
+
+def calculate_remaining_requests():
+    return _guild_rate_limit.calculate_remaining_calls()
+
+
+def ratelimit_reset_time():
+    return _guild_rate_limit.get_time_until_reset()
