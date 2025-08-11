@@ -17,7 +17,7 @@ from common.types.wynncraft import PlayerStats
 from common.utils.command import parse_player
 
 
-@alru_cache(ttl=60)
+@alru_cache(ttl=30)
 async def _create_player_embed(p: MinecraftPlayer, color: int) -> Embed | None:
     stats: PlayerStats = await common.api.wynncraft.v3.player.stats(common.utils.misc.format_uuid(p.uuid),
                                                                     full_result=True)
@@ -28,54 +28,87 @@ async def _create_player_embed(p: MinecraftPlayer, color: int) -> Embed | None:
 
     if stats.online:
         seen = f"Online on {stats.server}"
-    else:
+    elif stats.lastJoin is not None:
         last_join = datetime.fromisoformat(stats.lastJoin)
         seen = f"{common.utils.misc.get_relative_date_str(last_join, days=True, hours=True, minutes=True, seconds=True)} ago"
+    else:
+        seen = "Hidden"
 
     if stats.guild is None:
         guild = "None"
     else:
         guild = f"{stats.guild.rank.capitalize()} of **[{stats.guild.name}](https://wynncraft.com/stats/guild/{stats.guild.name.replace(' ', '%20')})**"
 
-    deaths = sum(c.deaths for c in stats.characters.values() if c.deaths is not None)
+    first_join = stats.firstJoin if stats.firstJoin is not None else "Hidden"
+    playtime = f"{stats.playtime} Hours" if stats.playtime is not None else "Hidden"
+    if stats.globalData is None:
+        total_level = "Hidden"
+        wars = "Hidden"
+        killed_mobs = "Hidden"
+        chests_found = "Hidden"
+        completed_quests = "Hidden"
+        total_dungeons = "Hidden"
+        pvp_kd = "Hidden"
+    else:
+        total_level = stats.globalData.totalLevel
+        wars = stats.globalData.wars
+        killed_mobs = stats.globalData.killedMobs
+        chests_found = stats.globalData.chestsFound
+        completed_quests = stats.globalData.completedQuests
+        total_dungeons = stats.globalData.dungeons.total
+        pvp_kd = f"{stats.globalData.pvp.kills}/{stats.globalData.pvp.deaths}"
+
+
+    if stats.characters is not None:
+        deaths = 0
+        for c in stats.characters.values():
+            if c.deaths is not None:
+                deaths += c.deaths
+            else:
+                deaths = "Hidden"
+                break
+    else:
+        deaths = "Hidden"
 
     description = f"## [{rank}] {escape_markdown(p.name)}\n" \
                   f"``{stats.uuid}``\n" \
                   f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n" \
                   f"**Seen:** {seen}\n" \
                   f"**Guild:** {guild}\n" \
-                  f"**Joined:** {stats.firstJoin}\n" \
-                  f"**Total Playtime:** {stats.playtime} Hours\n" \
-                  f"**Total Level:** {stats.globalData.totalLevel}\n" \
-                  f"**Total Wars:** {stats.globalData.wars}\n" \
-                  f"**Total Mobs Killed:** {stats.globalData.killedMobs}\n" \
+                  f"**Joined:** {first_join}\n" \
+                  f"**Total Playtime:** {playtime}\n" \
+                  f"**Total Level:** {total_level}\n" \
+                  f"**Total Wars:** {wars}\n" \
+                  f"**Total Mobs Killed:** {killed_mobs}\n" \
                   f"**Total Deaths:** {deaths}\n" \
-                  f"**Total Chests Opened:** {stats.globalData.chestsFound}\n" \
-                  f"**Total Quests Completed:** {stats.globalData.completedQuests}\n" \
-                  f"**Total Dungeons Completed:** {stats.globalData.dungeons.total}\n" \
-                  f"**PVP K/D:** {stats.globalData.pvp.kills}/{stats.globalData.pvp.deaths}\n" \
+                  f"**Total Chests Opened:** {chests_found}\n" \
+                  f"**Total Quests Completed:** {completed_quests}\n" \
+                  f"**Total Dungeons Completed:** {total_dungeons}\n" \
+                  f"**PVP K/D:** {pvp_kd}\n" \
                   f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯"
 
-    raids_tb = common.utils.tableBuilder.TableBuilder.from_str("l   r")
-    raids_tb.add_row("Total", str(stats.globalData.raids.total))
-    for raid_name, amount in stats.globalData.raids.list.items():
-        raids_tb.add_row(raid_name, str(amount))
+    if stats.globalData is not None:
+        raids_tb = common.utils.tableBuilder.TableBuilder.from_str("l   r")
+        raids_tb.add_row("Total", str(stats.globalData.raids.total))
+        for raid_name, amount in stats.globalData.raids.list.items():
+            raids_tb.add_row(raid_name, str(amount))
 
-    raids = f"**Total Raid Completions**\n" \
-            f">>> ```\n" \
-            f"{raids_tb.build()}\n" \
-            f"```"
+        raids = f"**Total Raid Completions**\n" \
+                f">>> ```\n" \
+                f"{raids_tb.build()}\n" \
+                f"```"
 
     embed = Embed(
         title="",
         description=description,
         color=color,
     )
-    embed.set_thumbnail(url=f"https://visage.surgeplay.com/bust/350/{stats.uuid}?y=-40") \
-        .add_field(name="", value=raids, inline=False) \
-        .add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n**Characters**", inline=False)
+    embed.set_thumbnail(url=f"https://visage.surgeplay.com/bust/350/{stats.uuid}?y=-40")
+    if stats.globalData is not None:
+        embed.add_field(name="", value=raids, inline=False)
 
     if stats.characters is not None:
+        embed.add_field(name="", value="⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n**Characters**", inline=False)
         for char_id, char in stats.characters.items():
             if char.nickname is None:
                 char_name = char.type.capitalize()
