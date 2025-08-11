@@ -20,7 +20,7 @@ class HiddenProfileException(Exception):
     pass
 
 
-@alru_cache(maxsize=None, ttl=120)
+@alru_cache(maxsize=None, ttl=30)
 async def stats(uuid: str, full_result: bool = False) -> PlayerStats:
     """
     Request public statistical information about a player.
@@ -43,7 +43,7 @@ async def stats(uuid: str, full_result: bool = False) -> PlayerStats:
     return PlayerStats.from_json(data)
 
 
-@alru_cache(maxsize=None, ttl=120)
+@alru_cache(maxsize=None, ttl=30)
 async def characters(uuid: str) -> dict[str, CharacterShort]:
     """
     Request a list of short info on a players characters.
