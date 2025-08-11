@@ -13,12 +13,16 @@ import common.logging
 import common.storage.playerTrackerData
 import common.storage.usernameData
 import workers.usernameUpdater
+from common.api.wynncraft.v3 import guild
 from common.types.dataTypes import MinecraftPlayer
 from common.types.enums import PlayerIdentifier
 from workers.queueWorker import QueueWorker
+from workers.guildUpdater import get_active_guilds
 
 _online_players: set[str] = set()
 _worker = QueueWorker(delay=0.01)
+
+_first_update = True
 
 
 async def _record_stats(uuid: str, tries: int):
@@ -32,7 +36,7 @@ async def _record_stats(uuid: str, tries: int):
         player = MinecraftPlayer(uuid=stats.uuid, name=stats.username)
         await workers.usernameUpdater.update_username(player)
         if stats.globalData is None:
-            return # Hidden profile, no stats available
+            return # Main access set to private, no stats available.
         await common.storage.playerTrackerData.add_record(stats)
     except common.api.wynncraft.v3.player.UnknownPlayerException:
         common.logging.debug(f"Couldn't get stats of player with uuid {uuid}: Unknown player.")
@@ -47,6 +51,19 @@ async def _record_stats(uuid: str, tries: int):
     except Exception as e:
         common.logging.error(f"Exception in player stat tracker: uuid: {uuid}, stats: {stats}")
         raise e
+
+async def _update_guild_members():
+    for name in get_active_guilds():
+        try:
+            try:
+                g = await guild.stats(name=name)
+            except guild.UnknownGuildException:
+                continue
+
+            for i, uuid in enumerate(g.members.all.keys()):
+                _worker.put(_record_stats, uuid, 0)
+        except Exception as e:
+            await common.logging.error(exc_info=e)
 
 
 @tasks.loop(seconds=31, reconnect=True)
@@ -66,6 +83,11 @@ async def _update_online():
             _worker.put(_record_stats, uuid, 0)
         for uuid in left_players:
             _worker.put(_record_stats, uuid, 0)
+
+        global _first_update
+        if _first_update:
+            await _update_guild_members()
+            _first_update = False
 
         if _worker.qsize() >= 100:
             common.logging.debug(f"Tracking {len(joined_players) + len(left_players)}({_worker.qsize()}) player's stats.")

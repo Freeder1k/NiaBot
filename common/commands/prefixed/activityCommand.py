@@ -11,11 +11,13 @@ import common.utils.discord
 from common.commands import command
 from common.commands.commandEvent import PrefixedCommandEvent
 from common.types.wynncraft import GuildStats
+from workers.playtimeTracker import main_access_private_members
 
 
 @alru_cache(ttl=600)
 async def _create_activity_embed(bot_config, weeks):
-    guild: GuildStats = await common.api.wynncraft.v3.guild.stats(name=bot_config.GUILD_NAME)
+    guild_name = bot_config.GUILD_NAME
+    guild: GuildStats = await common.api.wynncraft.v3.guild.stats(name=guild_name)
 
     after_date = datetime.now(timezone.utc).date() - timedelta(days=7*weeks)
 
@@ -25,13 +27,15 @@ async def _create_activity_embed(bot_config, weeks):
 
     async def get_playtime(uuid, _):
         uuid = uuid.lower().replace("-", "")
+        if uuid in main_access_private_members.get(guild_name, set()):
+            return 'PRIVATE'
         if uuid not in playtime_data:
             return '0 min'
         return f"{int(playtime_data[uuid] * 60)} min"
 
     embed = Embed(
         color=bot_config.DEFAULT_COLOR,
-        title=f"**Playtimes in {bot_config.GUILD_NAME}** in the last {weeks} week(s)",
+        title=f"**Playtimes in {guild_name}** in the last {weeks} week(s)",
         description='⎯' * 32,
         timestamp=datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
     )

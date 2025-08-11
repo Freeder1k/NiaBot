@@ -106,6 +106,14 @@ def remove_guild(name: str):
     if name in _guild_loggers:
         _guild_loggers.pop(name)
 
+def get_active_guilds() -> list[str]:
+    """
+    Get a list of active guilds being tracked by the updater.
+
+    :return: A list of guild names.
+    """
+    return _active_guilds
+
 
 async def _update_guild(name: str):
     try:

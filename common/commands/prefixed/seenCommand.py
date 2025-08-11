@@ -14,23 +14,26 @@ from common.types.enums import PlayerStatsIdentifier, PlayerIdentifier
 from common.types.wynncraft import GuildStats
 from common.utils import minecraftPlayer
 from common.utils.misc import format_uuid
+from workers.playtimeTracker import online_status_private_members
 
 
-async def _get_last_seen(uuid: str, _):
-    # TODO use player tracking system
-    p = await minecraftPlayer.get_player(uuid=uuid)
-    if p is None:
-        return 'ERROR(P)'
-    try:
-        stats = await common.api.wynncraft.v3.player.stats(format_uuid(p.uuid))
-    except common.api.wynncraft.v3.player.UnknownPlayerException:
-        print(p, uuid)
-        return 'ERROR(S)'
-
-    if stats.online:
-        return f"online({stats.server})"
-    else:
-        return datetime.fromisoformat(stats.lastJoin)
+# async def _get_last_seen(uuid: str, _):
+#     # TODO use player tracking system
+#     p = await minecraftPlayer.get_player(uuid=uuid)
+#     if p is None:
+#         return 'ERROR(P)'
+#     try:
+#         stats = await common.api.wynncraft.v3.player.stats(format_uuid(p.uuid))
+#     except common.api.wynncraft.v3.player.UnknownPlayerException:
+#         print(p, uuid)
+#         return 'ERROR(S)'
+#
+#     if stats.online:
+#         return f"online({stats.server})"
+#     last_join = stats.lastJoin
+#     if last_join is None:
+#         return 'PRIVATE'
+#     return datetime.fromisoformat(last_join)
 
 
 def _last_seen_sort_key(val):
@@ -46,6 +49,8 @@ def _last_seen_sort_key(val):
 def _get_seen_display_value(val):
     if isinstance(val, datetime):
         return f"{common.utils.misc.get_relative_date_str(val, days=True, hours=True, minutes=True, seconds=True)} ago"
+    elif val is None:
+        return "PRIVATE"
     else:
         return val
 
@@ -64,6 +69,10 @@ async def _create_seen_embed(guild_name, color):
         p_uuid = p_uuid.replace('-', '')
         if p_uuid not in data:
             return "ERROR"
+        if p_uuid in online_status_private_members.get(guild_name, set()):
+            return "PRIVATE"
+        if data[p_uuid] is None:
+            return "PRIVATE"
         return datetime.fromisoformat(data[p_uuid]).astimezone(timezone.utc)
 
     embed = Embed(

@@ -55,9 +55,9 @@ class MewoBot(BotInstance):
 
 def start_workers():
     common.logging.info("Starting workers...")
-    workers.playtimeTracker.update_playtimes.start()
     workers.presenceUpdater.update_presence.start()
     workers.guildUpdater.guild_updater.start()
+    workers.playtimeTracker.update_playtimes.start()
     workers.statTracker.start()
     workers.guildIndexer.update_index.start()
     common.logging.info("Guild indexer started.")
@@ -67,9 +67,9 @@ def stop_workers():
     common.logging.info("Stopping workers...")
     workers.guildIndexer.update_index.stop()
     workers.statTracker.stop()
+    workers.playtimeTracker.update_playtimes.stop()
     workers.guildUpdater.guild_updater.stop()
     workers.presenceUpdater.update_presence.stop()
-    workers.playtimeTracker.update_playtimes.stop()
 
 
 async def main():
