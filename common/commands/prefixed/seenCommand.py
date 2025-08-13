@@ -40,10 +40,12 @@ def _last_seen_sort_key(val):
     if isinstance(val, str):
         if val.startswith('ERROR'):
             return -1.0
+        if val == 'PRIVATE':
+            return -2.0
         return datetime.now().timestamp()
     if isinstance(val, datetime):
         return val.timestamp()
-    return -2.0
+    return -3.0
 
 
 def _get_seen_display_value(val):

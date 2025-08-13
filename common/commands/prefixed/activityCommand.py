@@ -13,6 +13,12 @@ from common.commands.commandEvent import PrefixedCommandEvent
 from common.types.wynncraft import GuildStats
 from workers.playtimeTracker import main_access_private_members
 
+def _activity_sort_key(val):
+    if val == 'PRIVATE':
+        return -2.0
+    if val[:-4].isdigit():
+        return int(val[:-4])
+    return -3.0
 
 @alru_cache(ttl=600)
 async def _create_activity_embed(bot_config, weeks):
