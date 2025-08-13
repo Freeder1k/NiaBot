@@ -51,7 +51,7 @@ async def _create_activity_embed(bot_config, weeks):
         base_embed=embed,
         guild=guild,
         data_function=get_playtime,
-        sort_function=lambda t: int(t[:-4]),
+        sort_function=_activity_sort_key,
         sort_reverse=True
     )
 
