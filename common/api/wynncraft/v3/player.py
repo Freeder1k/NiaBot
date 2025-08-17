@@ -21,11 +21,11 @@ class HiddenProfileException(Exception):
 
 
 @alru_cache(maxsize=None, ttl=30)
-async def stats(uuid: str, full_result: bool = False) -> PlayerStats:
+async def stats(uuid: str, api_key: str = None) -> PlayerStats:
     """
     Request public statistical information about a player.
     :param uuid: The uuid of the player to retrieve the stats of.
-    :param full_result: If True, the character list is included in the result.
+    :param api_key: Optional API key for accessing private stats.
     :returns: A Stats object.
     :raises ValueError: if the uuid is not in a valid format.
     :raises UnknownPlayerException: if the player wasn't found.
@@ -33,7 +33,7 @@ async def stats(uuid: str, full_result: bool = False) -> PlayerStats:
     uuid = common.utils.misc.format_uuid(uuid, dashed=True)
 
     try:
-        data = await session.get(f"/player/{uuid}", fullResult="", rate_limit=_player_rate_limit)
+        data = await session.get(f"/player/{uuid}", fullResult="", rate_limit=_player_rate_limit, api_key=api_key)
     except aiohttp.client_exceptions.ClientResponseError as ex:
         if ex.status == 404:
             raise UnknownPlayerException(f'Player {uuid} not found.')

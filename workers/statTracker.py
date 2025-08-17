@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 import aiohttp.client_exceptions
 from discord.ext import tasks
@@ -19,20 +20,23 @@ from common.types.enums import PlayerIdentifier
 from workers.queueWorker import QueueWorker
 from workers.guildUpdater import get_active_guilds
 
+from dotenv import load_dotenv
+load_dotenv()
+
 _online_players: set[str] = set()
 _worker = QueueWorker(delay=0.01)
 
 _first_update = True
 
 
-async def _record_stats(uuid: str, tries: int):
+async def _record_stats(uuid: str, tries: int, api_key: str=None):
     if common.api.wynncraft.v3.player.calculate_remaining_requests() < 10:
         wait_time = common.api.wynncraft.v3.player.ratelimit_reset_time()
         await asyncio.sleep(wait_time + 1)
 
     stats = None
     try:
-        stats = await common.api.wynncraft.v3.player.stats(uuid=uuid)
+        stats = await common.api.wynncraft.v3.player.stats(uuid=uuid, api_key=api_key)
         player = MinecraftPlayer(uuid=stats.uuid, name=stats.username)
         await workers.usernameUpdater.update_username(player)
         if stats.globalData is None:
@@ -60,8 +64,12 @@ async def _update_guild_members():
             except guild.UnknownGuildException:
                 continue
 
+            key = None
+            if name == "Nerfuria":
+                key = os.getenv('WYNN_NIA_API_KEY')
+
             for i, uuid in enumerate(g.members.all.keys()):
-                _worker.put(_record_stats, uuid, 0)
+                _worker.put(_record_stats, uuid, 0, key)
         except Exception as e:
             await common.logging.error(exc_info=e)
 

@@ -1,4 +1,5 @@
 import asyncio
+import os
 from datetime import datetime, timezone, time
 
 import aiohttp.client_exceptions
@@ -13,6 +14,9 @@ from common.storage.playtimeData import set_playtime
 from workers.queueWorker import QueueWorker
 from workers.guildUpdater import get_active_guilds
 
+from dotenv import load_dotenv
+load_dotenv()
+
 _worker = QueueWorker(delay=0.5)
 
 main_access_private_members = {}
@@ -24,7 +28,11 @@ async def _update_member(uuid: str, guild_name: str):
             wait_time = common.api.wynncraft.v3.player.ratelimit_reset_time()
             await asyncio.sleep(wait_time + 1)
 
-        stats = await common.api.wynncraft.v3.player.stats(uuid)
+        key = None
+        if guild_name == "Nerfuria":
+            key = os.getenv('WYNN_NIA_API_KEY')
+
+        stats = await common.api.wynncraft.v3.player.stats(uuid, api_key=key)
 
         if stats.playtime is None:
             main_access_private_members[guild_name].add(uuid)

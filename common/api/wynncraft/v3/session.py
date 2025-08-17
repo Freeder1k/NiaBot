@@ -10,20 +10,26 @@ load_dotenv()
 _shared_rate_limit = WynnRateLimit()
 _v3_session_id = sessionManager.register_session("https://api.wynncraft.com")
 
-headers = {
-    "Authorization": f"Bearer {os.getenv('WYNN_API_KEY')}"
-}
 
-async def get(url: str, rate_limit=None, **params: str) -> JsonType:
+
+async def get(url: str, rate_limit=None, api_key=None, **params: str) -> JsonType:
     """
     Send a GET request to the wynncraft API V3. This has a ratelimit of 180 requests per minute.
     :param url: The url of the request. Must start with '/'.
     :param rate_limit: If set, the specified rate limit will be used instead of the shared one.
+    :param api_key: Optional API key for accessing private stats.
     :param params: Additional request parameters.
     :return: the response in json format.
     """
     if rate_limit is None:
         rate_limit = _shared_rate_limit
+
+    if api_key is None:
+        api_key = os.getenv('WYNN_API_KEY')
+
+    headers = {
+        "Authorization": f"Bearer {api_key}"
+    }
 
     with rate_limit:
         session = sessionManager.get_session(_v3_session_id)
