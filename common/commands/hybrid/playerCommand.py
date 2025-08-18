@@ -19,8 +19,7 @@ from common.utils.command import parse_player
 
 @alru_cache(ttl=30)
 async def _create_player_embed(p: MinecraftPlayer, color: int) -> Embed | None:
-    stats: PlayerStats = await common.api.wynncraft.v3.player.stats(common.utils.misc.format_uuid(p.uuid),
-                                                                    full_result=True)
+    stats: PlayerStats = await common.api.wynncraft.v3.player.stats(common.utils.misc.format_uuid(p.uuid))
 
     rank = stats.rank if stats.rank != "Player" \
         else stats.supportRank.capitalize() if stats.supportRank is not None \
