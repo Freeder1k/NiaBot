@@ -94,7 +94,7 @@ async def _update_online():
 
         global _first_update
         if _first_update:
-            await _update_guild_members()
+            # await _update_guild_members()
             _first_update = False
 
         if _worker.qsize() >= 100:

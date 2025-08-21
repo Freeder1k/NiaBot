@@ -12,6 +12,10 @@ from common.types.wynncraft import PlayerStats, CharacterShort, AbilityNode
 
 _player_rate_limit = WynnRateLimit()
 
+_ratelimits = {
+    None: _player_rate_limit,
+}
+
 class UnknownPlayerException(Exception):
     pass
 
@@ -32,8 +36,11 @@ async def stats(uuid: str, api_key: str = None) -> PlayerStats:
     """
     uuid = common.utils.misc.format_uuid(uuid, dashed=True)
 
+    if api_key not in _ratelimits:
+        _ratelimits[api_key] = WynnRateLimit()
+
     try:
-        data = await session.get(f"/player/{uuid}", fullResult="", rate_limit=_player_rate_limit, api_key=api_key)
+        data = await session.get(f"/player/{uuid}", fullResult="", rate_limit=_ratelimits[api_key], api_key=api_key)
     except aiohttp.client_exceptions.ClientResponseError as ex:
         if ex.status == 404:
             raise UnknownPlayerException(f'Player {uuid} not found.')
