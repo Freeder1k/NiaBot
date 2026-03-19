@@ -28,7 +28,7 @@ async def on_member_role_update(member: discord.Member, added: list[discord.Role
     if len(updated_war_roles) == 0:
         return
 
-    username = member.name.split(" ")[-1]
+    username = member.nick.split(" ")[-1]
 
     with lock:
         existing_users = sheet.col_values(1)
