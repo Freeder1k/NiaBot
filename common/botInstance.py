@@ -4,6 +4,7 @@ from discord import app_commands
 import common.logging
 import workers.guildUpdater
 import workers.presenceUpdater
+from common import role_listener
 from common.botConfig import BotConfig
 from common.commands import command, messageParser
 from common.guildLogger import GuildLogger
@@ -112,6 +113,18 @@ class BotInstance(discord.Client):
         except Exception as e:
             common.logging.error(exc_info=e, extra={"command_event": event})
             await event.reply_exception(e)
+
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        if after.guild.id != self.config.GUILD_DISCORD:
+            return
+        # find what roles changed
+        added_roles = [role for role in after.roles if role not in before.roles]
+        removed_roles = [role for role in before.roles if role not in after.roles]
+
+        if len(added_roles) == 0 and len(removed_roles) == 0:
+            return
+
+        await role_listener.on_member_role_update(after, added_roles, removed_roles)
 
     async def launch(self):
         async with self:
