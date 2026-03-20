@@ -12,6 +12,12 @@ WAR_ROLES = {
     1191217022546231446: 3,  # HQ War
 }
 
+REGION_ROLES = {
+    783992423486980106: "EU",
+    781237548856377424: "NA",
+    783992542722261064: "AS",
+}
+
 sa = gspread.service_account(filename="data/google_cred.json")
 sheet = sa.open_by_key("1_88gZ3JoH3amJprIyxw4oT-vDUwbISoV5l1hRYdGKVI").sheet1
 
@@ -33,13 +39,26 @@ async def on_member_role_update(member: discord.Member, added: list[discord.Role
     with lock:
         existing_users = sheet.col_values(1)
 
+        exists = False
         last_row = len(existing_users) + 1
         for i, user in enumerate(existing_users):
             if user.lower() == username.lower():
                 last_row = i + 1
+                exists = True
                 break
 
         sheet.update_acell(f"A{last_row}", username)
+
+        if not exists:
+            sheet.update_acell(f"B{last_row}", "Basic Access")
+
         sheet.update(roles, f"C{last_row}:F{last_row}")
+
+        region = "Unknown"
+        regions = [REGION_ROLES[role.id] for role in member.roles if role.id in REGION_ROLES]
+        if len(regions) == 1:
+            region = regions[0]
+
+        sheet.update_acell(f"G{last_row}", region)
 
         logging.info(f"Updated war roles for {username}: {roles[0]}")
