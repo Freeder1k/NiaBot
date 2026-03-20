@@ -31,7 +31,8 @@ async def on_member_role_update(member: discord.Member, added: list[discord.Role
             roles[0][WAR_ROLES[role.id]] = True
 
     updated_war_roles = [role for role in added + removed if role.id in WAR_ROLES]
-    if len(updated_war_roles) == 0:
+    updated_region_roles = [role for role in added + removed if role.id in REGION_ROLES]
+    if len(updated_war_roles) == 0 and len(updated_region_roles) == 0:
         return
 
     username = member.nick.split(" ")[-1]
@@ -61,4 +62,4 @@ async def on_member_role_update(member: discord.Member, added: list[discord.Role
 
         sheet.update_acell(f"G{last_row}", region)
 
-        logging.info(f"Updated war roles for {username}: {roles[0]}")
+        logging.info(f"Updated war roles for {username}: {roles[0]}, region: {region}")
