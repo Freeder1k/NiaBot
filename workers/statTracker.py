@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 _online_players: set[str] = set()
+_queued: set[str] = set()
 _worker = QueueWorker(delay=0.01)
 
 _first_update = True
@@ -33,6 +34,8 @@ async def _record_stats(uuid: str, tries: int, api_key: str=None):
     if common.api.wynncraft.v3.player.calculate_remaining_requests() < 10:
         wait_time = common.api.wynncraft.v3.player.ratelimit_reset_time()
         await asyncio.sleep(wait_time + 1)
+
+    _queued.discard(uuid)
 
     stats = None
     try:
@@ -88,8 +91,14 @@ async def _update_online():
         if len(prev_online_players) == 0:
             return
         for uuid in joined_players:
+            if uuid in _queued:
+                continue
+            _queued.add(uuid)
             _worker.put(_record_stats, uuid, 0)
         for uuid in left_players:
+            if uuid in _queued:
+                continue
+            _queued.add(uuid)
             _worker.put(_record_stats, uuid, 0)
 
         global _first_update
