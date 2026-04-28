@@ -69,7 +69,7 @@ async def _create_seen_embed(guild_name, color):
         api_key = os.getenv('WYNN_NIA_API_KEY')
         uuids = list(uuid.replace('-', '') for uuid in guild.members.all.keys())
         data = {}
-        REQ_AMOUNT = 50
+        REQ_AMOUNT = 100
         for i in range(0, len(uuids), REQ_AMOUNT):
             batch = await asyncio.gather(*(_get_last_seen(uuid, api_key) for uuid in uuids[i:i + REQ_AMOUNT]))
             data.update(dict(zip(uuids[i:i + REQ_AMOUNT], batch)))
