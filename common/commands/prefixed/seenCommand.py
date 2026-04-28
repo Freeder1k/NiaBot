@@ -69,10 +69,11 @@ async def _create_seen_embed(guild_name, color):
         api_key = os.getenv('WYNN_NIA_API_KEY')
         uuids = list(uuid.replace('-', '') for uuid in guild.members.all.keys())
         data = {}
-        for i in range(0, len(uuids), 100):
-            batch = await asyncio.gather(*(_get_last_seen(uuid, api_key) for uuid in uuids[i:i + 100]))
-            data.update(dict(zip(uuids[i:i + 100], batch)))
-            if i + 100 < len(uuids):
+        REQ_AMOUNT = 50
+        for i in range(0, len(uuids), REQ_AMOUNT):
+            batch = await asyncio.gather(*(_get_last_seen(uuid, api_key) for uuid in uuids[i:i + REQ_AMOUNT]))
+            data.update(dict(zip(uuids[i:i + REQ_AMOUNT], batch)))
+            if i + REQ_AMOUNT < len(uuids):
                 await asyncio.sleep(61)  # Avoid rate limiting
     else:
         data = await common.storage.playerTrackerData.get_stats_for_guild(guild_name, PlayerStatsIdentifier.LAST_LEAVE)

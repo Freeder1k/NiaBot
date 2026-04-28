@@ -75,39 +75,35 @@ async def get_playtimes_for_guild(guild_name: str, after: datetime = None) -> di
     if uuids is None:
         return {}
 
-    params = uuids + (after, ) + uuids
+    params = uuids + (after, )
 
     cur = await manager.get_cursor()
     res = await cur.execute(f"""
-                SELECT 
-                    a.uuid, 
-                    a.playtime - COALESCE(b.playtime, 0) AS playtime 
-                FROM
-                    (SELECT a1.uuid, a1.playtime
-                     FROM player_tracking as a1
-                     JOIN (
-                         SELECT uuid, MAX(record_time) AS t
-                         FROM player_tracking
-                         WHERE uuid IN {f"({', '.join('?' for _ in uuids)})"}
-                         GROUP BY uuid
-                     ) as a2
-                     ON a1.uuid = a2.uuid AND a1.record_time = a2.t
-                    ) AS a
-                LEFT JOIN 
-                    (SELECT b1.uuid, b1.playtime
-                     FROM player_tracking as b1
-                     INNER JOIN (
-                         SELECT uuid, MAX(record_time) AS t
-                         FROM player_tracking
-                         WHERE record_time <= ?
-                         AND uuid IN {f"({', '.join('?' for _ in uuids)})"}
-                         GROUP BY uuid
-                     ) as b2
-                     ON b1.uuid = b2.uuid AND b1.record_time = b2.t
-                    ) AS b
-                ON a.uuid = b.uuid;
+                WITH ordered AS (
+                    SELECT
+                        uuid,
+                        record_time,
+                        playtime,
+                        LAG(playtime) OVER (
+                            PARTITION BY uuid
+                            ORDER BY record_time
+                        ) AS prev_playtime
+                    FROM player_tracking
+                    WHERE uuid IN {f"({', '.join('?' for _ in uuids)})"}
+                      AND record_time <= ?
+                )
+                SELECT
+                    uuid,
+                    SUM(
+                        CASE
+                            WHEN prev_playtime IS NULL THEN 0
+                            WHEN playtime > prev_playtime THEN playtime - prev_playtime
+                            ELSE 0
+                        END
+                    ) AS playtime
+                FROM ordered
+                GROUP BY uuid;
             """, params)
-
     return {row['uuid']: row['playtime'] for row in await res.fetchall()}
 
 

@@ -12,7 +12,7 @@ class WynnRateLimit(RateLimit):
         """
         Rate limit checker for the Wynncraft API.
         """
-        super().__init__(120, 1)
+        super().__init__(60, 1)
         self._remaining_calls = self._max_calls
         # the second of the minute at which the rate limit resets
         self._reset_time = 0
