@@ -90,7 +90,7 @@ async def get_playtimes_for_guild(guild_name: str, after: datetime = None) -> di
                         ) AS prev_playtime
                     FROM player_tracking
                     WHERE uuid IN {f"({', '.join('?' for _ in uuids)})"}
-                      AND record_time <= ?
+                      AND record_time >= ?
                 )
                 SELECT
                     uuid,
